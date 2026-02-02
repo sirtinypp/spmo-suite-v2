@@ -2,14 +2,14 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 from django.db.models import Q
-from .models import NewsPost, InspectionSchedule
+from .models import NewsPost, InspectionSchedule, Activity
 
 # ---------------------------------------------------------
 # PUBLIC VIEW (The Main Government Portal)
 # ---------------------------------------------------------
 def home(request):
     """
-    Renders the public facing 'index.html' with dynamic News and Inspection data.
+    Renders the public facing 'index.html' with dynamic News and Activity data.
     """
     # 1. Fetch Latest News
     try:
@@ -17,21 +17,22 @@ def home(request):
     except:
         news_list = []
 
-    # 2. Fetch Upcoming Inspections (Next 3)
+    # 2. Fetch Upcoming Activities (Next 6)
+    from django.utils import timezone
+    now = timezone.now()
     try:
-        from django.utils import timezone
-        today = timezone.now().date()
-        inspection_list = InspectionSchedule.objects.filter(
-            scheduled_date__gte=today,
-            status='CONFIRMED'
-        ).order_by('scheduled_date')[:3]
+        activity_list = Activity.objects.filter(
+            is_public=True,
+            start_date__gte=now
+        ).order_by('start_date')[:6]
     except:
-        inspection_list = []
+        activity_list = []
 
     context = {
         'title': 'UP SSPMO | Official Public Portal',
         'news_list': news_list,
-        'inspection_list': inspection_list,
+        'activity_list': activity_list,
+        'current_time': now,
     }
     return render(request, 'index.html', context)
 

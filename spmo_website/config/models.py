@@ -61,6 +61,58 @@ class NewsPost(AuditableModel):
         """Returns day string, e.g., '27'"""
         return self.date_posted.strftime("%d")
 
+class Activity(AuditableModel):
+    CATEGORY_CHOICES = [
+        ('INSP', 'Inspection'),
+        ('TRNG', 'Training'),
+        ('EVNT', 'Event'),
+        ('BAG', 'Brownbag Session'),
+        ('COLLAB', 'Inter-CU Collab'),
+        ('DEPL', 'System Deployment'),
+        ('OTHER', 'Other Activity'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('PLANNED', 'Scheduled'),
+        ('LIVE', 'In Progress'),
+        ('DONE', 'Completed'),
+        ('POST', 'Postponed'),
+        ('CANC', 'Cancelled'),
+    ]
+
+    title = models.CharField(max_length=200)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, default='EVNT')
+    description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, help_text="Building, Room, or Online Link")
+    
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField(blank=True, null=True)
+    
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PLANNED')
+    external_link = models.URLField(blank=True, null=True, help_text="Registration or Meeting Link")
+    
+    is_public = models.BooleanField(default=True, help_text="Show on the Public Hub")
+
+    class Meta:
+        ordering = ['start_date']
+        verbose_name_plural = "Activities"
+
+    def __str__(self):
+        return f"[{self.get_category_display()}] {self.title}"
+
+    @property
+    def color_theme(self):
+        themes = {
+            'INSP': 'red',
+            'TRNG': 'blue',
+            'EVNT': 'amber',
+            'BAG': 'emerald',
+            'COLLAB': 'purple',
+            'DEPL': 'slate',
+        }
+        return themes.get(self.category, 'slate')
+
+# --- LEGACY MODEL (For Migration) ---
 class InspectionSchedule(AuditableModel):
     unit_name = models.CharField(max_length=200, help_text="e.g., College of Engineering")
     activity = models.CharField(max_length=200, help_text="e.g., Physical Inventory Count")
