@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -56,13 +58,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
-                    <div
-                        class="w-11 h-11 rounded-full bg-red-900 flex items-center justify-center text-white shadow-md ring-2 ring-red-100">
-                        <span class="font-serif font-bold text-xl">UP</span>
-                    </div>
+                    <img src="{% static 'images/logo.png' %}" alt="UP Logo" class="w-12 h-12 object-contain">
                     <div class="flex flex-col">
                         <span class="font-bold text-xl leading-none text-red-900 tracking-tight">SSPMO</span>
-                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-1">Supply &
+                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-1">System
+                            Supply &
                             Property Mgt. Office</span>
                     </div>
                 </div>
@@ -916,15 +916,22 @@
                             </div>
 
                             {% for act in activity_list %}
-                            <div class="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 p-4 rounded-xl transition-all cursor-pointer">
+                            <div
+                                class="group bg-slate-800/40 hover:bg-slate-800 border border-slate-700/50 p-4 rounded-xl transition-all cursor-pointer">
                                 <div class="flex items-start justify-between mb-2">
                                     <div class="flex flex-col">
-                                        <span class="text-[10px] font-black text-{{ act.color_theme }}-400 uppercase tracking-tight">{{ act.get_category_display }}</span>
-                                        <h5 class="text-sm font-bold text-slate-100 group-hover:text-white transition-colors">{{ act.title }}</h5>
+                                        <span
+                                            class="text-[10px] font-black text-{{ act.color_theme }}-400 uppercase tracking-tight">{{
+                                            act.get_category_display }}</span>
+                                        <h5
+                                            class="text-sm font-bold text-slate-100 group-hover:text-white transition-colors">
+                                            {{ act.title }}</h5>
                                     </div>
                                     <div class="text-right">
-                                        <span class="block text-xs font-black text-white">{{ act.start_date|date:"d" }}</span>
-                                        <span class="block text-[8px] font-bold text-slate-500 uppercase">{{ act.start_date|date:"M" }}</span>
+                                        <span class="block text-xs font-black text-white">{{ act.start_date|date:"d"
+                                            }}</span>
+                                        <span class="block text-[8px] font-bold text-slate-500 uppercase">{{
+                                            act.start_date|date:"M" }}</span>
                                     </div>
                                 </div>
 
@@ -1393,13 +1400,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div class="col-span-1 md:col-span-2">
                 <div class="flex items-center gap-3 mb-4">
-                    <div
-                        class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-serif font-bold border border-slate-700">
-                        UP</div>
+                    <img src="{% static 'images/logo.png' %}" alt="UP Logo" class="w-10 h-10 object-contain">
                     <span class="font-bold text-white text-lg tracking-tight">SSPMO</span>
                 </div>
                 <p class="text-xs max-w-sm leading-relaxed text-slate-400">
-                    The Supply and Property Management Office is committed to the highest standards of accountability in
+                    The System Supply and Property Management Office is committed to the highest standards of
+                    accountability in
                     the management of government assets and resources.
                 </p>
             </div>
@@ -1421,7 +1427,7 @@
             </div>
         </div>
         <div class="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-slate-800 text-[10px] text-center text-slate-500">
-            &copy; 2026 Supply & Property Management Office (SSPMO). All Rights Reserved.
+            &copy; 2026 System Supply & Property Management Office (SSPMO). All Rights Reserved.
         </div>
     </footer>
 

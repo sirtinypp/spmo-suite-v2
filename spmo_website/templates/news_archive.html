@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -49,10 +51,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <a href="{% url 'home' %}" class="flex items-center gap-3 cursor-pointer">
-                    <div
-                        class="w-11 h-11 rounded-full bg-red-900 flex items-center justify-center text-white shadow-md ring-2 ring-red-100">
-                        <span class="font-serif font-bold text-xl">UP</span>
-                    </div>
+                    <img src="{% static 'images/logo.png' %}" alt="UP Logo" class="w-12 h-12 object-contain">
                     <div class="flex flex-col">
                         <span class="font-bold text-xl leading-none text-red-900 tracking-tight">SSPMO</span>
                         <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-1">News
@@ -145,7 +144,8 @@
                             <div
                                 class="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
                                 <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">No
-                                    Image</span></div>
+                                    Image</span>
+                            </div>
                             {% endif %}
                             <div
                                 class="absolute top-3 left-3 bg-{{ news.color_theme }}-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase">
@@ -188,7 +188,7 @@
     </main>
 
     <footer class="bg-slate-900 text-slate-400 py-8 mt-auto border-t-4 border-red-900 text-center text-xs">
-        <div class="max-w-7xl mx-auto px-4">&copy; {% now "Y" %} Supply & Property Management Office. All Rights
+        <div class="max-w-7xl mx-auto px-4">&copy; {% now "Y" %} System Supply & Property Management Office. All Rights
             Reserved.</div>
     </footer>
     <script>
