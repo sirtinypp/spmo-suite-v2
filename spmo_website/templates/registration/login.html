@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | UP SSPMO Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center relative overflow-hidden">
+
+    <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-40">
+        </div>
+        <div class="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-red-50 to-transparent"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-sm px-4">
+
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-900 text-white shadow-lg ring-4 ring-red-50 mb-4">
+                <span class="font-serif font-bold text-2xl">UP</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">SSPMO <span
+                    class="text-red-900">PORTAL</span></h1>
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Authorized Access Only</p>
+        </div>
+
+        <div class="glass-card rounded-2xl shadow-xl p-8">
+
+            {% if form.errors %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-100 rounded text-xs text-red-700 flex items-center gap-2">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Invalid credentials.</span>
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Username</label>
+                    <input type="text" name="username" autofocus required
+                        class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-red-900 focus:ring-1 focus:ring-red-900"
+                        placeholder="Enter ID">
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Password</label>
+                    <input type="password" name="password" required
+                        class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:border-red-900 focus:ring-1 focus:ring-red-900"
+                        placeholder="••••••••">
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-red-900 hover:bg-red-800 text-white font-bold py-2.5 rounded-lg shadow-lg shadow-red-900/20 transition-transform active:scale-95 text-xs uppercase tracking-wide">
+                    Secure Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <a href="/" class="text-xs font-medium text-slate-400 hover:text-red-900 transition">← Return to Public
+                    Site</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

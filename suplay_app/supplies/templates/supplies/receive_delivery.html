@@ -1,0 +1,69 @@
+{% extends 'supplies/base.html' %}
+
+{% block title %}Receive Delivery - SSPMO Virtual Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h6 class="text-uppercase text-muted fw-bold small mb-1">Admin Panel</h6>
+                    <h2 class="fw-bold text-dark mb-0">Receive Delivery</h2>
+                    <p class="text-muted small mb-0">Record incoming stock to inventory.</p>
+                </div>
+                <a href="{% url 'batch_list' %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Monitor
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <div class="card-body p-4 bg-white">
+                    <form method="POST" action="{% url 'receive_delivery' %}">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-uppercase text-muted">Stock Item</label>
+                            {{ form.product }}
+                            <div class="form-text small">Select the product being received.</div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Date Received</label>
+                                {{ form.date_received }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Quantity</label>
+                                {{ form.quantity_initial }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Supplier /
+                                    Source</label>
+                                {{ form.supplier_name }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-uppercase text-muted">Batch / DR No.</label>
+                                {{ form.batch_number }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success fw-bold py-2 shadow-sm">
+                                <i class="bi bi-check-lg me-2"></i> Confirm Delivery
+                            </button>
+                            <a href="{% url 'batch_list' %}" class="btn btn-light border py-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

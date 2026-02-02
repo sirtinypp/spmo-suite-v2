@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Archive | UP SSPMO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .news-card-img {
+            transition: transform 0.5s ease;
+        }
+
+        .news-card:hover .news-card-img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Masthead -->
+    <div
+        class="bg-red-900 text-white text-[11px] py-1.5 px-4 border-b border-red-950 flex justify-between items-center z-50 relative">
+        <div class="flex gap-4 font-medium tracking-wide">
+            <span class="hover:text-amber-400 cursor-pointer transition">UP SYSTEM</span>
+            <span class="hover:text-amber-400 cursor-pointer transition">OFFICIAL GAZETTE</span>
+            <span class="hover:text-amber-400 cursor-pointer transition">DATA PRIVACY</span>
+        </div>
+        <div class="flex gap-2 items-center font-mono text-white/80">
+            <span>PST: <span id="clock">--:--:--</span></span>
+        </div>
+    </div>
+
+    <!-- Sticky Nav -->
+    <nav class="w-full bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="{% url 'home' %}" class="flex items-center gap-3 cursor-pointer">
+                    <div
+                        class="w-11 h-11 rounded-full bg-red-900 flex items-center justify-center text-white shadow-md ring-2 ring-red-100">
+                        <span class="font-serif font-bold text-xl">UP</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-xl leading-none text-red-900 tracking-tight">SSPMO</span>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-1">News
+                            Repository</span>
+                    </div>
+                </a>
+                <div class="hidden md:flex space-x-1">
+                    <a href="{% url 'home' %}"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all">Home</a>
+                    <a href="{% url 'home' %}#apps"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all">e-Services</a>
+                    <a href="{% url 'home' %}#core-services"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all">Services</a>
+                </div>
+                <div class="flex items-center gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="hidden md:flex flex-col items-end mr-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Welcome</span>
+                        <span class="text-xs font-bold text-red-900">{{ user.username }}</span>
+                    </div>
+                    <a href="{% url 'dashboard' %}"
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-full transition">Apps</a>
+                    {% else %}
+                    <a href="{% url 'login' %}"
+                        class="px-5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-full shadow-lg shadow-red-900/20 transition-transform active:scale-95">Log
+                        In</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+        <div class="flex flex-col lg:flex-row gap-8">
+            <aside class="w-full lg:w-1/4 flex-shrink-0">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-24">
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">Filter Archives</h3>
+                    <form method="get" action="." class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Search Keywords</label>
+                            <input type="text" name="q" value="{{ current_query }}" placeholder="e.g. Inventory..."
+                                class="w-full rounded-lg border-slate-300 text-sm focus:ring-red-900 focus:border-red-900">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Category</label>
+                            <select name="cat"
+                                class="w-full rounded-lg border-slate-300 text-sm focus:ring-red-900 focus:border-red-900">
+                                <option value="">All Categories</option>
+                                {% for code, name in categories %}
+                                <option value="{{ code }}" {% if current_category==code %}selected{% endif %}>{{ name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1">Year</label>
+                            <select name="year"
+                                class="w-full rounded-lg border-slate-300 text-sm focus:ring-red-900 focus:border-red-900">
+                                <option value="">All Years</option>
+                                {% for dt in years %}
+                                <option value="{{ dt.year }}" {% if current_year==dt.year %}selected{% endif %}>{{
+                                    dt.year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="pt-2 flex gap-2">
+                            <button type="submit"
+                                class="flex-1 bg-red-900 text-white text-sm font-bold py-2 rounded-lg hover:bg-red-800 transition">Apply</button>
+                            <a href="{% url 'news_archive' %}"
+                                class="px-3 py-2 border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 text-sm font-bold transition">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+            <div class="flex-grow">
+                <div class="mb-6 flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-slate-900">Announcements & Updates</h1>
+                    <span class="text-xs font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">{{
+                        page_obj.paginator.count }} Found</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for news in news_list %}
+                    <article
+                        class="news-card group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl hover:border-red-100 transition-all duration-300 flex flex-col h-full">
+                        <div class="relative h-40 overflow-hidden flex-shrink-0 bg-slate-100">
+                            {% if news.image %}
+                            <img src="{{ news.image.url }}" class="news-card-img w-full h-full object-cover">
+                            {% else %}
+                            <div
+                                class="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">No
+                                    Image</span></div>
+                            {% endif %}
+                            <div
+                                class="absolute top-3 left-3 bg-{{ news.color_theme }}-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-md uppercase">
+                                {{ news.date_posted|date:"M d, Y" }}</div>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow">
+                            <div class="flex items-center gap-2 mb-2"><span
+                                    class="text-[9px] font-bold tracking-wider text-{{ news.color_theme }}-600 bg-{{ news.color_theme }}-50 px-2 py-0.5 rounded uppercase">{{
+                                    news.get_category_display }}</span></div>
+                            <h3
+                                class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-900 transition-colors line-clamp-2">
+                                {{ news.title }}</h3>
+                            <p class="text-xs text-slate-500 line-clamp-3 mb-4 flex-grow">{{ news.summary }}</p>
+                        </div>
+                    </article>
+                    {% empty %}
+                    <div
+                        class="col-span-full py-12 text-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                        <h3 class="text-lg font-bold text-slate-700">No results found</h3>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if is_paginated %}
+                <div class="mt-10 flex justify-center items-center gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&q={{ current_query }}&cat={{ current_category }}&year={{ current_year }}"
+                        class="w-8 h-8 flex items-center justify-center rounded-full border border-slate-300 text-slate-500">
+                        << /a>
+                            {% endif %}
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest px-2">Page {{
+                                page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                            {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}&q={{ current_query }}&cat={{ current_category }}&year={{ current_year }}"
+                                class="w-8 h-8 flex items-center justify-center rounded-full border border-slate-300 text-slate-500">></a>
+                            {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-8 mt-auto border-t-4 border-red-900 text-center text-xs">
+        <div class="max-w-7xl mx-auto px-4">&copy; {% now "Y" %} Supply & Property Management Office. All Rights
+            Reserved.</div>
+    </footer>
+    <script>
+        function updateClock() { const now = new Date(); document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: true }); }
+        setInterval(updateClock, 1000); updateClock();
+    </script>
+    <!-- Session Timeout Warning System (Popout Modal) -->
+    {% load static %}
+    <script src="{% static 'js/session_timeout_warning.js' %}"></script>
+    <script>
+        // Initialize 10-minute timeout system when DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout();
+        });
+    </script>
+</body>
+
+</html>

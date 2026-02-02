@@ -1,0 +1,92 @@
+{% extends 'supplies/base.html' %}
+{% load static %}
+
+{% block title %}Login - SSPMO Virtual Store{% endblock %}
+
+{% block navbar %}
+<!-- Navbar removed for login page -->
+{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+
+            <div class="text-center mb-5">
+                <img src="{% static 'up_logo_official.png' %}" alt="UP Logo" class="img-fluid mb-3"
+                    style="height: 100px;">
+                <h1 class="display-3 fw-bold text-success mb-3" style="letter-spacing: -2px; font-weight: 800;">SUPLAY
+                </h1>
+                <p class="text-secondary fw-medium text-uppercase px-4"
+                    style="font-size: 0.85rem; letter-spacing: 1px; line-height: 1.8;">
+                    <span class="text-success fw-bolder fs-5">S</span>ustainable Supply
+                    <span class="text-success fw-bolder fs-5">U</span>tilization,
+                    <span class="text-success fw-bolder fs-5">P</span>urchasing,
+                    <span class="text-success fw-bolder fs-5">L</span>ogistics,
+                    <span class="text-success fw-bolder fs-5">A</span>ssets and
+                    <span class="text-success fw-bolder fs-5">Y</span>ield
+                    Assessment
+                </p>
+                <hr class="w-25 mx-auto my-4 text-success opacity-25">
+            </div>
+
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div
+                            class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-3 small mb-4 d-flex align-items-center">
+                            <i class="bi bi-exclamation-circle-fill me-2"></i>
+                            <div>Invalid username or password</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase"
+                                style="font-size: 0.75rem; letter-spacing: 0.5px;">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 text-muted ps-3"><i
+                                        class="bi bi-person"></i></span>
+                                <input type="text" name="username" class="form-control bg-light border-0 py-2"
+                                    placeholder="Enter your username" required autofocus>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase"
+                                style="font-size: 0.75rem; letter-spacing: 0.5px;">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 text-muted ps-3"><i
+                                        class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control bg-light border-0 py-2"
+                                    placeholder="••••••••" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success fw-bold py-2 shadow-sm">
+                                Sign In <i class="bi bi-arrow-right-short ms-1"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+
+                <div class="card-footer bg-light border-0 text-center py-3">
+                    <small class="text-muted">
+                        Forgot password? <a href="#" class="text-decoration-none fw-bold text-success">Contact Admin</a>
+                    </small>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <small class="text-muted opacity-50">System SPMO | SUPLAY &copy; {% now "Y" %}</small>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

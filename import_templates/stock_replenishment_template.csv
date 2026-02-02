@@ -1,0 +1,3 @@
+item_code,supplier_name,batch_number,quantity_initial,cost_per_item,date_received
+BP-001,National Book Store,BATCH-2026-001,100,8.50,2026-01-16
+P-A4,Office Warehouse,BATCH-2026-002,50,220.00,2026-01-16

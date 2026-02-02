@@ -1,0 +1,428 @@
+{% extends 'supplies/base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    {% if debug_info %}
+    <div class="alert alert-info">
+        <strong>DEBUG DIAGNOSTIC:</strong> {{ debug_info }}
+    </div>
+    {% endif %}
+
+    <!-- COMPACT HERO BANNER (Smaller & Horizontal) -->
+    <div class="row mb-3 g-2">
+        <!-- Main Banner -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm text-white"
+                style="background: linear-gradient(110deg, #15803d 0%, #0d9488 100%); overflow: visible;">
+                <div class="card-body p-3 d-flex flex-column flex-md-row align-items-center justify-content-between">
+
+                    <!-- Welcome Message (Compact) -->
+                    <div class="text-center text-md-start mb-2 mb-md-0">
+                        <h4 class="fw-bold mb-1"><i class="bi bi-boxes"></i> Master Catalog</h4>
+                        <p class="mb-0 small opacity-75">Browse and order from our complete inventory</p>
+                    </div>
+
+                    <!-- New Arrivals & Restocked (Horizontal with Click) -->
+                    <div class="d-flex gap-3 flex-wrap justify-content-center flex-grow-1 ms-md-5">
+                        <!-- New Arrivals (Clickable) -->
+                        <div class="position-relative flex-grow-1" style="max-width: 480px;">
+                            <div class="bg-white bg-opacity-10 rounded px-3 py-3 border border-white border-opacity-25 h-100 transition-all"
+                                style="min-width: 260px; transition: all 0.3s ease;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-stars me-2"></i>
+                                    <small class="fw-bold text-uppercase"
+                                        style="font-size: 0.7rem; letter-spacing: 0.5px;">New Arrivals</small>
+                                </div>
+                                {% if newly_added %}
+                                <div class="text-truncate">
+                                    <small class="d-block">{{ newly_added.0.name|truncatechars:28 }}</small>
+                                    {% if newly_added|length > 1 %}
+                                    <small class="opacity-75">+{{ newly_added|length|add:"-1" }} more items</small>
+                                    {% endif %}
+                                </div>
+                                <a href="#" class="text-white text-decoration-none small mt-1 d-inline-block"
+                                    onclick="toggleDropdown(event, 'newArrivalsDropdown')" style="font-size: 0.7rem;">
+                                    <i class="bi bi-chevron-down"></i> See list
+                                </a>
+                                {% else %}
+                                <small class="fst-italic opacity-75">No new items</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Dropdown List (Shown on Click) -->
+                            {% if newly_added %}
+                            <div id="newArrivalsDropdown"
+                                class="position-absolute bg-white text-dark rounded shadow-lg p-2"
+                                style="top: 100%; left: 0; min-width: 280px; max-height: 300px; overflow-y: auto; display: none; z-index: 1000; margin-top: 5px;">
+                                {% for prod in newly_added %}
+                                <a href="{% url 'product_detail' prod.id %}"
+                                    class="d-block text-decoration-none text-dark hover-item p-2 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center me-2"
+                                            style="width: 40px; height: 40px; flex-shrink: 0;">
+                                            {% if prod.image %}
+                                            <img src="{{ prod.image.url }}" class="img-fluid"
+                                                style="max-height: 100%; object-fit: contain;">
+                                            {% else %}
+                                            <i class="bi bi-box text-muted"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 overflow-hidden">
+                                            <small class="d-block fw-bold text-truncate">{{ prod.name }}</small>
+                                            <small class="text-muted">₱{{ prod.price|floatformat:2 }}</small>
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- News & Announcements (Clickable) -->
+                        <div class="position-relative flex-grow-1" style="max-width: 480px;">
+                            <div class="bg-white bg-opacity-10 rounded px-3 py-3 border border-white border-opacity-25 h-100 transition-all"
+                                style="min-width: 260px; transition: all 0.3s ease;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="bi bi-megaphone me-2"></i>
+                                    <small class="fw-bold text-uppercase"
+                                        style="font-size: 0.7rem; letter-spacing: 0.5px;">News</small>
+                                </div>
+                                {% if news_items %}
+                                <div class="text-truncate">
+                                    <small class="d-block fw-bold">{{ news_items.0.title|truncatechars:28 }}</small>
+                                    <small class="opacity-75">{{ news_items.0.formatted_date }}</small>
+                                </div>
+                                <a href="#" class="text-white text-decoration-none small mt-1 d-inline-block"
+                                    onclick="toggleDropdown(event, 'newsDropdown')" style="font-size: 0.7rem;">
+                                    <i class="bi bi-chevron-down"></i> See list
+                                </a>
+                                {% else %}
+                                <small class="fst-italic opacity-75">No updates</small>
+                                {% endif %}
+                            </div>
+
+                            <!-- Dropdown List (Shown on Click) -->
+                            {% if news_items %}
+                            <div id="newsDropdown" class="position-absolute bg-white text-dark rounded shadow-lg p-2"
+                                style="top: 100%; left: 0; min-width: 320px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; margin-top: 5px;">
+                                {% for news in news_items %}
+                                <div class="p-2 border-bottom hover-item rounded">
+                                    {% if news.image %}
+                                    <img src="{{ news.image.url }}" class="img-fluid rounded mb-2 w-100"
+                                        style="max-height: 150px; object-fit: cover;">
+                                    {% endif %}
+                                    <h6 class="fw-bold mb-1 small">{{ news.title }}</h6>
+                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">{{ news.formatted_date }}</small>
+                                    <p class="small mb-0 text-secondary" style="font-size: 0.8rem; line-height: 1.4;">{{ news.short_content }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Click Dropdown Script -->
+    <style>
+        .hover-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .transition-all {
+            transition: all 0.3s ease !important;
+        }
+
+        .bg-white.bg-opacity-10:hover {
+            background-opacity: 0.2 !important;
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        function toggleDropdown(event, dropdownId) {
+            event.preventDefault();
+            const dropdown = document.getElementById(dropdownId);
+            const isVisible = dropdown.style.display === 'block';
+
+            // Hide all dropdowns first
+            document.querySelectorAll('[id$="Dropdown"]').forEach(d => d.style.display = 'none');
+
+            // Toggle the clicked dropdown
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function (event) {
+            const dropdowns = document.querySelectorAll('[id$="Dropdown"]');
+            const isClickInside = event.target.closest('.position-relative');
+
+            if (!isClickInside) {
+                dropdowns.forEach(d => d.style.display = 'none');
+            }
+        });
+    </script>
+
+    <!-- MAIN CONTENT ROW -->
+    <div class="row">
+        <!-- SIDEBAR -->
+        <div class="col-md-3 col-lg-3 mb-4">
+            <!-- STICKY SIDEBAR WRAPPER (Scrollable) -->
+            <div class="sticky-top custom-scrollbar"
+                style="top: 90px; z-index: 100; max-height: calc(100vh - 110px); overflow-y: auto;">
+
+                <form action="{% url 'search' %}" method="GET" class="mb-3">
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-white border-end-0"><i
+                                class="bi bi-search text-muted"></i></span>
+                        <input type="search" name="q" class="form-control border-start-0 ps-0"
+                            placeholder="Search items..." value="{{ request.GET.q|default:'' }}">
+                        <button class="btn btn-success" type="submit">Go</button>
+                    </div>
+                </form>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-funnel"></i> Filters</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-3 border-bottom">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-2">Categories</h6>
+                            <div class="list-group list-group-flush custom-scrollbar"
+                                style="max-height: 200px; overflow-y: auto;">
+                                <a href="{% url 'home' %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if not request.GET.category %}fw-bold text-success{% endif %}">
+                                    All Categories
+                                </a>
+                                {% for cat in categories %}
+                                <a href="?category={{ cat.id }}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if request.GET.category|add:'0' == cat.id %}fw-bold text-success{% endif %}">
+                                    <div class="d-flex justify-content-between align-items-center w-100">
+                                        <span>{{ cat.name }}</span>
+                                        <span class="badge bg-light text-secondary border rounded-pill"
+                                            style="font-size: 0.6rem;">{{ cat.product_count }}</span>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="p-3 border-bottom">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-2">Suppliers</h6>
+                            <div class="list-group list-group-flush custom-scrollbar"
+                                style="max-height: 200px; overflow-y: auto;">
+                                <a href="{% url 'home' %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if not request.GET.supplier %}fw-bold text-success{% endif %}">
+                                    All Suppliers
+                                </a>
+                                {% for sup in suppliers %}
+                                <a href="?supplier={{ sup.id }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if request.GET.supplier|add:'0' == sup.id %}fw-bold text-success{% endif %}">
+                                    {{ sup.name }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="p-3">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-2">Availability</h6>
+                            <div class="list-group list-group-flush">
+                                <a href="?" class="list-group-item list-group-item-action border-0 px-2 py-1 small">Any
+                                    Status</a>
+                                <a href="?stock=in_stock{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if request.GET.stock == 'in_stock' %}fw-bold text-success{% endif %}">
+                                    In Stock Only
+                                </a>
+                                <a href="?stock=out_of_stock{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}"
+                                    class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if request.GET.stock == 'out_of_stock' %}fw-bold text-danger{% endif %}">
+                                    Out of Stock
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9 col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold text-dark mb-1">Office Supplies</h4>
+                    <p class="text-muted small mb-0">Browse our inventory.</p>
+                </div>
+                <span class="badge bg-success rounded-pill px-3 py-2">{{ products|length }} Items Found</span>
+            </div>
+
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 product-card position-relative overflow-hidden">
+
+                        <!-- BADGES: High Z-Index to stay on top -->
+                        <div class="position-absolute top-0 start-0 w-100 p-2 d-flex justify-content-between"
+                            style="z-index: 20; pointer-events: none;">
+                            {% if product.supplier %}
+                            {% if "PSDBM" in product.supplier.name|upper or "PS-DBM" in product.supplier.name|upper %}
+                            <span class="badge bg-warning text-dark border border-dark shadow-sm me-auto">
+                                <i class="bi bi-shop"></i> {{ product.supplier.name }}
+                            </span>
+                            {% else %}
+                            <span class="badge text-white border border-white shadow-sm me-auto"
+                                style="background-color: #800000;">
+                                <i class="bi bi-shop"></i> {{ product.supplier.name }}
+                            </span>
+                            {% endif %}
+                            {% endif %}
+
+                            <span
+                                class="badge {% if product.stock > 0 %}bg-white text-success border{% else %}bg-danger text-white{% endif %} shadow-sm">
+                                <i class="bi bi-box-seam"></i> {{ product.stock }} Left
+                            </span>
+                        </div>
+
+                        <div class="bg-white d-flex align-items-center justify-content-center p-3"
+                            style="height: 220px;">
+                            {% if product.image %}
+                            <img src="{{ product.image.url }}" class="img-fluid"
+                                style="max-height: 100%; object-fit: contain;" alt="{{ product.name }}">
+                            {% else %}
+                            <div class="text-center text-muted opacity-50">
+                                <i class="bi bi-image" style="font-size: 3rem;"></i><br>
+                                <small>No Image</small>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column pt-3">
+                            <small class="text-muted mb-1">{{ product.item_code|default:"No Code" }}</small>
+                            <h6 class="card-title fw-bold text-dark mb-3 text-truncate" title="{{ product.name }}">
+                                {{ product.name }}
+                            </h6>
+
+                            <div class="mt-auto d-flex align-items-center justify-content-between">
+                                <div class="d-flex flex-column">
+                                    <h5 class="fw-bold text-success mb-0">
+                                        ₱{{ product.price|floatformat:2|intcomma }}
+                                    </h5>
+                                    {% if user_has_department %}
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        Your Stock: <strong class="text-dark">{{ product.personal_stock }}</strong>
+                                    </small>
+                                    {% else %}
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        Global Stock: <strong class="text-dark">{{ product.stock }}</strong>
+                                    </small>
+                                    {% endif %}
+                                </div>
+
+                                <!-- FUNCTIONAL BUTTONS -->
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'product_detail' product.id %}"
+                                        class="btn btn-sm btn-outline-secondary rounded-circle" title="View Details"
+                                        style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% if product.stock > 0 %}
+                                    <form action="{% url 'add_to_cart' product.id %}" method="POST"
+                                        class="add-to-cart-form d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-circle"
+                                            title="Add to Cart"
+                                            style="width: 38px; height: 38px; pointer-events: auto; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-plus-lg"></i>
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary rounded-circle" disabled
+                                        style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <div class="py-5">
+                        <i class="bi bi-search display-1 text-muted opacity-25"></i>
+                        <h4 class="mt-3 text-muted">No items match your filter.</h4>
+                        <a href="{% url 'home' %}" class="btn btn-success mt-3 px-4 rounded-pill">Clear Filters</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FUNCTIONAL SCRIPTS -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    <div id="cartToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive"
+        aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-bold">
+                <i class="bi bi-check-circle-fill me-2"></i> Item added to cart!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const forms = document.querySelectorAll('.add-to-cart-form');
+        const toastEl = document.getElementById('cartToast');
+        let toast = null;
+        if (toastEl && typeof bootstrap !== 'undefined') {
+            toast = new bootstrap.Toast(toastEl);
+        }
+
+        forms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const url = this.action;
+                const formData = new FormData(this);
+                const btn = this.querySelector('button');
+                const originalHTML = btn.innerHTML;
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width: 1rem; height: 1rem;"></span>';
+
+                fetch(url, {
+                    method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update Badges
+                            document.querySelectorAll('.badge').forEach(b => {
+                                if (b.parentNode.href && b.parentNode.href.includes('cart')) {
+                                    b.innerText = data.cart_count;
+                                    b.classList.remove('d-none');
+                                }
+                            });
+                            if (toast) toast.show();
+                            setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHTML; }, 500);
+                        } else {
+                            alert(data.message);
+                            btn.disabled = false; btn.innerHTML = originalHTML;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        btn.disabled = false; btn.innerHTML = originalHTML;
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

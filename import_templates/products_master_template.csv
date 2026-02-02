@@ -1,0 +1,3 @@
+id,name,item_code,brand,description,price,category,supplier,unit,reorder_point,stock
+,Ballpen Black,BP-001,HBW,Black ballpoint pen,10.00,Office Supplies,National Book Store,pc,50,0
+,A4 Bond Paper,P-A4,PaperOne,A4 Bond Paper Ream (500s),250.00,Paper,Office Warehouse,ream,20,0

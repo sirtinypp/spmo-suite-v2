@@ -1,0 +1,79 @@
+﻿{% extends 'supplies/base.html' %}
+
+{% block title %}Checkout - SSPMO Virtual Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">Checkout</h2>
+        <p class="text-muted">Complete your request details below</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+
+                <div class="card-header bg-success py-3 px-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text me-2 fs-5 text-white"></i>
+                        <h5 class="mb-0 fw-bold text-white">Request Form</h5>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <h6 class="text-uppercase text-muted fw-bold small mb-3 letter-spacing-1">
+                            <i class="bi bi-person-badge me-1"></i> Employee Information
+                        </h6>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label fw-bold small">Employee Name <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control bg-light border-0 py-2" id="name" name="name"
+                                    placeholder="Full Name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="department" class="form-label fw-bold small">Unit/Office <span
+                                        class="text-danger">*</span></label>
+                                <select class="form-select bg-light border-0 py-2" id="department" name="department"
+                                    required>
+                                    <option value="" selected disabled>Select Office...</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.name }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-light border-start border-success border-4 rounded-3 shadow-sm mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-info-circle text-success fs-4 me-3"></i>
+                                <div>
+                                    <strong class="d-block text-dark">Step 1 of 2</strong>
+                                    <small class="text-muted">In the next step, you will generate your Requisition Slip
+                                        and upload the signed copy.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-end">
+                            <a href="{% url 'view_cart' %}" class="btn btn-outline-secondary fw-bold px-4 py-2">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success fw-bold px-5 py-2 shadow-sm">
+                                Next: Generate Slip <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

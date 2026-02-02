@@ -1,0 +1,90 @@
+﻿{% extends 'supplies/base.html' %}
+{% load humanize %}
+
+{% block title %}Order Confirmed - SSPMO Virtual Store{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-body p-5 text-center">
+
+                    <div class="mb-4">
+                        <div class="bg-success-subtle text-success rounded-circle d-inline-flex align-items-center justify-content-center"
+                            style="width: 90px; height: 90px;">
+                            <i class="bi bi-check-lg display-3"></i>
+                        </div>
+                    </div>
+
+                    <h2 class="fw-bold text-success mb-2">Order Submitted!</h2>
+                    <p class="text-muted">Thank you, {{ order.employee_name }}</p>
+
+                    <div class="bg-light rounded-4 p-4 mt-4 text-start">
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Order ID:</span>
+                            <span class="fw-bold text-dark small">#{{ order.id }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Date:</span>
+                            <span class="fw-bold text-dark small">{{ order.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="text-muted small">Department:</span>
+                            <span class="fw-bold text-dark small">{{ order.department }}</span>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted fw-bold small mb-2 letter-spacing-1 border-bottom pb-2">
+                            Items Ordered</h6>
+                        <ul class="list-unstyled mb-0">
+                            {% for item in order.items.all %}
+                            <li class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="me-2">
+                                    <div class="fw-bold text-dark small">{{ item.product.name }}</div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        ₱{{ item.price|floatformat:2|intcomma }} x {{ item.quantity }}
+                                    </div>
+                                </div>
+                                <div class="fw-bold text-dark small">₱{{ item.subtotal|floatformat:2|intcomma }}</div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+
+                        <hr class="border-secondary opacity-10 my-3">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold">Total Amount</span>
+                            <span class="fs-4 fw-bold text-success">₱{{ order.total_amount|floatformat:2|intcomma
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="alert alert-warning border-0 bg-warning-subtle text-warning-emphasis rounded-3 small mt-4 d-flex align-items-start text-start">
+                        <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                        <div>
+                            <strong>Pending Approval:</strong> Your request has been sent to the admin team for review.
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'home' %}" class="btn btn-success fw-bold py-2 shadow-sm">
+                            Continue Shopping
+                        </a>
+
+                        {% if user.is_superuser %}
+                        <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary fw-bold py-2 border-0">
+                            View Transaction Log
+                        </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

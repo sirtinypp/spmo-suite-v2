@@ -1,0 +1,128 @@
+services:
+  # --- The Database ---
+  db:
+    image: postgres:15-alpine
+    container_name: spmo_shared_db
+    environment:
+      - POSTGRES_USER=spmo_admin
+      - POSTGRES_PASSWORD=secret_password
+      - POSTGRES_DB=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db_init/init_databases.sh:/docker-entrypoint-initdb.d/init_databases.sh
+    ports:
+      - "5432:5432"
+    restart: always
+
+  # --- App 1: SPMO Website ---
+  spmo_website:
+    build: ./spmo_website
+    container_name: app_hub
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./spmo_website:/app
+    # Ports Exposed
+    ports:
+      - "127.0.0.1:8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - DB_NAME=db_spmo
+      - DB_USER=spmo_admin
+      - DB_PASSWORD=secret_password
+      - DB_HOST=db
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=True
+
+  # --- App 2: GAMIT ---
+  gamit_app:
+    build: ./gamit_app
+    container_name: app_gamit
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./gamit_app:/app
+    # Ports Exposed
+    ports:
+      - "127.0.0.1:8001:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - DB_NAME=db_gamit
+      - DB_USER=spmo_admin
+      - DB_PASSWORD=secret_password
+      - DB_HOST=db
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=+g1($$r^jwkprb)2o9fl8m=ba_(tq5v+^bj43)2z*$$l1c@7edx5
+
+  # --- App 3: GFA ---
+  gfa_app:
+    build: ./gfa_app
+    container_name: app_gfa
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./gfa_app:/app
+    # Ports Exposed
+    ports:
+      - "127.0.0.1:8002:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - DB_NAME=db_gfa
+      - DB_USER=spmo_admin
+      - DB_PASSWORD=secret_password
+      - DB_HOST=db
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=True
+      - DJANGO_SECRET_KEY=gfa-prod-secret-key-2026-secure-lipad-travel-system-v1
+
+  # --- App 4: Virtual Store ---
+  virtual_store:
+    build: ./suplay_app
+    container_name: app_store
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./suplay_app:/app
+    # Ports Exposed
+    ports:
+      - "127.0.0.1:8003:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - DB_NAME=db_store
+      - DB_USER=spmo_admin
+      - DB_PASSWORD=secret_password
+      - DB_HOST=db
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DEBUG=True
+
+  # --- Reverse Proxy ---
+  nginx:
+    image: nginx:alpine
+    container_name: spmo_gateway
+    ports:
+      - "80:80"
+      # - "443:443" # Uncomment when SSL certs are ready
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - spmo_website
+      - gamit_app
+      - gfa_app
+      - virtual_store
+    restart: always
+
+volumes:
+  postgres_data:

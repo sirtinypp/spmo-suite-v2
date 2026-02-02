@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UP SSPMO | Supply & Property Management Office</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* Icon Hover Animation */
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(-5deg);
+            color: #7f1d1d;
+            /* red-900 */
+        }
+
+        /* News Card Zoom Effect */
+        .news-card-img {
+            transition: transform 0.5s ease;
+        }
+
+        .news-card:hover .news-card-img {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <div
+        class="bg-red-900 text-white text-[11px] py-1.5 px-4 border-b border-red-950 flex justify-between items-center z-50 relative">
+        <div class="flex gap-4 font-medium tracking-wide">
+            <span class="hover:text-amber-400 cursor-pointer transition">UP SYSTEM</span>
+            <span class="hover:text-amber-400 cursor-pointer transition">OFFICIAL GAZETTE</span>
+            <span class="hover:text-amber-400 cursor-pointer transition">DATA PRIVACY</span>
+        </div>
+        <div class="flex gap-2 items-center font-mono text-white/80">
+            <span>PST: <span id="clock">--:--:--</span></span>
+        </div>
+    </div>
+
+    <nav class="w-full bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <div
+                        class="w-11 h-11 rounded-full bg-red-900 flex items-center justify-center text-white shadow-md ring-2 ring-red-100">
+                        <span class="font-serif font-bold text-xl">UP</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-xl leading-none text-red-900 tracking-tight">SSPMO</span>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-1">Supply &
+                            Property Mgt. Office</span>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex flex-grow max-w-sm lg:max-w-md mx-6 relative group"
+                    id="nav-search-container">
+                    <div
+                        class="relative flex items-center bg-slate-100 rounded-full ring-1 ring-slate-200 focus-within:ring-red-200 focus-within:bg-white transition-all">
+                        <input type="text" id="hub-search-input"
+                            class="w-full py-2 pl-5 pr-12 bg-transparent border-0 focus:ring-0 text-sm text-slate-700 placeholder:text-slate-400 font-medium rounded-full"
+                            placeholder="Search services, apps..." autocomplete="off">
+                        <div class="absolute right-4 text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <!-- Search Dropdown -->
+                    <div id="search-dropdown"
+                        class="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-96 overflow-y-auto hidden z-50">
+                        <div id="search-results" class="p-2"></div>
+                        <div id="search-empty" class="p-6 text-center text-slate-400 text-sm hidden">No results found
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:flex space-x-1">
+                    <a href="#"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all whitespace-nowrap">Home</a>
+                    <a href="#apps"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all whitespace-nowrap">e-Services</a>
+                    <a href="#news-inspections"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all whitespace-nowrap">News</a>
+                    <a href="#core-services"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-red-900 hover:bg-red-50 font-medium text-sm transition-all whitespace-nowrap">Services
+                        & Resources</a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    {% if user.is_authenticated %}
+                    <div class="hidden md:flex flex-col items-end mr-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Welcome</span>
+                        <span class="text-xs font-bold text-red-900">{{ user.username }}</span>
+                    </div>
+
+                    <a href="{% url 'dashboard' %}"
+                        class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold rounded-full transition"
+                        title="Go to Dashboard">
+                        Apps
+                    </a>
+
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="px-4 py-2 border border-red-200 text-red-900 hover:bg-red-50 text-xs font-bold rounded-full transition">
+                            Log Out
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}"
+                        class="px-5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold rounded-full shadow-lg shadow-red-900/20 transition-transform active:scale-95">
+                        Log In
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="bg-white relative overflow-hidden pb-24 border-b border-slate-200">
+        <div class="absolute inset-0 bg-slate-50">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-40">
+            </div>
+            <div class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-red-50 to-transparent"></div>
+        </div>
+
+        <div class="relative max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 flex flex-col items-center text-center z-10">
+            <span
+                class="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-red-50 border border-red-100 text-red-800 text-[10px] font-bold uppercase tracking-wider mb-6">
+                Official Public Portal
+            </span>
+
+
+            <div class="mb-8">
+                <p class="text-sm md:text-base font-semibold text-slate-600 uppercase tracking-widest mb-3">
+                    System Supply and Property Management Office
+                </p>
+                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight text-slate-900">
+                    Smart <span class="text-red-900">Logistics & Asset</span> <br /> Governance
+                </h1>
+            </div>
+
+            <div class="w-full max-w-7xl mx-auto mt-8">
+                <div class="flex items-center justify-center gap-2 mb-6">
+                    <span class="relative flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">All Systems Online</span>
+                </div>
+
+                <div id="apps" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                    <a id="link-gamit" href="https://gamit-sspmo.up.edu.ph" target="_blank"
+                        class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group border-t-4 border-t-red-900 hover:bg-white">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div
+                                class="w-12 h-12 bg-red-50 text-red-900 rounded-xl flex items-center justify-center group-hover:bg-red-900 group-hover:text-white transition-colors shadow-sm">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight">GAMIT</h3>
+                                <div
+                                    class="text-[10px] font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                                    INVENTORY</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">Government Asset Management and Inventory
+                            Tracking. Manage equipment lifecycle.</p>
+                    </a>
+
+                    <a id="link-suplay" href="https://suplay-sspmo.up.edu.ph" target="_blank"
+                        class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group border-t-4 border-t-green-800 hover:bg-white">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div
+                                class="w-12 h-12 bg-green-50 text-green-800 rounded-xl flex items-center justify-center group-hover:bg-green-800 group-hover:text-white transition-colors shadow-sm">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight">SUPLAY</h3>
+                                <div
+                                    class="text-[10px] font-bold text-green-800 bg-green-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                                    SUPPLIES</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">Sustainable Supply Utilization, Purchasing,
+                            Logistics, Assets and Yield Assessment</p>
+                    </a>
+
+                    <a id="link-lipad" href="https://lipad-sspmo.up.edu.ph" target="_blank"
+                        class="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group border-t-4 border-t-amber-500 hover:bg-white">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div
+                                class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors shadow-sm">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight">LIPAD</h3>
+                                <div
+                                    class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                                    TRAVEL</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">Logistics and travel Itinerary Portal for
+                            Authorized Departures</p>
+                    </a>
+                </div>
+            </div>
+
+
+
+        </div>
+    </header>
+
+    <main class="flex-grow px-4 relative z-20 -mt-16">
+
+        <!-- About SSPMO Section -->
+        <section id="about" class="max-w-7xl mx-auto mb-24 scroll-mt-24">
+            <div class="text-center mb-12">
+                <span
+                    class="inline-block px-4 py-1 bg-red-50 text-red-900 text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                    About SSPMO
+                </span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+                    Who We Are
+                </h2>
+                <p class="text-slate-600 max-w-2xl mx-auto">
+                    The central hub for property management and supply chain excellence in the UP System
+                </p>
+            </div>
+
+            <div id="mission" class="flex flex-col gap-12 mb-20">
+                <!-- Mandate (Left Aligned) -->
+                <div
+                    class="flex flex-col md:flex-row items-center gap-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                    <div class="w-full md:w-1/3 flex justify-center">
+                        <div class="w-24 h-24 bg-red-50 text-red-900 rounded-full flex items-center justify-center">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Our Mandate</h3>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            The System Supply and Property Management Office (SSPMO) serves as the central procurement
+                            and property management unit of the University of the Philippines System, ensuring efficient
+                            resource allocation, transparent procurement processes, and effective asset governance in
+                            support of academic and research missions.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mission (Right Aligned / Reversed) -->
+                <div
+                    class="flex flex-col md:flex-row-reverse items-center gap-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                    <div class="w-full md:w-1/3 flex justify-center">
+                        <div class="w-24 h-24 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Our Mission</h3>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            To provide efficient services, accurate resource monitoring, accountability, and compliance,
+                            while fostering collaborations, leading in innovation, embracing technology, and
+                            prioritizing environmental stewardship for optimized operational efficiency and positive
+                            community impact.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Vision (Left Aligned) -->
+                <div
+                    class="flex flex-col md:flex-row items-center gap-8 bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                    <div class="w-full md:w-1/3 flex justify-center">
+                        <div
+                            class="w-24 h-24 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Our Vision</h3>
+                        <p class="text-slate-600 leading-relaxed text-lg">
+                            A modern, innovative, and responsive Supply and Property Management Office knowledgeable on
+                            acquisition, supply, inventory and disposal management that provides exemplary and quality
+                            service with integrity and honor.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Values & Office Functions -->
+        <!-- Strategic Alignment Matrix -->
+        <section id="strategy" class="max-w-7xl mx-auto mb-24 scroll-mt-24 px-4">
+            <div class="text-center mb-12">
+                <span
+                    class="inline-block px-4 py-1 bg-green-50 text-green-800 text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                    Strategic Direction
+                </span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+                    Strategic Themes & Results
+                </h2>
+            </div>
+
+            <!-- Matrix Grid -->
+            <!-- Desktop: 5 columns (1 Label + 4 Content). Mobile: Stacked -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+
+                <!-- ROW 1: THEMES -->
+                <!-- Mobile Label -->
+                <div class="lg:col-span-1 lg:row-start-1 flex items-center lg:justify-center mb-4 lg:mb-0">
+                    <div
+                        class="bg-green-600 text-white font-bold px-6 py-3 rounded-full shadow-lg uppercase tracking-wider text-sm w-full text-center lg:w-auto">
+                        Strategic Themes
+                    </div>
+                </div>
+
+                <!-- Theme 1 -->
+                <div
+                    class="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="font-extrabold text-slate-800 uppercase tracking-tight">Operational Excellence</h3>
+                </div>
+                <!-- Theme 2 -->
+                <div
+                    class="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="font-extrabold text-slate-800 uppercase tracking-tight">Good Governance</h3>
+                </div>
+                <!-- Theme 3 -->
+                <div
+                    class="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="font-extrabold text-slate-800 uppercase tracking-tight">Digital Transformation</h3>
+                </div>
+                <!-- Theme 4 -->
+                <div
+                    class="bg-slate-50 border border-slate-200 p-6 rounded-2xl flex items-center justify-center text-center shadow-sm hover:shadow-md transition-shadow">
+                    <h3 class="font-extrabold text-slate-800 uppercase tracking-tight">Building Competencies</h3>
+                </div>
+
+
+                <!-- ROW 2: RESULTS -->
+                <!-- Mobile Label -->
+                <div class="lg:col-span-1 lg:row-start-2 flex items-center lg:justify-center mt-8 lg:mt-0 mb-4 lg:mb-0">
+                    <div
+                        class="bg-green-600 text-white font-bold px-6 py-3 rounded-full shadow-lg uppercase tracking-wider text-sm w-full text-center lg:w-auto">
+                        Strategic Results
+                    </div>
+                </div>
+
+                <!-- Result 1 -->
+                <div
+                    class="bg-white border-t-4 border-t-green-600 border-x border-b border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all flex flex-col justify-center">
+                    <ul class="space-y-3 text-sm font-medium text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Optimized Operational Efficiency</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Enhanced Employee Engagement</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Enhanced Customer Experience and Satisfaction</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Result 2 -->
+                <div
+                    class="bg-white border-t-4 border-t-green-600 border-x border-b border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all flex flex-col justify-center">
+                    <ul class="space-y-3 text-sm font-medium text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Robust Regulatory Compliance and Reporting</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Enhanced Data Governance, Privacy, and Security</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Result 3 -->
+                <div
+                    class="bg-white border-t-4 border-t-green-600 border-x border-b border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all flex flex-col justify-center">
+                    <ul class="space-y-3 text-sm font-medium text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Technical Integration and Automation</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Agile Response to Market Changes</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Result 4 -->
+                <div
+                    class="bg-white border-t-4 border-t-green-600 border-x border-b border-slate-100 p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all flex flex-col justify-center">
+                    <ul class="space-y-3 text-sm font-medium text-slate-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Culture of Continuous Learning and Adaptation</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Embedded Core Values</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Improved Quality of Services</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. News & Inspections -->
+        <!-- 2. News & Advisories (Full Width) -->
+        <section id="news" class="max-w-7xl mx-auto mb-24 scroll-mt-24 px-4">
+            <div class="text-center mb-12">
+                <span
+                    class="inline-block py-1 px-3 rounded-full bg-red-50 text-red-900 text-[10px] font-bold tracking-widest uppercase mb-3 shadow-sm border border-red-100">
+                    Latest Updates
+                </span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight mb-3">News & Advisories</h2>
+                <a href="{% url 'news_archive' %}"
+                    class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-red-900 transition-colors">
+                    View Archives
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for news in news_list %}
+                <article
+                    class="news-card group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
+                    <div class="relative h-52 overflow-hidden flex-shrink-0">
+                        {% if news.image %}
+                        <img src="{{ news.image.url }}" alt="{{ news.title }}"
+                            class="news-card-img w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700">
+                        {% else %}
+                        <div class="w-full h-full bg-slate-50 flex items-center justify-center text-slate-400">
+                            <div class="text-center">
+                                <svg class="w-10 h-10 mx-auto mb-2 opacity-25" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                                <span class="text-xs font-medium uppercase tracking-wider">No Image</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="p-6 flex flex-col flex-grow">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span
+                                class="text-[10px] font-bold tracking-wider text-{{ news.color_theme }}-700 bg-{{ news.color_theme }}-50 px-2.5 py-1 rounded-full uppercase border border-{{ news.color_theme }}-100">
+                                {{ news.get_category_display }}
+                            </span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-{{ news.color_theme }}-700 transition-colors line-clamp-3 leading-tight"
+                            style="min-height: 5.25rem;">
+                            {{ news.title }}
+                        </h3>
+
+                        <p class="text-sm text-slate-600 line-clamp-4 mb-6 leading-relaxed" style="min-height: 6rem;">
+                            {{ news.summary }}
+                        </p>
+
+                        <div class="mt-auto pt-5 border-t border-slate-50">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                                {{ news.date_posted|date:"F d, Y" }}
+                            </p>
+                            <div class="flex justify-between items-center">
+                                <button onclick="openModal(this)" data-title="{{ news.title }}"
+                                    data-date="{{ news.date_posted|date:'F d, Y' }}"
+                                    data-category="{{ news.get_category_display }}" data-color="{{ news.color_theme }}"
+                                    data-image="{% if news.image %}{{ news.image.url }}{% endif %}"
+                                    data-content="{{ news.content|default:news.summary|linebreaksbr }}"
+                                    class="text-sm font-bold text-slate-500 hover:text-{{ news.color_theme }}-700 transition flex items-center gap-2 group/btn">
+                                    Read Full Story
+                                    <svg class="w-4 h-4 transition-transform group-hover/btn:translate-x-1" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </button>
+
+                                {% if news.attachment %}
+                                <a href="{{ news.attachment.url }}" target="_blank"
+                                    class="w-9 h-9 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-full transition-all hover:scale-105 shadow-sm"
+                                    title="Download Attachment">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <div
+                    class="col-span-1 md:col-span-3 p-12 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z">
+                        </path>
+                    </svg>
+                    <p class="text-base font-medium">No advisories posted at this time.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Office Leadership -->
+        <section id="leadership" class="max-w-5xl mx-auto mb-24 scroll-mt-24">
+            <div class="text-center mb-12">
+                <span
+                    class="inline-block px-4 py-1 bg-emerald-50 text-emerald-900 text-xs font-bold uppercase tracking-wider rounded-full mb-4">
+                    Leadership
+                </span>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+                    Office Leadership
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 1. VP for Administration -->
+                <div
+                    class="glass-card rounded-3xl p-6 shadow-lg border border-red-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-red-50">
+                    {% load static %}
+                    <img src="{% static 'images/chief-placeholder.png' %}" alt="VP for Administration"
+                        class="w-32 h-32 rounded-full shadow-md mb-4 ring-4 ring-red-100 object-cover bg-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">VP for Administration</h3>
+                    <p class="text-[10px] font-bold text-red-900 uppercase tracking-widest mb-5 opacity-80">University
+                        of the Philippines System</p>
+
+                    <button
+                        class="toggle-bio-btn px-5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-sm transition-all flex items-center gap-2 group"
+                        data-target="bio-vp">
+                        View Profile
+                        <svg class="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <div id="bio-vp"
+                        class="bio-content mt-4 w-full overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
+                        <div class="pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed text-left">
+                            <p>Oversees administrative functions across the UP System, ensuring operational efficiency
+                                and strategic alignment.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. AVP for Administration / Operations -->
+                <div
+                    class="glass-card rounded-3xl p-6 shadow-lg border border-red-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-red-50">
+                    <img src="{% static 'images/chief-placeholder.png' %}" alt="AVP for Administration"
+                        class="w-32 h-32 rounded-full shadow-md mb-4 ring-4 ring-red-100 object-cover bg-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">AVP for Administration</h3>
+                    <p class="text-[10px] font-bold text-red-900 uppercase tracking-widest mb-5 opacity-80">Operations
+                        UP System
+                    </p>
+
+                    <button
+                        class="toggle-bio-btn px-5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-sm transition-all flex items-center gap-2 group"
+                        data-target="bio-avp">
+                        View Profile
+                        <svg class="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <div id="bio-avp"
+                        class="bio-content mt-4 w-full overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
+                        <div class="pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed text-left">
+                            <p>Manages day-to-day operations and coordinates key administrative initiatives.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Chief, SSPMO -->
+                <div
+                    class="glass-card rounded-3xl p-6 shadow-lg border border-red-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-red-50">
+                    <img src="{% static 'images/chief-placeholder.png' %}" alt="Chief, SSPMO"
+                        class="w-32 h-32 rounded-full shadow-md mb-4 ring-4 ring-red-100 object-cover bg-slate-100">
+                    <h3 class="text-lg font-bold text-slate-900 mb-1">Chief</h3>
+                    <p class="text-[10px] font-bold text-red-700 uppercase tracking-widest mb-5">System Supply and
+                        Property
+                        Management Office</p>
+
+                    <button
+                        class="toggle-bio-btn px-5 py-2 bg-red-900 hover:bg-red-800 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg transition-all flex items-center gap-2 group"
+                        data-target="bio-chief">
+                        View Profile
+                        <svg class="w-3 h-3 transition-transform duration-300 group-hover:translate-y-0.5" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+
+                    <div id="bio-chief"
+                        class="bio-content mt-4 w-full overflow-hidden max-h-0 opacity-0 transition-all duration-500 ease-in-out">
+                        <div class="pt-4 border-t border-slate-100 text-xs text-slate-600 leading-relaxed text-left">
+                            <p>Leading innovation in property and supply management across the UP System. Driving
+                                modernization and efficiency.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+<!-- 3. Operational Team (Staff) -->
+<section id="operational-team" class="max-w-7xl mx-auto mb-24 scroll-mt-24 px-4">
+    <div class="text-center mb-12">
+        <span
+            class="inline-block px-4 py-1 bg-blue-50 text-blue-900 text-xs font-bold uppercase tracking-wider rounded-full mb-4 border border-blue-100">
+            Our Team
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+            Operational Team
+        </h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <!-- 1. Julius Mar Dela Cruz -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            {% load static %}
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Julius Mar Dela Cruz"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Julius Mar Dela Cruz</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Junior Office Manager
+            </p>
+        </div>
+
+        <!-- 2. Aaron Christian Basa -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Aaron Christian Basa"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Aaron Christian Basa</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Junior Office Manager
+            </p>
+        </div>
+
+        <!-- 3. Mark Joshua Pedrosa -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Mark Joshua Pedrosa"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Mark Joshua Pedrosa</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Administrative Assistant
+                III</p>
+        </div>
+
+        <!-- 4. Edgardo Apusen -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Edgardo Apusen"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Edgardo Apusen</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Administrative Aide IV
+            </p>
+        </div>
+
+        <!-- 5. Ruby Wadawad -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Ruby Wadawad"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Ruby Wadawad</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Junior Office Associate
+            </p>
+        </div>
+
+        <!-- 6. Eldefonso Sardual Jr. -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Eldefonso Sardual Jr."
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Eldefonso Sardual Jr.</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Junior Office Associate
+            </p>
+        </div>
+
+        <!-- 7. Sherwin Cura -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Sherwin Cura"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Sherwin Cura</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Senior Office Assistant
+            </p>
+        </div>
+
+        <!-- 8. Joeven Del Mundo -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-blue-100 flex flex-col items-center text-center bg-white/60 backdrop-blur-sm ring-1 ring-blue-50 hover:shadow-md transition-all">
+            <img src="{% static 'images/chief-placeholder.png' %}" alt="Joeven Del Mundo"
+                class="w-20 h-20 rounded-full shadow-sm mb-3 ring-2 ring-blue-50 object-cover bg-slate-100">
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Joeven Del Mundo</h3>
+            <p class="text-[10px] font-bold text-blue-900 uppercase tracking-widest opacity-80">Senior ICT Assistant</p>
+        </div>
+
+        <!-- 9. Blank Slot -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-dashed border-slate-200 flex flex-col items-center text-center bg-slate-50/50 hover:bg-slate-50 transition-all opacity-50 hover:opacity-100">
+            <div class="w-20 h-20 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
+                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </div>
+            <h3 class="text-sm font-bold text-slate-400 mb-1">Open Position</h3>
+            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Available</p>
+        </div>
+
+        <!-- 10. Blank Slot -->
+        <div
+            class="glass-card rounded-2xl p-6 shadow-sm border border-dashed border-slate-200 flex flex-col items-center text-center bg-slate-50/50 hover:bg-slate-50 transition-all opacity-50 hover:opacity-100">
+            <div class="w-20 h-20 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
+                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </div>
+            <h3 class="text-sm font-bold text-slate-400 mb-1">Open Position</h3>
+            <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Available</p>
+        </div>
+    </div>
+</section>
+
+
+
+        <!-- 3. Inspection Calendar (Separate Landscape Section) -->
+        <section id="inspections" class="max-w-7xl mx-auto mb-24 scroll-mt-24 px-4">
+            <div class="bg-slate-900 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden relative">
+                <!-- Decorative BG elements -->
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-red-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3">
+                </div>
+                <div
+                    class="absolute bottom-0 left-0 w-64 h-64 bg-blue-900/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3">
+                </div>
+
+                <div class="relative z-10">
+                    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+                        <div>
+                            <span
+                                class="inline-block px-3 py-1 bg-red-500/10 text-red-200 text-xs font-bold uppercase tracking-wider rounded-full mb-4 border border-red-500/20">
+                                Schedule
+                            </span>
+                            <h2 class="text-3xl font-bold text-white mb-2">Inspection Calendar</h2>
+                            <p class="text-slate-400 max-w-xl">Upcoming site inspections and asset verification
+                                activities across the system.</p>
+                        </div>
+                        <button
+                            class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl transition-all border border-slate-700 hover:border-slate-600 flex items-center gap-2">
+                            Full Schedule
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% for inspection in inspection_list %}
+                        <div
+                            class="group bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-red-500/30 rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                            <div class="flex items-start justify-between mb-4">
+                                <div
+                                    class="w-14 text-center bg-slate-900 rounded-xl py-2 border border-slate-700 group-hover:border-red-500/30 group-hover:bg-red-900/20 transition-colors">
+                                    <span
+                                        class="block text-[10px] font-bold text-slate-500 group-hover:text-red-300 uppercase tracking-wider">{{
+                                        inspection.scheduled_date|date:"M" }}</span>
+                                    <span class="block text-xl font-black text-white group-hover:text-red-100">{{
+                                        inspection.scheduled_date|date:"d" }}</span>
+                                </div>
+                                <div
+                                    class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-slate-400 group-hover:bg-red-500/20 group-hover:text-red-300 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                        </path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <h4 class="font-bold text-lg text-slate-100 mb-1 group-hover:text-white transition-colors line-clamp-1"
+                                title="{{ inspection.unit_name }}">{{ inspection.unit_name }}</h4>
+                            <p class="text-xs text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-2">
+                                {{ inspection.activity }}</p>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full py-12 text-center">
+                            <div
+                                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 text-slate-600 mb-4">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <p class="text-slate-400 font-medium">No scheduled inspections for this month.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Services & Resources (Consolidated) -->
+        <section id="services-catalog" class="max-w-7xl mx-auto mb-20 scroll-mt-24">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-slate-900">Services & Resources</h2>
+                <p class="text-slate-500 text-sm mt-2">Comprehensive catalog of SSPMO services and downloadable forms
+                </p>
+
+                <!-- Tab Navigation -->
+                <div class="flex justify-center gap-2 mt-6">
+                    <button onclick="switchTab('services')" id="tab-services"
+                        class="px-6 py-2 rounded-full font-bold text-sm transition-all bg-red-900 text-white shadow-md hover:bg-red-800">
+                        Core Services
+                    </button>
+                    <button onclick="switchTab('downloads')" id="tab-downloads"
+                        class="px-6 py-2 rounded-full font-bold text-sm transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200">
+                        Downloadable Forms
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content: Services -->
+            <div id="content-services" class="transition-opacity duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div
+                        class="service-card bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-default">
+                        <svg class="service-icon w-10 h-10 text-slate-400 mb-4 transition-transform duration-300"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <h4 class="font-bold text-slate-800 mb-2">Property Inventory</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">Annual physical count and reconciliation of
+                            Property, Plant, and Equipment (PPE).</p>
+                    </div>
+                    <div
+                        class="service-card bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-default">
+                        <svg class="service-icon w-10 h-10 text-slate-400 mb-4 transition-transform duration-300"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <h4 class="font-bold text-slate-800 mb-2">Disposal Management</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">Inspection and unserviceable property disposal
+                            via
+                            auction or donation.</p>
+                    </div>
+                    <div
+                        class="service-card bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-default">
+                        <svg class="service-icon w-10 h-10 text-slate-400 mb-4 transition-transform duration-300"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <h4 class="font-bold text-slate-800 mb-2">Supply Issuance</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">Warehousing and distribution of common-use
+                            office
+                            supplies to various units.</p>
+                    </div>
+                    <div
+                        class="service-card bg-white p-6 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition cursor-default">
+                        <svg class="service-icon w-10 h-10 text-slate-400 mb-4 transition-transform duration-300"
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h4 class="font-bold text-slate-800 mb-2">Insurance & Reg.</h4>
+                        <p class="text-xs text-slate-500 leading-relaxed">GSIS vehicle insurance processing and LTO
+                            registration renewal.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Downloads -->
+            <div id="content-downloads" class="hidden transition-opacity duration-300">
+                <div class="bg-gradient-to-r from-slate-100 to-white rounded-2xl p-8 border border-slate-200">
+                    <div
+                        class="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-slate-200 pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Document Repository</h2>
+                            <p class="text-sm text-slate-500 mt-1">Downloadable forms, templates, and printable
+                                materials.</p>
+                        </div>
+                        <div class="flex gap-2 mt-4 md:mt-0">
+                            <select
+                                class="bg-white border border-slate-300 text-sm rounded px-3 py-2 focus:ring-red-900 focus:border-red-900">
+                                <option>All Categories</option>
+                                <option>Inventory Forms</option>
+                                <option>Disposal Forms</option>
+                                <option>Travel Orders</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                        {% if user.is_authenticated %}
+                        <a href="#"
+                            class="group block p-4 bg-white rounded-lg border border-slate-200 hover:border-red-400 transition relative">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-green-50 text-green-600 rounded flex items-center justify-center text-[10px] font-bold group-hover:bg-green-600 group-hover:text-white transition">
+                                    XLS</div>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-red-600" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-700 group-hover:text-red-700">RPCPPE Template
+                                2026
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-1">Inventory Excel Format</p>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next=/#services-catalog"
+                            class="group block p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition relative opacity-75 hover:opacity-100">
+                            <div class="absolute top-2 right-2 text-slate-400"><svg class="w-4 h-4" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                    </path>
+                                </svg></div>
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-slate-200 text-slate-500 rounded flex items-center justify-center text-[10px] font-bold">
+                                    XLS</div>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-600">RPCPPE Template 2026</h4>
+                            <div
+                                class="mt-2 inline-flex items-center gap-1 bg-slate-200 px-2 py-1 rounded text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                                Login to Download</div>
+                        </a>
+                        {% endif %}
+
+                        {% if user.is_authenticated %}
+                        <a href="#"
+                            class="group block p-4 bg-white rounded-lg border border-slate-200 hover:border-red-400 transition relative">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-red-50 text-red-600 rounded flex items-center justify-center text-[10px] font-bold group-hover:bg-red-600 group-hover:text-white transition">
+                                    PDF</div>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-red-600" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-700 group-hover:text-red-700">IIRUP Form</h4>
+                            <p class="text-xs text-slate-400 mt-1">Inventory & Inspection Report</p>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next=/#services-catalog"
+                            class="group block p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition relative opacity-75 hover:opacity-100">
+                            <div class="absolute top-2 right-2 text-slate-400"><svg class="w-4 h-4" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                    </path>
+                                </svg></div>
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-slate-200 text-slate-500 rounded flex items-center justify-center text-[10px] font-bold">
+                                    PDF</div>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-600">IIRUP Form</h4>
+                            <div
+                                class="mt-2 inline-flex items-center gap-1 bg-slate-200 px-2 py-1 rounded text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                                Login to Download</div>
+                        </a>
+                        {% endif %}
+
+                        {% if user.is_authenticated %}
+                        <a href="#"
+                            class="group block p-4 bg-white rounded-lg border border-slate-200 hover:border-red-400 transition relative">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-blue-50 text-blue-600 rounded flex items-center justify-center text-[10px] font-bold group-hover:bg-blue-600 group-hover:text-white transition">
+                                    DOC</div>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-red-600" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-700 group-hover:text-red-700">PTR Form v.2</h4>
+                            <p class="text-xs text-slate-400 mt-1">Property Transfer Report</p>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next=/#services-catalog"
+                            class="group block p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition relative opacity-75 hover:opacity-100">
+                            <div class="absolute top-2 right-2 text-slate-400"><svg class="w-4 h-4" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                    </path>
+                                </svg></div>
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-slate-200 text-slate-500 rounded flex items-center justify-center text-[10px] font-bold">
+                                    DOC</div>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-600">PTR Form v.2</h4>
+                            <div
+                                class="mt-2 inline-flex items-center gap-1 bg-slate-200 px-2 py-1 rounded text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                                Login to Download</div>
+                        </a>
+                        {% endif %}
+
+                        {% if user.is_authenticated %}
+                        <a href="#"
+                            class="group block p-4 bg-white rounded-lg border border-slate-200 hover:border-red-400 transition relative">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-red-50 text-red-600 rounded flex items-center justify-center text-[10px] font-bold group-hover:bg-red-600 group-hover:text-white transition">
+                                    PDF</div>
+                                <svg class="w-4 h-4 text-slate-300 group-hover:text-red-600" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-700 group-hover:text-red-700">Gate Pass Slip
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-1">Equipment Pull-out Form</p>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}?next=/#services-catalog"
+                            class="group block p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition relative opacity-75 hover:opacity-100">
+                            <div class="absolute top-2 right-2 text-slate-400"><svg class="w-4 h-4" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                    </path>
+                                </svg></div>
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="w-8 h-8 bg-slate-200 text-slate-500 rounded flex items-center justify-center text-[10px] font-bold">
+                                    PDF</div>
+                            </div>
+                            <h4 class="mt-3 text-sm font-bold text-slate-600">Gate Pass Slip</h4>
+                            <div
+                                class="mt-2 inline-flex items-center gap-1 bg-slate-200 px-2 py-1 rounded text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                                Login to Download</div>
+                        </a>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function switchTab(tabName) {
+                    const btnServices = document.getElementById('tab-services');
+                    const btnDownloads = document.getElementById('tab-downloads');
+                    const contentServices = document.getElementById('content-services');
+                    const contentDownloads = document.getElementById('content-downloads');
+
+                    if (tabName === 'services') {
+                        // Activate Services Tab
+                        btnServices.className = "px-6 py-2 rounded-full font-bold text-sm transition-all bg-red-900 text-white shadow-md hover:bg-red-800";
+                        btnDownloads.className = "px-6 py-2 rounded-full font-bold text-sm transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200";
+
+                        contentServices.classList.remove('hidden');
+                        setTimeout(() => contentServices.classList.remove('opacity-0'), 10);
+                        contentDownloads.classList.add('hidden');
+                        contentDownloads.classList.add('opacity-0');
+                    } else {
+                        // Activate Downloads Tab
+                        btnServices.className = "px-6 py-2 rounded-full font-bold text-sm transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-200";
+                        btnDownloads.className = "px-6 py-2 rounded-full font-bold text-sm transition-all bg-red-900 text-white shadow-md hover:bg-red-800";
+
+                        contentDownloads.classList.remove('hidden');
+                        setTimeout(() => contentDownloads.classList.remove('opacity-0'), 10);
+                        contentServices.classList.add('hidden');
+                        contentServices.classList.add('opacity-0');
+                    }
+                }
+            </script>
+        </section>
+
+        <!-- 4. Citizen's Charter -->
+        <section id="citizens-charter" class="max-w-7xl mx-auto mb-20 scroll-mt-24">
+            <div class="flex items-end justify-between mb-8 px-2">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Citizen's Charter</h2>
+                    <p class="text-slate-500 mt-2">Transparency in our processes and service standards.</p>
+                </div>
+                <a href="#" class="text-sm font-semibold text-red-900 hover:underline flex items-center gap-1">
+                    Download Full PDF <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </a>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+                    <div class="bg-slate-900 px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <h3 class="text-white font-bold flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Process 1: Requisition of Supplies
+                        </h3>
+                        <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">Total Duration: 25
+                            Minutes</span>
+                    </div>
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                        <div
+                            class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -z-0 transform -translate-y-1/2">
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-red-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-red-900 group-hover:text-white transition-colors">
+                                1</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Submit RIS</h4>
+                            <p class="text-xs text-slate-500 mt-2">Submit approved Requisition & Issue Slip via SUPLAY.
+                            </p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">5 mins</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-red-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-red-900 group-hover:text-white transition-colors">
+                                2</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Availability Check</h4>
+                            <p class="text-xs text-slate-500 mt-2">Supply Officer verifies stock and allocates items.
+                            </p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">10 mins</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-red-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-red-50 text-red-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-red-900 group-hover:text-white transition-colors">
+                                3</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Packing</h4>
+                            <p class="text-xs text-slate-500 mt-2">Warehouse staff picks and packs the requested items.
+                            </p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">5 mins</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-red-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-emerald-100 text-emerald-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                4</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Release</h4>
+                            <p class="text-xs text-slate-500 mt-2">Claim items at Counter 1 and sign acknowledgement.
+                            </p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">5 mins</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
+                    <div class="bg-slate-900 px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+                        <h3 class="text-white font-bold flex items-center gap-2">
+                            <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Process 2: Disposal of Unserviceable Properties
+                        </h3>
+                        <span class="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full">Total Duration: ~15
+                            Working Days</span>
+                    </div>
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                        <div
+                            class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -z-0 transform -translate-y-1/2">
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-amber-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-amber-50 text-amber-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-amber-900 group-hover:text-white transition-colors">
+                                1</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Submit IIRUP</h4>
+                            <p class="text-xs text-slate-500 mt-2">End-user submits Inventory & Inspection Report.</p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">1 Day</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-amber-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-amber-50 text-amber-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-amber-900 group-hover:text-white transition-colors">
+                                2</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Ocular Inspection</h4>
+                            <p class="text-xs text-slate-500 mt-2">SPMO & COA verify physical condition of items.</p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">3 Days</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-amber-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-amber-50 text-amber-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-amber-900 group-hover:text-white transition-colors">
+                                3</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Appraisal</h4>
+                            <p class="text-xs text-slate-500 mt-2">Committee determines the minimum bid price.</p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">5 Days</span>
+                        </div>
+                        <div
+                            class="relative z-10 bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-amber-200 transition text-center group">
+                            <div
+                                class="w-10 h-10 bg-emerald-100 text-emerald-900 rounded-full flex items-center justify-center font-bold text-lg mx-auto mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                4</div>
+                            <h4 class="font-bold text-slate-800 text-sm">Public Bidding</h4>
+                            <p class="text-xs text-slate-500 mt-2">Sealed bidding and awarding to highest bidder.</p>
+                            <span class="block mt-3 text-[10px] font-mono text-slate-400">5-7 Days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-auto border-t-4 border-red-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="col-span-1 md:col-span-2">
+                <div class="flex items-center gap-3 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-serif font-bold border border-slate-700">
+                        UP</div>
+                    <span class="font-bold text-white text-lg tracking-tight">SSPMO</span>
+                </div>
+                <p class="text-xs max-w-sm leading-relaxed text-slate-400">
+                    The Supply and Property Management Office is committed to the highest standards of accountability in
+                    the management of government assets and resources.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4 text-sm">Quick Links</h4>
+                <ul class="space-y-2 text-xs">
+                    <li><a href="#" class="hover:text-white">Citizen's Charter</a></li>
+                    <li><a href="#" class="hover:text-white">PhilGEPS Postings</a></li>
+                    <li><a href="#" class="hover:text-white">Directory</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-white mb-4 text-sm">Contact Us</h4>
+                <ul class="space-y-2 text-xs">
+                    <li>spmo.upd@up.edu.ph</li>
+                    <li>(02) 8981-8500 loc 4567</li>
+                    <li>Magsaysay Ave., UP Diliman, QC</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 mt-8 pt-8 border-t border-slate-800 text-[10px] text-center text-slate-500">
+            &copy; 2026 Supply & Property Management Office (SSPMO). All Rights Reserved.
+        </div>
+    </footer>
+
+    <div id="newsModal" class="fixed inset-0 z-[60] hidden" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0" id="modalBackdrop">
+        </div>
+
+        <div class="fixed inset-0 z-10 overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    id="modalPanel">
+
+                    <button onclick="closeModal()"
+                        class="absolute top-4 right-4 z-20 bg-white/80 rounded-full p-1 hover:bg-red-50 text-slate-400 hover:text-red-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    <div class="bg-white">
+                        <div id="modalImageContainer" class="h-64 w-full bg-slate-200 relative hidden">
+                            <img id="modalImage" src="" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div class="absolute bottom-4 left-6 text-white">
+                                <span id="modalCategory"
+                                    class="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-1 rounded border border-white/30 uppercase tracking-wider">Category</span>
+                            </div>
+                        </div>
+
+                        <div class="px-6 py-6 sm:p-8">
+                            <span id="modalCategoryText"
+                                class="hidden text-[10px] font-bold text-red-900 bg-red-50 px-2 py-1 rounded uppercase tracking-wider mb-3 w-max">Category</span>
+
+                            <h3 id="modalTitle" class="text-2xl font-extrabold text-slate-900 leading-tight mb-2">News
+                                Title</h3>
+                            <p id="modalDate" class="text-xs text-slate-400 font-mono mb-6">Jan 01, 2026</p>
+
+                            <div id="modalContent"
+                                class="prose prose-sm prose-slate max-w-none text-slate-600 leading-relaxed">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-100">
+                        <button type="button" onclick="closeModal()"
+                            class="inline-flex w-full justify-center rounded-lg bg-red-900 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-red-800 sm:ml-3 sm:w-auto transition">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Dynamic Link Logic ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: true });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // Update links to use the new Subdomains (Reverse Proxy)
+            const gamitLink = document.getElementById('link-gamit');
+            const suplayLink = document.getElementById('link-suplay');
+            const lipadLink = document.getElementById('link-lipad');
+
+            // We use explicit domains now instead of ports
+            // Explicitly set verified HTTPS hyphenated domains
+            // Explicitly set verified HTTPS hyphenated domains
+            if (gamitLink) gamitLink.href = "https://gamit-sspmo.up.edu.ph";
+            if (suplayLink) suplayLink.href = "https://suplay-sspmo.up.edu.ph";
+            if (lipadLink) lipadLink.href = "https://lipad-sspmo.up.edu.ph";
+        });
+
+        // --- 2. News Modal Logic ---
+        const modal = document.getElementById('newsModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const panel = document.getElementById('modalPanel');
+
+        function openModal(button) {
+            const title = button.getAttribute('data-title');
+            const date = button.getAttribute('data-date');
+            const category = button.getAttribute('data-category');
+            const content = button.getAttribute('data-content');
+            const image = button.getAttribute('data-image');
+
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalDate').innerText = date;
+            document.getElementById('modalContent').innerHTML = content;
+            document.getElementById('modalCategory').innerText = category;
+            document.getElementById('modalCategoryText').innerText = category;
+
+            const imgContainer = document.getElementById('modalImageContainer');
+            const catText = document.getElementById('modalCategoryText');
+
+            if (image) {
+                document.getElementById('modalImage').src = image;
+                imgContainer.classList.remove('hidden');
+                catText.classList.add('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+                catText.classList.remove('hidden');
+                catText.className = `inline-block text-[10px] font-bold text-slate-900 bg-slate-100 px-2 py-1 rounded uppercase tracking-wider mb-3`;
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                panel.classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            }, 10);
+        }
+
+        function closeModal() {
+            backdrop.classList.add('opacity-0');
+            panel.classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        backdrop.addEventListener('click', closeModal);
+    </script>
+    <!-- Session Timeout Warning System (Popout Modal) -->
+    {% load static %}
+    <script src="{% static 'js/session_timeout_warning.js' %}"></script>
+    <script>
+        // Initialize 10-minute timeout system when DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout();
+        });
+    </script>
+
+    <!-- Hub Search Dropdown Script -->
+    <script>
+        const searchIndex = [
+            { title: "About SSPMO", anchor: "#about", category: "Page", icon: "info-circle" },
+            { title: "Mission & Vision", anchor: "#mission", category: "Page", icon: "bullseye" },
+            { title: "Core Values", anchor: "#values", category: "Page", icon: "heart" },
+            { title: "Office Functions", anchor: "#functions", category: "Page", icon: "briefcase" },
+            { title: "Office Leadership", anchor: "#leadership", category: "Page", icon: "user-tie" },
+            { title: "Organizational Chart", anchor: "#org-chart", category: "Page", icon: "sitemap" },
+            { title: "Calendar of Activities", anchor: "#calendar", category: "Page", icon: "calendar" },
+            { title: "Services Catalog", anchor: "#services-catalog", category: "Page", icon: "th-large" },
+            { title: "Download Forms", anchor: "#services-catalog", category: "Forms", icon: "file-download" },
+            { title: "GAMIT - Asset Management", url: "https://gamit-sspmo.up.edu.ph", category: "Apps", icon: "box" },
+            { title: "SUPLAY - Supply Management", url: "https://suplay-sspmo.up.edu.ph", category: "Apps", icon: "shopping-bag" },
+            { title: "LIPAD - Travel Management", url: "https://lipad-sspmo.up.edu.ph", category: "Apps", icon: "plane" },
+            { title: "News & Updates", anchor: "#news-inspections", category: "Page", icon: "newspaper" },
+        ];
+
+        const searchInput = document.getElementById('hub-search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+        const searchResults = document.getElementById('search-results');
+        const searchEmpty = document.getElementById('search-empty');
+
+        const categoryColors = {
+            'Page': 'bg-blue-100 text-blue-700',
+            'Forms': 'bg-green-100 text-green-700',
+            'Apps': 'bg-purple-100 text-purple-700',
+        };
+
+        function performSearch(query) {
+            if (query.length < 2) {
+                searchDropdown.classList.add('hidden');
+                return;
+            }
+
+            const results = searchIndex.filter(item =>
+                item.title.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 6);
+
+            if (results.length === 0) {
+                searchResults.classList.add('hidden');
+                searchEmpty.classList.remove('hidden');
+                searchDropdown.classList.remove('hidden');
+                return;
+            }
+
+            searchResults.innerHTML = results.map(item => `
+                <a href="${item.url || item.anchor || '#'}" 
+                   class="flex items-center gap-3 p-3 hover:bg-slate-50 rounded-xl transition cursor-pointer group"
+                   ${item.anchor ? `onclick="smoothScrollTo('${item.anchor}'); return false;"` : ''}
+                   ${item.url ? 'target="_blank"' : ''}>
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center group-hover:bg-red-900 transition">
+                        <i class="fas fa-${item.icon} text-slate-600 group-hover:text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-slate-900 text-sm">${item.title}</div>
+                        <div class="text-xs text-slate-500">${item.anchor || item.url || 'Link'}</div>
+                    </div>
+                    <span class="px-2 py-1 rounded-full text-[10px] font-bold ${categoryColors[item.category]}">
+                        ${item.category}
+                    </span>
+                </a>
+            `).join('');
+
+            searchResults.classList.remove('hidden');
+            searchEmpty.classList.add('hidden');
+            searchDropdown.classList.remove('hidden');
+        }
+
+        function smoothScrollTo(anchor) {
+            const element = document.querySelector(anchor);
+            if (element) {
+                const offset = 100;
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+
+                searchDropdown.classList.add('hidden');
+                searchInput.value = '';
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            performSearch(e.target.value);
+        });
+
+        searchInput.addEventListener('focus', (e) => {
+            if (e.target.value.length >= 2) {
+                performSearch(e.target.value);
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const navSearchContainer = document.getElementById('nav-search-container');
+            if (navSearchContainer && !navSearchContainer.contains(e.target)) {
+                searchDropdown.classList.add('hidden');
+            }
+        });
+
+        // Keyboard navigation
+        let selectedIndex = -1;
+        searchInput.addEventListener('keydown', (e) => {
+            const items = searchResults.querySelectorAll('a');
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = Math.max(selectedIndex - 1, -1);
+                updateSelection(items);
+            } else if (e.key === 'Enter' && selectedIndex >= 0) {
+                e.preventDefault();
+                items[selectedIndex].click();
+            }
+        });
+
+        function updateSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('bg-slate-100');
+                } else {
+                    item.classList.remove('bg-slate-100');
+                }
+            });
+        }
+    </script>
+
+    <!-- Leadership Bio Collapse Script -->
+    <script>
+        document.querySelectorAll('.toggle-bio-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = button.getAttribute('data-target');
+                const content = document.getElementById(targetId);
+                const arrow = button.querySelector('svg');
+
+                if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+                    // Collapse
+                    content.style.maxHeight = '0';
+                    content.classList.remove('opacity-100');
+                    content.classList.add('opacity-0');
+                    arrow.style.transform = 'rotate(0deg)';
+                } else {
+                    // Expand
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                    content.classList.remove('opacity-0');
+                    content.classList.add('opacity-100');
+                    arrow.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

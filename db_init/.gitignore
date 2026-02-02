@@ -1,0 +1,26 @@
+# Python & Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+*.log
+
+# Docker
+.docker_data/
+postgres_data/
+
+# Environment Variables (Secrets)
+.env
+.venv
+venv/
+ENV/
+
+# Static & Media (Generated files)
+staticfiles/
+media/
+*/media/
+
+# IDE settings
+.vscode/
+.idea/

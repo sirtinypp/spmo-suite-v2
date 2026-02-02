@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+{% load static %}
+{% load humanize %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RIS-{{ order.id|stringformat:"06d" }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a252f;
+            --text: #333;
+            --border: #ddd;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            background: #e0e0e0;
+            /* Gray background for screen preview */
+            color: var(--text);
+            font-size: 11px;
+        }
+
+        /* --- THE PAPER (A4) --- */
+        .page {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 20px auto;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 40mm 15mm 20mm 15mm;
+            /* Top padding clears the fixed header */
+            box-sizing: border-box;
+        }
+
+        /* --- PRINT UTILITIES --- */
+        @media print {
+            @page {
+                margin: 0;
+                size: A4 portrait;
+            }
+
+            body {
+                background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .page {
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+                min-height: 100vh;
+                page-break-after: always;
+                padding-top: 40mm;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            /* FIXED HEADER & FOOTER FOR PRINT */
+            .print-header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 35mm;
+                background: white;
+                z-index: 1000;
+                padding: 10mm 15mm 0 15mm;
+            }
+
+            .print-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 40mm;
+                /* Increased height for signatures */
+                background: white;
+                z-index: 1000;
+                padding: 0 15mm 5mm 15mm;
+            }
+
+            /* Hides header/footer overlaps */
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+
+        /* --- SCREEN HEADER/FOOTER (Simulated Fixed) --- */
+        .print-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 35mm;
+            padding: 10mm 15mm 0 15mm;
+            box-sizing: border-box;
+        }
+
+        .print-footer {
+            position: absolute;
+            /* Absolute for Screen Preview */
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40mm;
+            /* Increased height for signatures */
+            padding: 0 15mm 5mm 15mm;
+            background: white;
+            z-index: 1000;
+        }
+
+        /* Adjust page padding to prevent content overlap with taller footer */
+        @media print {
+            .page {
+                padding-bottom: 45mm;
+            }
+        }
+
+        /* --- CONTENT STYLES --- */
+        .header-content {
+            text-align: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 45px;
+            height: auto;
+        }
+
+        .agency-info {
+            text-align: left;
+        }
+
+        .agency-name {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .office-name {
+            font-size: 10px;
+            color: #555;
+        }
+
+        .doc-title {
+            background: var(--primary);
+            color: white;
+            padding: 4px 15px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin: 15px auto 0 auto;
+            display: table;
+            /* Centers it */
+        }
+
+        /* --- META GRID --- */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .meta-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: baseline;
+        }
+
+        .label {
+            font-weight: 700;
+            color: var(--primary);
+            width: 80px;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .value {
+            border-bottom: 1px solid #ccc;
+            flex: 1;
+            padding: 2px 5px;
+            color: #000;
+            font-weight: 500;
+        }
+
+        /* --- MODERN TABLE --- */
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .item-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .item-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .item-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        /* Zebra */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .total-row td {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            border: none;
+            font-size: 12px;
+        }
+
+        /* --- SIGNATORIES --- */
+        .sig-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+
+        .sig-box {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .sig-label {
+            display: block;
+            text-align: left;
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .sig-name {
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 4px;
+            color: #000;
+            margin-bottom: 4px;
+        }
+
+        .sig-role {
+            font-size: 9px;
+            color: #666;
+        }
+
+        /* --- FOOTER CONTENT --- */
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* --- ACTION BAR --- */
+        .action-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 37, 47, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+        }
+
+        .btn {
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 8px 15px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn:hover {
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- FLOAT BUTTON -->
+    <div class="action-bar no-print">
+        <button class="btn" onclick="window.print()">🖨️ PRINT / SAVE AS PDF</button>
+        <button class="btn" onclick="history.back()" style="margin-left: 5px;">❌ CLOSE</button>
+    </div>
+
+    <!-- A4 PAGE CONTAINER -->
+    <div class="page">
+
+        <!-- HEADER (Fixed on Print) -->
+        <div class="print-header">
+            <div class="header-content">
+                <img src="{% static 'up_logo_official.png' %}" class="logo">
+                <div class="agency-info">
+                    <div class="agency-name">University of the Philippines System</div>
+                    <div class="office-name">Supply and Property Management Office</div>
+                </div>
+            </div>
+            <div class="doc-title">Requisition and Issuance Slip</div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="meta-grid">
+            <div>
+                <div class="meta-row">
+                    <span class="label">Entity Name:</span>
+                    <span class="value">University of the Philippines</span>
+                </div>
+                <div class="meta-row">
+                    <span class="label">Department:</span>
+                    <span class="value">&nbsp;</span>
+                </div>
+            </div>
+            <div>
+                <div class="meta-row">
+                    <span class="label">Fund Cluster:</span>
+                    <span class="value">&nbsp;</span> <!-- BLANK as requested -->
+                </div>
+
+                <div class="meta-row">
+                    <span class="label">RIS No.:</span>
+                    <span class="value"><strong>{{ order.id|stringformat:"06d" }}</strong></span>
+                </div>
+                <div class="meta-row">
+                    <span class="label">Date:</span>
+                    <span class="value">{{ date|date:"F j, Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        <table class="item-table">
+            <thead>
+                <tr>
+                    <th width="50%">Description</th>
+                    <th width="10%" class="text-center">Qty</th>
+                    <th width="20%" class="text-right">Unit Cost</th>
+                    <th width="20%" class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td><strong>{{ item.product.name }}</strong></td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">₱ {{ item.product.price|floatformat:2|intcomma }}</td>
+                    <td class="text-right">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
+                </tr>
+                {% endfor %}
+                <!-- NOTHING FOLLOWS -->
+                <tr>
+                    <td colspan="4" class="text-center"
+                        style="font-style: italic; font-weight: 600; font-size: 10px; color: #555; padding: 10px;">
+                        ****** NOTHING FOLLOWS ******
+                    </td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" class="text-right">TOTAL AMOUNT</td>
+                    <td class="text-right">₱ {{ total|floatformat:2|intcomma }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SIGNATORIES -->
+
+        <!-- FOOTER (Fixed on Print) -->
+        <!-- FIXED FOOTER WITH SIGNATURES -->
+        <div class="print-footer">
+
+            <!-- SIG BOXES (Fixed above metadata footer) -->
+            <div class="sig-grid" style="margin-top: 0; margin-bottom: 10px;">
+                <div class="sig-box">
+                    <span class="sig-label">Requested By:</span>
+                    <div class="sig-name">{{ user.first_name }} {{ user.last_name }}</div>
+                    <div class="sig-role">
+                        {% if user.profile.department %}{{ user.profile.department.name }}{% else %}Staff{% endif %}
+                    </div>
+                </div>
+                <div class="sig-box">
+                    <span class="sig-label">Approved By:</span>
+                    <div class="sig-name">&nbsp;<br>&nbsp;</div>
+                    <div class="sig-role">Head of Agency / Authorized Rep</div>
+                </div>
+                <div class="sig-box">
+                    <span class="sig-label">Issued By:</span>
+                    <div class="sig-name">
+                        {% if issued_by_user %}
+                        {{ issued_by_user.first_name }} {{ issued_by_user.last_name }}
+                        {% else %}
+                        &nbsp;<br>&nbsp;
+                        {% endif %}
+                    </div>
+                    <div class="sig-role">Property / Supply Officer</div>
+                </div>
+            </div>
+
+            <div class="footer-content" style="border-top: 1px solid #eee; padding-top: 5px;">
+                <span>System Generated: {{ date|date:"Y-m-d H:i" }} | SUPLAY by SSPMO</span>
+                <span>DATA PRIVACY NOTICE: Compliant with R.A. 10173</span>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Requisition Slip - {{ booking.id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Palatino+Linotype:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Variables */
+        :root {
+            --up-maroon: #7b1113;
+            --slate-900: #0f172a;
+            --slate-500: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        /* A4 Print Setup */
+        @page { size: A4; margin: 0; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            html, body { height: 100%; margin: 0 !important; padding: 0 !important; overflow: hidden; }
+            body { background: white; -webkit-print-color-adjust: exact; }
+            .paper { 
+                box-shadow: none !important; 
+                margin: 0 auto !important; 
+                border: none !important; 
+                width: 210mm; 
+                height: 280mm; 
+                padding: 10mm 12mm;
+                position: relative;
+            }
+        }
+
+        body { font-family: 'Inter', sans-serif; background: #52525b; color: var(--slate-900); padding-top: 80px; /* Space for fixed header */ }
+        
+        /* Document Container */
+        .paper { 
+            background: white; 
+            width: 210mm; 
+            height: 280mm; 
+            margin: 0 auto 40px auto; 
+            padding: 10mm 12mm; 
+            position: relative; 
+            box-sizing: border-box; 
+            overflow: hidden; 
+        }
+
+        /* Typography */
+        h1 { font-family: 'Palatino Linotype', serif; letter-spacing: -0.02em; }
+        
+        .label { 
+            font-size: 8px; font-weight: 700; text-transform: uppercase; 
+            color: var(--slate-500); letter-spacing: 0.05em; margin-bottom: 2px;
+        }
+        
+        .value { 
+            font-size: 11px; font-weight: 500; color: var(--slate-900); 
+            border-bottom: 1px solid #e2e8f0; 
+            padding-bottom: 1px; min-height: 15px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        
+        .value-multiline {
+            white-space: normal; line-height: 1.2; height: auto; border-bottom: none;
+            background: #f8fafc; padding: 4px; border-radius: 4px;
+        }
+
+        .section-header {
+            font-size: 10px; font-weight: 800; text-transform: uppercase; 
+            color: var(--up-maroon); border-bottom: 2px solid var(--up-maroon); 
+            padding-bottom: 2px; margin-bottom: 8px; margin-top: 10px;
+            letter-spacing: 0.05em;
+        }
+
+        /* Signature Lines */
+        .sig-line {
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 2px;
+            padding-top: 14px; 
+        }
+
+        /* LOCKED FOOTER */
+        .footer-locked {
+            position: absolute;
+            bottom: 0; 
+            left: 12mm;
+            right: 12mm;
+            background: white;
+            padding-bottom: 5mm; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print fixed top-0 left-0 right-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-md z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-emerald-500 w-2.5 h-2.5 rounded-full animate-pulse"></div>
+            <div>
+                <h2 class="text-sm font-bold text-slate-800 leading-none">Requisition Generated</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Reference #{{ booking.id|stringformat:"06d" }}</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'gfa_create' %}" class="text-slate-500 hover:text-slate-700 text-xs font-bold px-3 py-2 rounded transition flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
+                Edit
+            </a>
+
+            <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-700 transition flex items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                Print Slip
+            </button>
+
+            <a href="{% url 'gfa_upload' booking.id %}" class="bg-emerald-600 text-white px-5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition flex items-center gap-2 shadow-lg ring-2 ring-emerald-500/20 transform hover:-translate-y-0.5">
+                Next: Upload Docs
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </a>
+        </div>
+    </div>
+
+    <div class="paper shadow-2xl">
+        
+        <div class="flex justify-between items-center pb-4">
+            <div class="flex gap-4 items-center">
+                <img src="https://upload.wikimedia.org/wikipedia/en/3/3a/University_of_the_Philippines_Seal.svg" alt="UP Seal" class="w-14 h-14 opacity-90">
+                <div>
+                    <h1 class="text-xl font-bold text-[#7b1113] leading-none">University of the Philippines</h1>
+                    <div class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">System Supply & Property Management Office</div>
+                    <div class="text-[9px] text-slate-400">Government Fares Agreement (GFA) Portal</div>
+                </div>
+            </div>
+            <div class="text-right border-l pl-4 border-slate-100">
+                <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Requisition No.</div>
+                <div class="text-2xl font-mono font-bold text-slate-900 leading-none tracking-tighter">{{ booking.id|stringformat:"06d" }}</div>
+                <div class="text-[9px] text-slate-400 mt-0.5">{{ booking.created_at|date:"F d, Y" }}</div>
+            </div>
+        </div>
+
+        <div class="text-center py-1 border-t border-b border-slate-100 mb-2">
+            <h2 class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-800">Requisition Slip</h2>
+        </div>
+
+        <div class="pb-[65mm]"> 
+
+            <div class="section-header mt-0">I. Traveler Information</div>
+            <div class="grid grid-cols-4 gap-x-6 gap-y-3">
+                <div class="col-span-2">
+                    <div class="label">Official Name</div>
+                    <div class="value font-bold">{{ booking.full_name }}</div>
+                </div>
+                <div>
+                    <div class="label">Employee ID</div>
+                    <div class="value">{{ booking.employee_id }}</div>
+                </div>
+                <div>
+                    <div class="label">Birthday</div>
+                    <div class="value">{{ booking.birthday|date:"M d, Y" }}</div>
+                </div>
+
+                <div class="col-span-2">
+                    <div class="label">Unit Office</div>
+                    <div class="value">{{ booking.get_unit_office_display }}</div>
+                </div>
+                <div class="col-span-2">
+                    <div class="label">Mother Unit</div>
+                    <div class="value">{{ booking.get_mother_unit_display }}</div>
+                </div>
+
+                <div class="col-span-2">
+                    <div class="label">Designation</div>
+                    <div class="value">{{ booking.designation }}</div>
+                </div>
+                <div class="col-span-2">
+                    <div class="label">Contact Number</div>
+                    <div class="value">{{ booking.contact_number }}</div>
+                </div>
+
+                <div class="col-span-2">
+                    <div class="label">Email Address</div>
+                    <div class="value">{{ booking.email }}</div>
+                </div>
+                <div class="col-span-2">
+                    <div class="label">UP Mail</div>
+                    <div class="value">{{ booking.up_mail|default:"-" }}</div>
+                </div>
+                
+                <div class="col-span-4">
+                    <div class="label">Admin Officer (Requesting Staff)</div>
+                    <div class="value">{{ booking.admin_officer }}</div>
+                </div>
+            </div>
+
+            <div class="section-header">II. Travel & Flight Details</div>
+            <div class="grid grid-cols-4 gap-x-6 gap-y-3">
+                
+                <div class="col-span-2">
+                    <div class="label">Origin (Departure From)</div>
+                    <div class="value font-bold">{{ booking.origin }}</div>
+                </div>
+                <div class="col-span-2">
+                    <div class="label">Destination (Arrival At)</div>
+                    <div class="value font-bold">{{ booking.destination_details }}</div>
+                </div>
+
+                <div class="col-span-3">
+                    <div class="label">Purpose of Travel</div>
+                    <div class="value-multiline">{{ booking.purpose }}</div>
+                </div>
+                <div>
+                    <div class="label">Trip Type</div>
+                    <div class="value">{{ booking.get_trip_type_display }}</div>
+                </div>
+
+                <div class="col-span-4 grid grid-cols-2 gap-6 bg-slate-50 p-2 rounded border border-slate-200">
+                    <div>
+                        <div class="label text-slate-400">Departure Schedule</div>
+                        <div class="text-sm font-bold text-slate-900">{{ booking.departure_date|date:"M d, Y" }}</div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase mt-0.5">{{ booking.departure_time|time:"g:i A" }}</div>
+                    </div>
+                    <div>
+                        <div class="label text-slate-400">Return Schedule</div>
+                        {% if booking.return_date %}
+                            <div class="text-sm font-bold text-slate-900">{{ booking.return_date|date:"M d, Y" }}</div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase mt-0.5">{{ booking.return_time|time:"g:i A" }}</div>
+                        {% else %}
+                            <div class="text-[10px] italic text-slate-400 mt-1">One-Way Ticket</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="label">Airline</div>
+                    <div class="value">{{ booking.get_airline_display }}</div>
+                </div>
+                <div>
+                    <div class="label">Seat Class</div>
+                    <div class="value">{{ booking.get_seat_class_display }}</div>
+                </div>
+                <div>
+                    <div class="label">Baggage</div>
+                    <div class="value">{{ booking.get_baggage_type_display }}</div>
+                </div>
+                <div>
+                    <div class="label">Insurance</div>
+                    <div class="value font-bold {% if booking.avail_insurance %}text-green-700{% endif %}">
+                        {% if booking.avail_insurance %}YES{% else %}NO{% endif %}
+                    </div>
+                </div>
+
+                {% if booking.special_requests %}
+                <div class="col-span-4">
+                    <div class="label">Special Requests / Multi-City Details</div>
+                    <div class="value-multiline italic">{{ booking.special_requests }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="section-header">III. Requesting Unit Authorization</div>
+            
+            <div class="mb-2 px-1">
+                <div class="label">Supervisor Remarks</div>
+                <div class="value italic text-slate-500 min-h-[14px]">{{ booking.remarks|default:"-" }}</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 mt-2">
+                <div class="text-center">
+                    <div class="sig-line">
+                        <div class="text-[10px] font-bold uppercase text-slate-900 tracking-wide">{{ booking.full_name }}</div>
+                    </div>
+                    <div class="label">Traveler's Signature</div>
+                </div>
+
+                <div class="text-center">
+                    <div class="sig-line relative">
+                        <div class="text-[10px] font-bold uppercase text-slate-900 tracking-wide">{{ booking.supervisor_name }}</div>
+                        {% if booking.status == 'APPROVED' %}
+                        <div class="absolute -top-4 right-8 border border-green-600 text-green-600 px-1 text-[8px] font-bold uppercase -rotate-12 opacity-50 rounded">Approved</div>
+                        {% endif %}
+                    </div>
+                    <div class="label">Immediate Supervisor</div>
+                    <div class="text-[8px] text-slate-400 mt-0.5">Date: {{ booking.approval_date|date:"Y-m-d" }}</div>
+                </div>
+            </div>
+        </div> 
+        <div class="footer-locked">
+            
+            <div class="mb-4">
+                <div class="section-header mt-0" style="border-bottom: 1px solid #7b1113;">IV. SPMO Processing</div>
+                <div class="grid grid-cols-3 gap-6 mt-2">
+                    <div class="text-center">
+                        <div class="sig-line">
+                            <div class="text-[9px] font-bold uppercase text-slate-900">RUBY ANN LUZ WADAWAD</div>
+                        </div>
+                        <div class="label">Prepared By</div>
+                        <div class="text-[8px] text-slate-400">GFA Document Preparer</div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="sig-line">
+                            <div class="text-[9px] font-bold uppercase text-slate-900">AARON CHRISTIAN J. BASA</div>
+                        </div>
+                        <div class="label">Reviewed By</div>
+                        <div class="text-[8px] text-slate-400">SPMO Admin Officer</div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="sig-line">
+                            <div class="text-[9px] font-bold uppercase text-slate-900">ISAGANI L. BAGUS</div>
+                        </div>
+                        <div class="label">Approved By</div>
+                        <div class="text-[8px] text-slate-400">SPMO Chief</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-end border-t border-slate-200 pt-2">
+                <div>
+                    <div class="text-[9px] font-bold text-[#7b1113]">SPMO-GFA-FORM-001</div>
+                    <div class="text-[8px] text-slate-500 uppercase tracking-wider">System Supply & Property Management Office</div>
+                    <div class="text-[8px] text-slate-400">University of the Philippines System</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[8px] text-slate-400">Generated via GFA Portal</div>
+                    <div class="text-[8px] text-slate-300 font-mono">Timestamp: {% now "Y-m-d H:i:s" %}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

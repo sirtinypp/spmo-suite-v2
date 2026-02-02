@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GFA Request Form - SSPMO Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-pattern {
+            background-color: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .transition-height { transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out; overflow: hidden; }
+        .hidden-visually { display: none; opacity: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'index' %}" class="flex items-center gap-4 group">
+                    <div class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center text-white font-serif font-bold text-xl border-4 border-slate-100 shadow-inner group-hover:scale-105 transition">PH</div>
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">SSPMO System</span>
+                        <h1 class="text-xl font-bold text-slate-900 leading-none">GFA <span class="text-blue-700">Booking</span></h1>
+                    </div>
+                </a>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="{% url 'index' %}" class="text-sm font-medium text-slate-500 hover:text-blue-700 transition">← Back to Home</a>
+            </div>
+        </div>
+    </header>
+    <main class="flex-grow">
+        <div class="hero-pattern h-48 w-full relative">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-slate-900/80"></div>
+            <div class="relative max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-3xl font-bold text-white tracking-tight">Create New Booking</h2>
+                <p class="text-slate-300 mt-2">Step 1: Fill out the requisition details to generate your slip.</p>
+            </div>
+        </div>
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10 pb-12">
+            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                <form method="post" id="bookingForm" class="p-8 space-y-10">
+                    {% csrf_token %}
+                    {% if form.errors %}
+                    <div class="rounded-md bg-red-50 p-4 mb-6 border-l-4 border-red-500">
+                        <div class="flex">
+                            <div class="flex-shrink-0"><svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></div>
+                            <div class="ml-3"><h3 class="text-sm font-medium text-red-800">Please correct errors below:</h3></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-6 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">1</span> Traveler Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Official Name</label><input type="text" name="full_name" value="{{ form.full_name.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm" placeholder="Enter your full name"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Employee ID</label><input type="text" name="employee_id" value="{{ form.employee_id.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Email Address</label><input type="email" name="email" value="{{ form.email.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">UP Mail</label><input type="email" name="up_mail" value="{{ form.up_mail.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Contact Number</label><input type="text" name="contact_number" value="{{ form.contact_number.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Unit Office</label>
+                                <select name="unit_office" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.unit_office.choices %}
+                                    <option value="{{ value }}" {% if form.unit_office.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Mother Unit</label>
+                                <select name="mother_unit" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.mother_unit.choices %}
+                                    <option value="{{ value }}" {% if form.mother_unit.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Designation</label><input type="text" name="designation" value="{{ form.designation.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Birthday</label><input type="date" name="birthday" value="{{ form.birthday.value|date:'Y-m-d'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-700 mb-1">Admin Officer</label><input type="text" name="admin_officer" value="{{ form.admin_officer.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-6 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">2</span> Travel Details</h3>
+                        <div class="space-y-6">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Purpose of Travel</label><textarea name="purpose" rows="3" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">{{ form.purpose.value|default:'' }}</textarea></div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <label class="block text-sm font-bold text-blue-900 mb-2">Select Trip Type</label>
+                                <select name="trip_type" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.trip_type.choices %}
+                                    <option value="{{ value }}" {% if form.trip_type.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div id="simple-flight-view" class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border border-slate-200 p-6 rounded-xl shadow-sm">
+                                <div><label class="block text-sm font-medium text-slate-700 mb-1">Origin (Departure From)</label><input type="text" name="origin" value="{{ form.origin.value|default:'Manila' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                <div><label class="block text-sm font-medium text-slate-700 mb-1">Destination (Arrival At)</label><input type="text" name="destination_details" value="{{ form.destination_details.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Departure Date</label><input type="date" name="departure_date" value="{{ form.departure_date.value|date:'Y-m-d'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Time</label><input type="time" name="departure_time" value="{{ form.departure_time.value|time:'H:i'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                </div>
+                                <div id="return-date-container" class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Return Date</label><input type="date" name="return_date" value="{{ form.return_date.value|date:'Y-m-d'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Time</label><input type="time" name="return_time" value="{{ form.return_time.value|time:'H:i'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                                </div>
+                            </div>
+                            <div id="multi-city-view" class="hidden-visually space-y-4">
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6">
+                                    <h4 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wide">Flight Segments</h4>
+                                    <div class="grid grid-cols-12 gap-2 text-xs font-bold text-slate-500 mb-2 px-2">
+                                        <div class="col-span-3">ORIGIN</div><div class="col-span-3">DESTINATION</div><div class="col-span-3">DATE</div><div class="col-span-2">TIME</div><div class="col-span-1"></div>
+                                    </div>
+                                    <div id="segments-container" class="space-y-2"></div>
+                                    <button type="button" id="add-segment-btn" class="mt-4 text-sm text-blue-600 font-bold hover:text-blue-800 flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Add Another Flight</button>
+                                </div>
+                                <p class="text-xs text-slate-500 italic">By clicking submit, your request status will change to <strong>PENDING</strong> <br>and will be forwarded to SSPMO for processing.</p>
+                            </div>
+                            <div class="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                                <input type="checkbox" name="is_official" {% if form.is_official.value %}checked{% endif %} class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
+                                <label class="text-sm font-medium text-slate-900">Is this Travel Official and Approved?</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-6 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">3</span> Booking Preferences</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Airline Preference</label>
+                                <select name="airline" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.airline.choices %}
+                                    <option value="{{ value }}" {% if form.airline.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Seat Class</label>
+                                <select name="seat_class" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.seat_class.choices %}
+                                    <option value="{{ value }}" {% if form.seat_class.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Baggage Allowance</label>
+                                <select name="baggage_type" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">
+                                    {% for value, label in form.fields.baggage_type.choices %}
+                                    <option value="{{ value }}" {% if form.baggage_type.value == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-3 pt-6"><input type="checkbox" name="avail_insurance" {% if form.avail_insurance.value %}checked{% endif %} class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"><label class="text-sm font-medium text-slate-700">Avail Travel Insurance?</label></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-700 mb-1">Special Requests</label><textarea name="special_requests" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">{{ form.special_requests.value|default:'' }}</textarea></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-6 flex items-center gap-2"><span class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs">4</span> Approvals</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Immediate Supervisor</label><input type="text" name="supervisor_name" value="{{ form.supervisor_name.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Supervisor Email</label><input type="email" name="supervisor_email" value="{{ form.supervisor_email.value|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div><label class="block text-sm font-medium text-slate-700 mb-1">Date of Approval</label><input type="date" name="approval_date" value="{{ form.approval_date.value|date:'Y-m-d'|default:'' }}" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-700 mb-1">Remarks</label><textarea name="remarks" rows="2" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm">{{ form.remarks.value|default:'' }}</textarea></div>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                        <div class="flex items-start gap-3">
+                            <div class="mt-1">{{ form.agreed_to_policy }}</div>
+                            <p class="text-sm text-yellow-800 font-medium leading-relaxed">I hereby certify that the information provided is true and correct, and that this travel is in accordance with government policies and procedures.</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-8 py-6 -mx-8 -mb-8 border-t border-slate-200 flex justify-end rounded-b-2xl mt-8">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg shadow-blue-900/20 transition transform active:scale-95 flex items-center gap-2">
+                            <span>Proceed to Print Slip</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <footer class="bg-slate-50 border-t border-slate-200 py-8 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500"><p>&copy; 2026 SSPMO - Government Fares Agreement. Authorized use only.</p></div>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tripTypeSelect = document.querySelector('[name="trip_type"]');
+            const simpleView = document.getElementById('simple-flight-view');
+            const multiCityView = document.getElementById('multi-city-view');
+            const returnContainer = document.getElementById('return-date-container');
+            const returnInputs = returnContainer.querySelectorAll('input');
+            const segmentsContainer = document.getElementById('segments-container');
+            const addSegmentBtn = document.getElementById('add-segment-btn');
+            const mainOrigin = document.querySelector('[name="origin"]');
+            const mainDest = document.querySelector('[name="destination_details"]');
+            const mainDepDate = document.querySelector('[name="departure_date"]');
+            const mainDepTime = document.querySelector('[name="departure_time"]');
+            function updateFormView() {
+                const type = tripTypeSelect.value;
+                if (type === 'MULTI_CITY') {
+                    simpleView.classList.add('hidden-visually'); simpleView.style.display = 'none';
+                    multiCityView.classList.remove('hidden-visually'); multiCityView.style.display = 'block';
+                    simpleView.querySelectorAll('input').forEach(i => i.removeAttribute('required'));
+                    if (segmentsContainer.children.length === 0) addSegment();
+                } else {
+                    simpleView.classList.remove('hidden-visually'); simpleView.style.display = 'grid';
+                    multiCityView.classList.add('hidden-visually'); multiCityView.style.display = 'none';
+                    mainOrigin.setAttribute('required', 'required'); mainDest.setAttribute('required', 'required');
+                    mainDepDate.setAttribute('required', 'required'); mainDepTime.setAttribute('required', 'required');
+                    if (type === 'ONE_WAY') {
+                        returnContainer.classList.add('hidden-visually'); returnInputs.forEach(i => { i.value = ''; i.removeAttribute('required'); });
+                    } else {
+                        returnContainer.classList.remove('hidden-visually'); returnInputs.forEach(i => i.setAttribute('required', 'required'));
+                    }
+                }
+            }
+            function createSegmentRow(index) {
+                const div = document.createElement('div');
+                div.className = "grid grid-cols-12 gap-2 items-center bg-white p-2 border border-slate-200 rounded shadow-sm segment-row";
+                div.innerHTML = `
+                    <div class="col-span-3"><input type="text" placeholder="Origin" class="mc-origin w-full px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"></div>
+                    <div class="col-span-3"><input type="text" placeholder="Destination" class="mc-dest w-full px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"></div>
+                    <div class="col-span-3"><input type="date" class="mc-date w-full px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"></div>
+                    <div class="col-span-2"><input type="time" class="mc-time w-full px-2 py-1 text-xs border rounded focus:ring-1 focus:ring-blue-500"></div>
+                    <div class="col-span-1 text-center">${index > 0 ? `<button type="button" class="text-red-500 hover:text-red-700 remove-seg"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}</div>
+                `;
+                if (index > 0) { div.querySelector('.remove-seg').addEventListener('click', function () { div.remove(); }); }
+                return div;
+            }
+            function addSegment() { const count = segmentsContainer.children.length; segmentsContainer.appendChild(createSegmentRow(count)); }
+            document.getElementById('bookingForm').addEventListener('submit', function (e) {
+                if (tripTypeSelect.value === 'MULTI_CITY') {
+                    const rows = document.querySelectorAll('.segment-row');
+                    let origins = [], dests = [], dates = [], times = [];
+                    let fullText = "MULTI-CITY ITINERARY:\n";
+                    rows.forEach((row, idx) => {
+                        const o = row.querySelector('.mc-origin').value; const d = row.querySelector('.mc-dest').value; const dt = row.querySelector('.mc-date').value; const tm = row.querySelector('.mc-time').value;
+                        origins.push(o); dests.push(d); dates.push(dt); times.push(tm); fullText += `${idx + 1}. ${o} to ${d} on ${dt} @ ${tm}\n`;
+                    });
+                    if (origins.length > 0) {
+                        mainOrigin.value = "Multi-City: " + origins.join(" / "); mainDest.value = dests.join(" / "); mainDepDate.value = dates[0]; mainDepTime.value = times[0] || "00:00";
+                        const specialReq = document.querySelector('[name="special_requests"]'); specialReq.value = fullText + "\n" + specialReq.value;
+                    }
+                }
+            });
+            addSegmentBtn.addEventListener('click', addSegment); tripTypeSelect.addEventListener('change', updateFormView); updateFormView();
+        });
+    </script>
+</body>
+</html>

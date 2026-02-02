@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System SSPMO | SUPLAY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+    <!-- Green Theme Navbar -->
+    {% block navbar %}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-3" href="{% url 'home' %}">
+                <img src="{% static 'up_logo_official.png' %}" alt="UP Logo" width="55" height="55"
+                    class="d-inline-block align-text-top">
+                <div class="d-flex flex-column justify-content-center" style="line-height: 1.1;">
+                    <span class="fw-bold fs-5" style="letter-spacing: -0.5px;">SUPLAY</span>
+                    <span class="fw-light text-white text-uppercase"
+                        style="font-size: 0.65rem; letter-spacing: 0.5px; opacity: 0.9;">System Supply & Property
+                        Management Office</span>
+                    <span class="d-none d-lg-block text-white mt-1"
+                        style="font-size: 0.65rem; font-style: italic; letter-spacing: 0.3px; opacity: 0.95;">
+                        Streamlining supplies management. Efficient. Transparent. Sustainable.
+                    </span>
+                </div>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+
+                    <!-- Common Links -->
+                    <li class="nav-item me-2">
+                        <a class="nav-link text-white" href="{% url 'home' %}"><i class="bi bi-grid me-1"></i>
+                            Catalog</a>
+                    </li>
+
+
+
+                    <!-- Staff Links -->
+                    {% if user.is_staff %}
+                    <li class="nav-item dropdown me-2">
+                        <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-shield-lock me-1"></i> Management
+                        </a>
+                        <ul class="dropdown-menu shadow border-0">
+                            <li>
+                                <h6 class="dropdown-header text-uppercase small fw-bold">Overview</h6>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'transaction_list' %}">
+                                    <span>Transactions</span>
+                                </a>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'inventory_list' %}">Inventory</a></li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <h6 class="dropdown-header text-uppercase small fw-bold">Receiving</h6>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'batch_list' %}">Batch Monitor</a></li>
+                            <li><a class="dropdown-item" href="{% url 'receive_delivery' %}">Receive Delivery</a></li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+                                <h6 class="dropdown-header text-uppercase small fw-bold">Outbound</h6>
+                            </li>
+                            <li><a class="dropdown-item" href="{% url 'order_history' %}">Releasing</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    <!-- Cart -->
+                    <li class="nav-item me-3">
+                        <a class="nav-link text-white position-relative" href="{% url 'view_cart' %}">
+                            <i class="bi bi-cart3 fs-5"></i>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
+                                style="font-size: 0.6rem;">
+                                {{ request.session.cart|length|default:"0" }}
+                            </span>
+                        </a>
+                    </li>
+
+                    <!-- User Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white fw-bold" href="#" role="button"
+                            data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i> {{ user.username|default:"Guest" }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i
+                                        class="bi bi-person me-2"></i>Profile</a></li>
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="/admin/"><i class="bi bi-speedometer2 me-2"></i>Django
+                                    Admin</a></li>
+                            {% endif %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post" class="d-inline w-100">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item w-100 text-start">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% include 'supplies/includes/_footer.html' %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Session Timeout Warning System (Popout Modal) -->
+    {% load static %}
+    <script src="{% static 'supplies/js/session_timeout_warning.js' %}"></script>
+    <script>
+        // Initialize 10-minute timeout system when DOM ready
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout();
+        });
+    </script>
+</body>
+
+</html>
