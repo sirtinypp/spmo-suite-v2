@@ -8,18 +8,32 @@
 
 ## Active Rollback Points
 
-### 1. stable-2026-02-02-session-start ⭐ CURRENT
-**Date:** 2026-02-02 07:55 PHT  
-**Commit:** `e32dec1`  
-**Branch:** `feature/app-filtered-shop`  
+### 1. stable-2026-02-02-safety-lock ⭐ CURRENT (GitHub v2)
+**Date:** 2026-02-02 10:40 PHT  
+**Commit:** `a2c2df7`  
+**Branch:** `main` (GitHub v2)
 **Database:** `db_full_backup_20260202.sql`
 
-**Changes:**
-- Emergency deletion of Jan 30 failed logs/artifacts
-- Finalized stable baseline for new deployments
-- Full database dump (all apps) created
+**Architecture:**
+- **Source of Truth:** [spmo-suite-v2](https://github.com/sirtinypp/spmo-suite-v2)
+- **Deployment:** Safety-locked deployment hook (Automated GitHub Sync)
+- **Status:** All domains verified and routing locked.
+
+**Rollback Command:**
+```bash
+# Force the entire suite back to this verified state
+git fetch origin main
+git reset --hard stable-2026-02-02-safety-lock
+git clean -fd
+docker compose up -d --build
+```
 
 ---
+
+### 2. stable-2026-02-02-session-start (Pre-v2 Migration)
+@12: **Date:** 2026-02-02 07:55 PHT  
+**Commit:** `e32dec1`  
+**Branch:** `feature/app-filtered-shop` (Legacy)
 
 ### 2. stable-2026-01-29-security-hardening
 
