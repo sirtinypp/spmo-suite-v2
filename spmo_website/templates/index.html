@@ -102,7 +102,23 @@
                         & Resources</a>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="lg:hidden flex items-center gap-2">
+                    <button id="mobile-search-toggle" class="p-2 text-slate-500 hover:text-red-900 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                    <button id="mobile-menu-toggle"
+                        class="p-2 text-slate-500 hover:text-red-900 transition focus:outline-none">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path id="hamburger-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="hidden lg:flex items-center gap-3">
                     {% if user.is_authenticated %}
                     <div class="hidden md:flex flex-col items-end mr-2">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Welcome</span>
@@ -132,6 +148,66 @@
             </div>
         </div>
     </nav>
+
+    <!-- Mobile Menu Drawer (Overlay) -->
+    <div id="mobile-menu" class="fixed inset-0 z-50 lg:hidden hidden">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" id="mobile-menu-backdrop"></div>
+        <div class="fixed inset-y-0 right-0 w-full max-w-xs bg-white shadow-2xl flex flex-col p-6 overflow-y-auto transform transition-transform duration-300 translate-x-full"
+            id="mobile-menu-panel">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'images/logo.png' %}" alt="UP Logo" class="w-10 h-10 object-contain">
+                    <span class="font-bold text-red-900">SSPMO</span>
+                </div>
+                <button id="mobile-menu-close" class="p-2 text-slate-400 hover:text-red-900 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <nav class="flex flex-col gap-2 mb-8">
+                <a href="#"
+                    class="mobile-nav-link px-4 py-3 rounded-xl hover:bg-red-50 text-slate-700 font-bold transition">Home</a>
+                <a href="#apps"
+                    class="mobile-nav-link px-4 py-3 rounded-xl hover:bg-red-50 text-slate-700 font-bold transition">e-Services</a>
+                <a href="#news-inspections"
+                    class="mobile-nav-link px-4 py-3 rounded-xl hover:bg-red-50 text-slate-700 font-bold transition">News</a>
+                <a href="#core-services"
+                    class="mobile-nav-link px-4 py-3 rounded-xl hover:bg-red-50 text-slate-700 font-bold transition">Services
+                    & Resources</a>
+            </nav>
+
+            <div class="mt-auto pt-6 border-t border-slate-100 flex flex-col gap-4">
+                {% if user.is_authenticated %}
+                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl">
+                    <div
+                        class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-900 font-bold uppercase">
+                        {{ user.username|slice:":1" }}
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Authenticated
+                            as</span>
+                        <span class="text-sm font-bold text-slate-900">{{ user.username }}</span>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard' %}"
+                    class="w-full py-3 bg-slate-900 text-white text-center font-bold rounded-xl transition">Dashboards</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="w-full py-3 border border-red-100 text-red-900 font-bold rounded-xl transition">Log
+                        Out</button>
+                </form>
+                {% else %}
+                <a href="{% url 'login' %}"
+                    class="w-full py-3 bg-red-900 text-white text-center font-bold rounded-xl shadow-lg shadow-red-900/20 transition">Log
+                    In</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
     <header class="bg-white relative overflow-hidden pb-24 border-b border-slate-200">
         <div class="absolute inset-0 bg-slate-50">
@@ -343,7 +419,7 @@
 
             <!-- Matrix Grid -->
             <!-- Desktop: 5 columns (1 Label + 4 Content). Mobile: Stacked -->
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
 
                 <!-- ROW 1: THEMES -->
                 <!-- Mobile Label -->
@@ -1798,6 +1874,51 @@
         });
     </script>
 
+    <!-- Mobile Menu Controller -->
+    <script>
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuPanel = document.getElementById('mobile-menu-panel');
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+        const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+
+        function toggleMobileMenu(show) {
+            if (show) {
+                mobileMenu.classList.remove('hidden');
+                setTimeout(() => {
+                    mobileMenuPanel.classList.remove('translate-x-full');
+                }, 10);
+            } else {
+                mobileMenuPanel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    mobileMenu.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        mobileMenuToggle.addEventListener('click', () => toggleMobileMenu(true));
+        mobileMenuClose.addEventListener('click', () => toggleMobileMenu(false));
+        mobileMenuBackdrop.addEventListener('click', () => toggleMobileMenu(false));
+
+        // Close on link click
+        mobileNavLinks.forEach(link => {
+            link.addEventListener('click', () => toggleMobileMenu(false));
+        });
+
+        // Mobile Search Mirror
+        mobileSearchToggle.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => {
+                const searchInput = document.getElementById('hub-search-input');
+                const navSearchContainer = document.getElementById('nav-search-container');
+                navSearchContainer.classList.remove('hidden');
+                navSearchContainer.classList.add('flex');
+                searchInput.focus();
+            }, 500);
+        });
+    </script>
 </body>
 
 </html>
