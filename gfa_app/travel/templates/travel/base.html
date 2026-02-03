@@ -4,10 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SSPMO | GFA App</title>
+    <title>{{ title|default:"LIPAD Portal | SSPMO" }}</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_head %}{% endblock %}
+
     <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
         .gov-blue {
             background-color: #1e3a8a;
         }
@@ -18,41 +34,78 @@
     </style>
 </head>
 
-<body class="bg-gray-50 text-gray-800 font-sans">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
 
-    <nav class="gov-blue text-white shadow-lg">
+    <!-- Premium Navigation -->
+    <nav class="nav-glass sticky top-0 z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <a href="{% url 'index' %}" class="font-bold text-xl flex items-center gap-2">
-                    <span>🏛️ SSPMO-Suite</span> | GFA App
+            <div class="flex items-center justify-between h-20">
+                <!-- Branding -->
+                <a href="{% url 'index' %}" class="flex items-center gap-3 group">
+                    {% load static %}
+                    <img src="{% static 'travel/logo.png' %}" alt="UP Logo"
+                        class="w-10 h-10 object-contain group-hover:scale-110 transition-transform">
+                    <div class="flex flex-col">
+                        <span class="font-black text-slate-900 tracking-tighter text-xl leading-none">
+                            LIPAD<span class="text-blue-600">.</span>
+                        </span>
+                        <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Travel
+                            Management</span>
+                    </div>
                 </a>
-                <div class="flex space-x-4">
-                    <a href="{% url 'index' %}" class="hover:bg-blue-800 px-3 py-2 rounded">Home</a>
-                    <a href="{% url 'book' %}" class="hover:bg-blue-800 px-3 py-2 rounded">Book Flight</a>
-                    <a href="{% url 'dashboard' %}" class="hover:bg-blue-800 px-3 py-2 rounded">Executive Dashboard</a>
+
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="{% url 'index' %}"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-blue-900 hover:bg-blue-50 font-medium text-sm transition-all">Home</a>
+                    <a href="{% url 'book' %}"
+                        class="px-4 py-2 rounded-full text-slate-600 hover:text-blue-900 hover:bg-blue-50 font-medium text-sm transition-all">Book
+                        Flight</a>
+                    <a href="{% url 'dashboard' %}"
+                        class="px-4 py-2 rounded-full text-blue-600 bg-blue-50 font-bold text-sm transition-all border border-blue-100 shadow-sm">Executive
+                        Dashboard</a>
+                </div>
+
+                <!-- Mobile Toggle (Simplified for now) -->
+                <div class="md:hidden">
+                    <button class="p-2 text-slate-600 hover:text-blue-600">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
     {% if messages %}
-    <div class="max-w-7xl mx-auto mt-4 px-4">
+    <div class="max-w-7xl mx-auto mt-6 px-4 w-full">
         {% for message in messages %}
         <div
-            class="p-4 rounded-md shadow-md {% if message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
-            {{ message }}
+            class="p-4 rounded-2xl shadow-sm border {% if message.tags == 'success' %}bg-emerald-50 border-emerald-100 text-emerald-800{% else %}bg-blue-50 border-blue-100 text-blue-800{% endif %} flex items-center gap-3">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+            <span class="text-sm font-medium">{{ message }}</span>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 min-h-[80vh]">
+    <main class="flex-grow max-w-7xl mx-auto w-full py-10 px-4 sm:px-6 lg:px-8">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <footer class="text-center py-6 text-gray-500 text-sm">
-        &copy; 2026 Government Fares Agreement | SSPMO Suite
+    <footer class="bg-white border-t border-slate-100 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <div class="flex flex-col items-center gap-4">
+                <img src="{% static 'travel/logo.png' %}" alt="UP Logo" class="w-12 h-12 grayscale opacity-30">
+                <div class="space-y-1">
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">System Supply and
+                        Property Management Office</p>
+                    <p class="text-[10px] text-slate-400">Logistics and Travel Itinerary Portal | LIPAD &copy; {% now
+                        "Y" %}</p>
+                </div>
+            </div>
+        </div>
     </footer>
+    {% block extra_scripts %}{% endblock %}
 </body>
 
 </html>

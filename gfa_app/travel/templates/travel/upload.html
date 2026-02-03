@@ -1,152 +1,182 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload Documents - GFA Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .hero-pattern {
-            background-color: #0f172a;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-    </style>
-</head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+{% extends 'travel/base.html' %}
+{% load static %}
 
-    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <a href="{% url 'index' %}" class="flex items-center gap-4 group">
-                    <div class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center text-white font-serif font-bold text-xl border-4 border-slate-100 shadow-inner">PH</div>
-                    <div class="flex flex-col">
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">SPMO System</span>
-                        <h1 class="text-xl font-bold text-slate-900 leading-none">GFA <span class="text-blue-700">Booking</span></h1>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </header>
+{% block extra_head %}
+<style>
+    .hero-pattern {
+        background-color: #0f172a;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
 
-    <main class="flex-grow">
-        <div class="hero-pattern h-48 w-full relative">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 to-slate-900/80"></div>
-            <div class="relative max-w-4xl mx-auto px-4 py-12 text-center">
-                <h2 class="text-3xl font-bold text-white tracking-tight">Final Step: Submit Requirements</h2>
-                
-                <div class="flex justify-center items-center gap-4 mt-6 text-sm">
-                    <div class="flex items-center gap-2 text-blue-200">
-                        <div class="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center border border-blue-400">✓</div>
-                        <span>Request Form</span>
-                    </div>
-                    <div class="w-8 h-px bg-blue-700"></div>
-                    <div class="flex items-center gap-2 text-blue-200">
-                        <div class="w-6 h-6 rounded-full bg-blue-800 flex items-center justify-center border border-blue-400">✓</div>
-                        <span>Print & Sign</span>
-                    </div>
-                    <div class="w-8 h-px bg-blue-400"></div>
-                    <div class="flex items-center gap-2 text-white font-bold">
-                        <div class="w-6 h-6 rounded-full bg-white text-blue-900 flex items-center justify-center">3</div>
-                        <span>Upload Documents</span>
-                    </div>
+    input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: #f8fafc;
+        border: 2px dashed #e2e8f0;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    input[type="file"]:hover {
+        border-color: #3b82f6;
+        background-color: #f1f5f9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="-mt-10 -mx-4 sm:-mx-6 lg:-mx-8">
+    <!-- Header Hero -->
+    <div class="hero-pattern h-56 w-full relative rounded-b-[3rem] overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-900 to-slate-900 opacity-90"></div>
+        <div class="relative max-w-7xl mx-auto px-6 pt-12 text-center text-white">
+            <h2 class="text-3xl font-black tracking-tight italic uppercase">Submit<span
+                    class="text-blue-500 not-italic">.</span> Requirements</h2>
+
+            <div class="flex justify-center items-center gap-6 mt-8 overflow-hidden">
+                <div class="flex items-center gap-2 text-blue-300/50">
+                    <div
+                        class="w-6 h-6 rounded-full bg-blue-900/50 flex items-center justify-center border border-white/10 text-[10px]">
+                        <i class="fas fa-check"></i></div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Entry</span>
+                </div>
+                <div class="w-8 h-px bg-white/10"></div>
+                <div class="flex items-center gap-2 text-blue-300/50">
+                    <div
+                        class="w-6 h-6 rounded-full bg-blue-900/50 flex items-center justify-center border border-white/10 text-[10px]">
+                        <i class="fas fa-check"></i></div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Print</span>
+                </div>
+                <div class="w-8 h-px bg-blue-500/50"></div>
+                <div class="flex items-center gap-2 text-white">
+                    <div
+                        class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black shadow-lg shadow-blue-500/50">
+                        3</div>
+                    <span
+                        class="text-[10px] font-black uppercase tracking-widest underline decoration-2 underline-offset-4">Upload</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="max-w-3xl mx-auto px-4 -mt-10 relative z-10 pb-12">
-            <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-                
-                <div class="bg-slate-50 px-8 py-6 border-b border-slate-200">
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Request Summary</h3>
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="text-xl font-bold text-slate-800">{{ booking.destination_details }}</div>
-                            <div class="text-sm text-slate-600">{{ booking.departure_date|date:"F d, Y" }} — {{ booking.get_airline_display }}</div>
+    <div class="max-w-3xl mx-auto px-6 -mt-10 relative z-10 pb-12">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
+
+            <div class="bg-slate-50 px-8 py-8 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected
+                        Itinerary</span>
+                    <div class="text-xl font-black text-slate-900 uppercase tracking-tighter">{{
+                        booking.destination_details }}</div>
+                    <div class="text-xs text-blue-600 font-bold mt-1 uppercase">{{ booking.departure_date|date:"F d, Y"
+                        }} · {{ booking.get_airline_display }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-[10px] font-black text-slate-900 uppercase tracking-widest">{{ booking.full_name }}
+                    </div>
+                    <div class="text-[11px] font-mono font-bold text-slate-400 mt-1">Ref: {{
+                        booking.id|stringformat:"06d" }}</div>
+                </div>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="p-8 md:p-12 space-y-10">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div
+                    class="bg-red-50 text-red-600 p-5 rounded-2xl border border-red-100 text-xs font-black uppercase tracking-widest flex items-center gap-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    All required documents must be uploaded
+                </div>
+                {% endif %}
+
+                <div class="space-y-8">
+                    <!-- RIS -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-black text-slate-900 uppercase tracking-widest">1.
+                                Signed Requisition Slip (RIS)</label>
+                            <span
+                                class="text-[8px] font-black text-white bg-blue-600 px-2 py-1 rounded-lg uppercase tracking-widest">Required</span>
                         </div>
-                        <div class="text-right">
-                            <div class="text-sm font-bold text-slate-700">{{ booking.full_name }}</div>
-                            <div class="text-xs font-mono text-slate-500">Ref: {{ booking.id|stringformat:"06d" }}</div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-relaxed italic">The PDF document signed
+                            by you and your immediate supervisor.</p>
+                        {{ form.doc_signed_slip }}
+                    </div>
+
+                    <!-- Travel Order -->
+                    <div class="pt-8 border-t border-slate-50 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-black text-slate-900 uppercase tracking-widest">2.
+                                Approved Travel Order</label>
+                            <span
+                                class="text-[8px] font-black text-white bg-blue-600 px-2 py-1 rounded-lg uppercase tracking-widest">Required</span>
                         </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-relaxed italic">Official Travel Order
+                            verified by HRDO or Head of Unit.</p>
+                        {{ form.doc_travel_order }}
+                    </div>
+
+                    <!-- ID -->
+                    <div class="pt-8 border-t border-slate-50 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-black text-slate-900 uppercase tracking-widest">3.
+                                Government Issued ID</label>
+                            <span
+                                class="text-[8px] font-black text-white bg-blue-600 px-2 py-1 rounded-lg uppercase tracking-widest">Required</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-relaxed italic">Passport (for
+                            International) or any valid Gov ID (for Domestic).</p>
+                        {{ form.doc_gov_id }}
+                    </div>
+
+                    <!-- Invitation -->
+                    <div class="pt-8 border-t border-slate-50 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-black text-slate-900 uppercase tracking-widest">4.
+                                Itinerary / Invitation Letter</label>
+                            <span
+                                class="text-[8px] font-black text-white bg-blue-600 px-2 py-1 rounded-lg uppercase tracking-widest">Required</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-relaxed italic">Official invitation or
+                            event program substantiating the travel.</p>
+                        {{ form.doc_itinerary }}
+                    </div>
+
+                    <!-- Previous (Optional) -->
+                    <div class="pt-8 border-t border-slate-50 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">5.
+                                Previous GFA Asset</label>
+                            <span
+                                class="text-[8px] font-black text-slate-400 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-widest">Optional</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 font-medium leading-relaxed italic">Upload previous ticket
+                            IF this is a rebooking or amendment.</p>
+                        {{ form.doc_previous_gfa }}
                     </div>
                 </div>
 
-                <form method="post" enctype="multipart/form-data" class="p-8 space-y-8">
-                    {% csrf_token %}
-
-                    {% if form.errors %}
-                        <div class="bg-red-50 text-red-600 p-4 rounded text-sm mb-4">
-                            Please upload all required files to proceed.
-                        </div>
-                    {% endif %}
-
-                    <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-900 mb-2 flex justify-between">
-                                1. Signed Requisition Slip (RIS)
-                                <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Required</span>
-                            </label>
-                            <p class="text-xs text-slate-500 mb-2">The PDF you just printed, signed by you and your supervisor.</p>
-                            {{ form.doc_signed_slip }}
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-100">
-                            <label class="block text-sm font-bold text-slate-900 mb-2 flex justify-between">
-                                2. Approved Travel Order
-                                <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Required</span>
-                            </label>
-                            <p class="text-xs text-slate-500 mb-2">Verified by HRDO / Head of Unit.</p>
-                            {{ form.doc_travel_order }}
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-100">
-                            <label class="block text-sm font-bold text-slate-900 mb-2 flex justify-between">
-                                3. Government Issued ID
-                                <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Required</span>
-                            </label>
-                            <p class="text-xs text-slate-500 mb-2">Passport (for Int'l) or any valid Gov ID (for Domestic).</p>
-                            {{ form.doc_gov_id }}
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-100">
-                            <label class="block text-sm font-bold text-slate-900 mb-2 flex justify-between">
-                                4. Itinerary / Invitation Letter
-                                <span class="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Required</span>
-                            </label>
-                            <p class="text-xs text-slate-500 mb-2">Official invitation or event program.</p>
-                            {{ form.doc_itinerary }}
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-100">
-                            <label class="block text-sm font-bold text-slate-900 mb-2 flex justify-between">
-                                5. Previous GFA (Optional)
-                                <span class="text-xs font-normal text-slate-400 border border-slate-200 px-2 py-0.5 rounded">If Rebooking</span>
-                            </label>
-                            <p class="text-xs text-slate-500 mb-2">Upload previous ticket if this is an amendment.</p>
-                            {{ form.doc_previous_gfa }}
+                <div class="pt-8">
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-blue-500/20 transition-all transform active:scale-95 flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs">
+                        Finalize & Submit Request <i class="fas fa-cloud-upload-alt text-lg"></i>
+                    </button>
+                    <div class="mt-6 flex flex-col items-center gap-2">
+                        <div class="flex items-center gap-2 text-amber-500">
+                            <i class="fas fa-info-circle text-xs"></i>
+                            <span class="text-[9px] font-black uppercase tracking-widest">Status will change to PENDING
+                                immediately upon submission</span>
                         </div>
                     </div>
-
-                    <div class="pt-6">
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                            <span>Submit Final Request</span>
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </button>
-                        <p class="text-center text-xs text-slate-400 mt-4">
-                            By clicking submit, your request status will change to <strong>PENDING</strong> <br>and will be forwarded to SPMO for processing.
-                        </p>
-                    </div>
-
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
-    </main>
-
-    <footer class="bg-slate-50 border-t border-slate-200 py-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500">
-            <p>&copy; 2025 SPMO - Government Fares Agreement. Authorized use only.</p>
-        </div>
-    </footer>
-
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}
