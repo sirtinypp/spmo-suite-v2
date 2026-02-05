@@ -123,17 +123,33 @@ This is the first stable production release of the SPMO Suite, a unified contain
 
 ---
 
-## [Unreleased]
+## [1.2.0-production] - 2026-02-05
+
+### 🎉 Stable Release v2
+
+Major stability release consolidating UI fixes, security hardening, and code reorganization.
 
 ### Added
-- **Monthly Allocation Limits (SUPLAY)**: Implemented strict month-only stock checking (jan/feb/etc.) in `add_to_cart`.
-- **Catalog Visibility**: Updated `home` and `search` views to display remaining monthly balance (`personal_stock`) on product cards.
-- **Verification Scripts**: Added `test_monthly_limit.py`, `test_search_filters.py`, and `test_cart_security.py` for automated logic verification.
+- **Vault Guardian Protocols**: Automated pre-push safety checks, backup verification, and hardcoded credential scanning.
+- **LIPAD UI Polish**: Fixed template rendering issues in forms and dashboard credits display.
+- **Prevention Guides**: Added `.agent/TEMPLATE_TAG_PREVENTION.md` for safer Django template handling.
+- **Utility Scripts**: Added `fix_templates.py` for automated tag repair.
+- **Code Organization**: Restructured 51+ files into `archives/`, `backups/`, `logs/`, and `scripts/utils/`.
 
 ### Fixed
-- **Security Hardening**: Patched `update_cart` and `checkout_init` to enforce monthly allocation limits, preventing API-based over-purchasing.
-- **Home View Crash**: Resolved `AttributeError` when filtering product lists.
-- **Test Environment**: Fixed `DisallowedHost` errors in management commands by setting `HTTP_HOST='localhost'`.
+- **Template Rendering**: Resolved split Django template tags (`{{ form.field }}`) appearing as text in `form.html` and `dashboard.html`.
+- **Git Push Blocker**: Resolved Git LFS issue by removing 153MB `mirror_bundle.tar.gz` from history.
+- **Security**: Removed 7 debug scripts containing hardcoded credentials (`xiarabasa12`).
+- **Configuration**: Standardized `DEBUG=True` handling and environment variable usage across all apps.
+
+### Security
+- **Hardening**: Verified `check --deploy` status for all 4 applications.
+- **Credentials**: Scrubbed all hardcoded passwords from version control.
+- **Backups**: Verified database backup integrity (7 recent backups).
+
+### Changed
+- **Documentation**: Updated `DAILY_LOG`, `walkthrough.md`, and added `pre_push_verification.md`.
+- **Gitignore**: Enhanced rules to strictly exclude debug scripts and archives.
 
 ---
 
@@ -149,14 +165,14 @@ This is the first stable production release of the SPMO Suite, a unified contain
 - **Git Repository Health**: Cleaned large legacy tarballs from the active repository to restore remote push functionality.
 - **Team Synchronization**: All agents updated with the January 22nd production status.
 
-### Planned for 1.1.0
+### Planned for 1.3.0
 - SSL/HTTPS certificate configuration
 - Automated database backup system
 - Enhanced error logging and monitoring
 - Performance optimization
 - User authentication improvements
 
-### Planned for 1.2.0
+### Planned for 2.0.0
 - API endpoints for external integrations
 - Mobile-responsive improvements
 - Advanced reporting features
