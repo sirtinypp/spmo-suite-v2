@@ -141,6 +141,7 @@ Major stability release consolidating UI fixes, security hardening, and code reo
 - **Git Push Blocker**: Resolved Git LFS issue by removing 153MB `mirror_bundle.tar.gz` from history.
 - **Security**: Removed 7 debug scripts containing hardcoded credentials (`xiarabasa12`).
 - **Configuration**: Standardized `DEBUG=True` handling and environment variable usage across all apps.
+- **Domain Swapping**: Fixed Nginx stale DNS cache issue using dynamic resolver (`127.0.0.11`) to prevent traffic interchange after restarts.
 
 ### Security
 - **Hardening**: Verified `check --deploy` status for all 4 applications.

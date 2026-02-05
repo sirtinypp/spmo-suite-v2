@@ -8,7 +8,27 @@
 
 ## Active Rollback Points
 
-### 1. stable-2026-02-02-safety-lock ⭐ CURRENT (GitHub v2)
+### 1. stable-2026-02-05-production-v1.2.0 ⭐ CURRENT (Golden)
+**Date**: 2026-02-05 11:45 PHT  
+**Commit**: `4df3b6f`  
+**Branch**: `main`  
+**Status**: Production Live, Security Hardened, Nginx DNS Fixed.
+
+**Architecture**:
+- **Source**: [spmo-suite-v2](https://github.com/sirtinypp/spmo-suite-v2)
+- **Security**: No hardcoded credentials. Nginx Dynamic Resolver active.
+- **Backups**: Remote (`~/backups/archive/spmo_suite_pre_deploy_20260205.tar.gz`)
+
+**Rollback Command**:
+```bash
+git fetch origin main
+git reset --hard 4df3b6f
+docker compose down && docker compose up -d --build
+```
+
+---
+
+### 2. stable-2026-02-02-safety-lock (GitHub v2)
 **Date:** 2026-02-02 10:40 PHT  
 **Commit:** `a2c2df7`  
 **Branch:** `main` (GitHub v2)
