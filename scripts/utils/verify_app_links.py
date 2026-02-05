@@ -14,8 +14,10 @@ print(f"Broken/Null Product links: {broken_links}")
 
 # Sample some records
 print("\nSample APP Records:")
-for app in AnnualProcurementPlan.objects.select_related('product', 'department')[:5]:
-    print(f"  - Dept: {app.department} | Product ID: {app.product_id} | Product: {app.product.name} | Year: {app.year}")
+for app in AnnualProcurementPlan.objects.select_related("product", "department")[:5]:
+    print(
+        f"  - Dept: {app.department} | Product ID: {app.product_id} | Product: {app.product.name} | Year: {app.year}"
+    )
 
 # Check if products have item_code
 print("\nProduct Fields Check:")

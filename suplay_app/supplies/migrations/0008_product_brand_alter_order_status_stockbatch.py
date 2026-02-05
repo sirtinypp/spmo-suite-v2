@@ -8,34 +8,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0007_order_user_alter_order_status'),
+        ("supplies", "0007_order_user_alter_order_status"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='brand',
+            model_name="product",
+            name="brand",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('approved', 'Ready for Pickup/Delivery'), ('returned', 'Returned to Sender'), ('delivered', 'Delivered')], default='pending', max_length=20),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("approved", "Ready for Pickup/Delivery"),
+                    ("returned", "Returned to Sender"),
+                    ("delivered", "Delivered"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
         migrations.CreateModel(
-            name='StockBatch',
+            name="StockBatch",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('supplier_name', models.CharField(blank=True, max_length=100)),
-                ('batch_number', models.CharField(blank=True, max_length=50)),
-                ('quantity_initial', models.IntegerField()),
-                ('quantity_remaining', models.IntegerField()),
-                ('cost_per_item', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('date_received', models.DateField(default=django.utils.timezone.now)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='batches', to='supplies.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("supplier_name", models.CharField(blank=True, max_length=100)),
+                ("batch_number", models.CharField(blank=True, max_length=50)),
+                ("quantity_initial", models.IntegerField()),
+                ("quantity_remaining", models.IntegerField()),
+                ("cost_per_item", models.DecimalField(decimal_places=2, max_digits=10)),
+                ("date_received", models.DateField(default=django.utils.timezone.now)),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="batches",
+                        to="supplies.product",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['date_received', 'id'],
+                "ordering": ["date_received", "id"],
             },
         ),
     ]

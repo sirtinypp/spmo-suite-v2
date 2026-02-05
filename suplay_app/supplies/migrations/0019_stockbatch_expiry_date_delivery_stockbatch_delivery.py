@@ -9,32 +9,67 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0018_news'),
+        ("supplies", "0018_news"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='stockbatch',
-            name='expiry_date',
+            model_name="stockbatch",
+            name="expiry_date",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.CreateModel(
-            name='Delivery',
+            name="Delivery",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('supplier_name', models.CharField(max_length=255)),
-                ('reference_number', models.CharField(help_text='DR Number or Invoice Number', max_length=100)),
-                ('date_received', models.DateField(default=django.utils.timezone.now)),
-                ('document_image', models.FileField(blank=True, help_text='Upload DR/Invoice scan', null=True, upload_to='delivery_docs/')),
-                ('remarks', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('received_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("supplier_name", models.CharField(max_length=255)),
+                (
+                    "reference_number",
+                    models.CharField(
+                        help_text="DR Number or Invoice Number", max_length=100
+                    ),
+                ),
+                ("date_received", models.DateField(default=django.utils.timezone.now)),
+                (
+                    "document_image",
+                    models.FileField(
+                        blank=True,
+                        help_text="Upload DR/Invoice scan",
+                        null=True,
+                        upload_to="delivery_docs/",
+                    ),
+                ),
+                ("remarks", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "received_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='stockbatch',
-            name='delivery',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='batches', to='supplies.delivery'),
+            model_name="stockbatch",
+            name="delivery",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="batches",
+                to="supplies.delivery",
+            ),
         ),
     ]

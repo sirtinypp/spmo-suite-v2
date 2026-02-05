@@ -1,11 +1,10 @@
-
 import os
 
 SETTINGS_FILES = [
     r"c:\Users\Aaron\spmo-suite - Copy\gamit_app\gamit_core\settings.py",
     r"c:\Users\Aaron\spmo-suite - Copy\gfa_app\config\settings.py",
     r"c:\Users\Aaron\spmo-suite - Copy\suplay_app\office_supplies_project\settings.py",
-    r"c:\Users\Aaron\spmo-suite - Copy\spmo_website\config\settings.py"
+    r"c:\Users\Aaron\spmo-suite - Copy\spmo_website\config\settings.py",
 ]
 
 LOCAL_SETTINGS_BLOCK = """

@@ -1,0 +1,60 @@
+name: SPMO Suite CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install System Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev gcc libcairo2-dev pkg-config
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black flake8
+        pip install -r spmo_website/requirements.txt
+        pip install -r gfa_app/requirements.txt
+        pip install -r suplay_app/requirements.txt
+        pip install -r gamit_app/requirements.txt
+
+    - name: Lint with Black
+      run: |
+        black --check .
+
+    - name: Test SPMO Website
+      run: |
+        cd spmo_website
+        python manage.py test config.tests
+
+    - name: Test Gamit App
+      run: |
+        cd gamit_app
+        python manage.py test gamit.tests
+
+    - name: Test GFA App
+      run: |
+        cd gfa_app
+        python manage.py test travel.tests
+
+    - name: Test Suplay App
+      run: |
+        cd suplay_app
+        python manage.py test supplies.tests

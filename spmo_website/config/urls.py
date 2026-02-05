@@ -5,25 +5,25 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 # !!! CHANGED: Import from the current folder (.)
-from . import views 
+from . import views
 
 urlpatterns = [
     # Public Landing Page
-    path('', views.home, name='home'),
-    path('news/archive/', views.NewsArchiveView.as_view(), name='news_archive'),
-
+    path("", views.home, name="home"),
+    path("news/archive/", views.NewsArchiveView.as_view(), name="news_archive"),
     # Login Page (We will create this template next)
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    
+    path(
+        "login/",
+        auth_views.LoginView.as_view(template_name="registration/login.html"),
+        name="login",
+    ),
     # Logout Action
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     # Internal Dashboard
-    path('dashboard/', views.admin_portal, name='dashboard'),
-    
-    path('admin/', admin.site.urls),]
+    path("dashboard/", views.admin_portal, name="dashboard"),
+    path("admin/", admin.site.urls),
+]
 
-    
 
 # ... existing urlpatterns ...
 

@@ -6,23 +6,32 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0008_product_brand_alter_order_status_stockbatch'),
+        ("supplies", "0008_product_brand_alter_order_status_stockbatch"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='approved_at',
+            model_name="order",
+            name="approved_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='completed_at',
+            model_name="order",
+            name="completed_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('approved', 'Ready for Pickup/Delivery'), ('returned', 'Returned to Sender'), ('delivered', 'Completed/Delivered')], default='pending', max_length=20),
+            model_name="order",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("approved", "Ready for Pickup/Delivery"),
+                    ("returned", "Returned to Sender"),
+                    ("delivered", "Completed/Delivered"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
     ]

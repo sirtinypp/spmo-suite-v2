@@ -9,7 +9,8 @@ REMOTE_USER = "ajbasa"
 REMOTE_HOST = "172.20.3.91"
 REMOTE_PORT = "9913"
 # Based on check: /home/ajbasa/spmo_suite
-REMOTE_BASE_DIR = "/home/ajbasa/spmo_suite" 
+REMOTE_BASE_DIR = "/home/ajbasa/spmo_suite"
+
 
 def sync_file(local_path):
     """
@@ -17,10 +18,10 @@ def sync_file(local_path):
     """
     # 1. Resolve absolute path
     abs_path = Path(local_path).resolve()
-    
+
     # 2. Determine relative path from project root (c:\Users\Aaron\spmo-suite - Copy)
     project_root = Path(os.getcwd()).resolve()
-    
+
     try:
         relative_path = abs_path.relative_to(project_root)
     except ValueError:
@@ -34,21 +35,28 @@ def sync_file(local_path):
     # 4. Construct SCP command
     # Using -P for port, -o BatchMode=yes to fail fast if auth fails
     cmd = [
-        "scp", 
-        "-P", REMOTE_PORT,
-        "-o", "BatchMode=yes",
-        "-o", "StrictHostKeyChecking=no", # Optional: convenience
+        "scp",
+        "-P",
+        REMOTE_PORT,
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "StrictHostKeyChecking=no",  # Optional: convenience
         str(abs_path),
-        f"{REMOTE_USER}@{REMOTE_HOST}:{remote_path}"
+        f"{REMOTE_USER}@{REMOTE_HOST}:{remote_path}",
     ]
 
-    print(f"Syncing: {relative_path} -> {REMOTE_HOST}:{remote_path} ...", end="", flush=True)
-    
+    print(
+        f"Syncing: {relative_path} -> {REMOTE_HOST}:{remote_path} ...",
+        end="",
+        flush=True,
+    )
+
     try:
         start_time = time.time()
         result = subprocess.run(cmd, capture_output=True, text=True)
         duration = time.time() - start_time
-        
+
         if result.returncode == 0:
             print(f" DONE ({duration:.2f}s)")
             return True
@@ -59,6 +67,7 @@ def sync_file(local_path):
     except Exception as e:
         print(f" ERROR: {e}")
         return False
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -71,9 +80,9 @@ if __name__ == "__main__":
             print(f"Error: File not found: {target_file}")
             success = False
             continue
-            
+
         if not sync_file(target_file):
             success = False
-            
+
     if not success:
         sys.exit(1)

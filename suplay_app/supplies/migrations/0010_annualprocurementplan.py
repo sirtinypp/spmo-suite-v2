@@ -7,23 +7,52 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0009_order_approved_at_order_completed_at_and_more'),
+        ("supplies", "0009_order_approved_at_order_completed_at_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AnnualProcurementPlan',
+            name="AnnualProcurementPlan",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('department', models.CharField(help_text='e.g., HR, IT, Accounting', max_length=100)),
-                ('year', models.IntegerField(default=2025)),
-                ('quantity_approved', models.PositiveIntegerField(default=0, help_text='Total quantity allowed for the year')),
-                ('quantity_consumed', models.PositiveIntegerField(default=0, help_text='Quantity already ordered/released')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='supplies.product')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "department",
+                    models.CharField(
+                        help_text="e.g., HR, IT, Accounting", max_length=100
+                    ),
+                ),
+                ("year", models.IntegerField(default=2025)),
+                (
+                    "quantity_approved",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Total quantity allowed for the year"
+                    ),
+                ),
+                (
+                    "quantity_consumed",
+                    models.PositiveIntegerField(
+                        default=0, help_text="Quantity already ordered/released"
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="supplies.product",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'APP Allocation',
-                'unique_together': {('department', 'product', 'year')},
+                "verbose_name": "APP Allocation",
+                "unique_together": {("department", "product", "year")},
             },
         ),
     ]

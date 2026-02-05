@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('travel', '0007_bookingrequest_created_by'),
+        ("travel", "0007_bookingrequest_created_by"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bookingrequest',
-            name='total_amount',
-            field=models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True, verbose_name='Total Ticket Cost (PHP)'),
+            model_name="bookingrequest",
+            name="total_amount",
+            field=models.DecimalField(
+                blank=True,
+                decimal_places=2,
+                max_digits=10,
+                null=True,
+                verbose_name="Total Ticket Cost (PHP)",
+            ),
         ),
     ]

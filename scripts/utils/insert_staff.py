@@ -1,13 +1,12 @@
-
 import os
 
-index_path = r'c:\Users\Aaron\spmo-suite - Copy\spmo_website\templates\index.html'
-staff_path = r'c:\Users\Aaron\spmo-suite - Copy\staff_section.html'
+index_path = r"c:\Users\Aaron\spmo-suite - Copy\spmo_website\templates\index.html"
+staff_path = r"c:\Users\Aaron\spmo-suite - Copy\staff_section.html"
 
-with open(index_path, 'r', encoding='utf-8') as f:
+with open(index_path, "r", encoding="utf-8") as f:
     index_content = f.read()
 
-with open(staff_path, 'r', encoding='utf-8') as f:
+with open(staff_path, "r", encoding="utf-8") as f:
     staff_content = f.read()
 
 # Target the end of the leadership section
@@ -24,18 +23,20 @@ if leadership_start == -1:
     exit(1)
 
 # Find the next </section> after leadership_start
-leadership_end = index_content.find('</section>', leadership_start)
+leadership_end = index_content.find("</section>", leadership_start)
 if leadership_end == -1:
     print("Could not find leadership section end")
     exit(1)
 
 # Include the closing tag length
-insert_pos = leadership_end + len('</section>')
+insert_pos = leadership_end + len("</section>")
 
 # Insert existing content + new lines + staff content + rest
-new_content = index_content[:insert_pos] + '\n\n' + staff_content + index_content[insert_pos:]
+new_content = (
+    index_content[:insert_pos] + "\n\n" + staff_content + index_content[insert_pos:]
+)
 
-with open(index_path, 'w', encoding='utf-8') as f:
+with open(index_path, "w", encoding="utf-8") as f:
     f.write(new_content)
 
 print("Successfully inserted Staff section.")

@@ -6,18 +6,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0013_product_supplier'),
+        ("supplies", "0013_product_supplier"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='reorder_point',
-            field=models.IntegerField(default=0, help_text='Alert when stock drops below this number'),
+            model_name="product",
+            name="reorder_point",
+            field=models.IntegerField(
+                default=0, help_text="Alert when stock drops below this number"
+            ),
         ),
         migrations.AddField(
-            model_name='product',
-            name='unit',
-            field=models.CharField(blank=True, help_text='e.g., pc, box, rim', max_length=50, null=True),
+            model_name="product",
+            name="unit",
+            field=models.CharField(
+                blank=True, help_text="e.g., pc, box, rim", max_length=50, null=True
+            ),
         ),
     ]

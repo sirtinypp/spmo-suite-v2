@@ -6,18 +6,98 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('travel', '0002_bookingrequest_origin_and_more'),
+        ("travel", "0002_bookingrequest_origin_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bookingrequest',
-            name='mother_unit',
-            field=models.CharField(choices=[('OP', 'Office of the President (OP)'), ('OVPAA', 'Office of the Vice President for Academic Affairs (OVPAA)'), ('OVPA', 'Office of the Vice President for Administration (OVPA)'), ('OVPA_QMS', 'Office of the Vice President for Administration (QMS)'), ('OVPD', 'Office of the Vice President for Development (OVPD)'), ('OVPLA', 'Office of the Vice President for Legal Affairs (OVPLA)'), ('OVPPF', 'Office of the Vice President for Planning and Finance (OVPPF)'), ('OVPPA', 'Office of the Vice President for Public Affairs (OVPPA)'), ('OVPRI', 'Office of the Vice President for Research and Innovation (OVPRI)'), ('OTHER', 'Other')], max_length=100, verbose_name='Mother Unit'),
+            model_name="bookingrequest",
+            name="mother_unit",
+            field=models.CharField(
+                choices=[
+                    ("OP", "Office of the President (OP)"),
+                    (
+                        "OVPAA",
+                        "Office of the Vice President for Academic Affairs (OVPAA)",
+                    ),
+                    ("OVPA", "Office of the Vice President for Administration (OVPA)"),
+                    (
+                        "OVPA_QMS",
+                        "Office of the Vice President for Administration (QMS)",
+                    ),
+                    ("OVPD", "Office of the Vice President for Development (OVPD)"),
+                    ("OVPLA", "Office of the Vice President for Legal Affairs (OVPLA)"),
+                    (
+                        "OVPPF",
+                        "Office of the Vice President for Planning and Finance (OVPPF)",
+                    ),
+                    (
+                        "OVPPA",
+                        "Office of the Vice President for Public Affairs (OVPPA)",
+                    ),
+                    (
+                        "OVPRI",
+                        "Office of the Vice President for Research and Innovation (OVPRI)",
+                    ),
+                    ("OTHER", "Other"),
+                ],
+                max_length=100,
+                verbose_name="Mother Unit",
+            ),
         ),
         migrations.AlterField(
-            model_name='bookingrequest',
-            name='unit_office',
-            field=models.CharField(choices=[('SAO', 'System Accounting Office'), ('SBO', 'System Budget Office'), ('SCO', 'System Cash Office'), ('CIDS', 'Center for Integrative Development Studies (CIDS)'), ('CWGS', 'Center for Women and Gender Studies (CWGS)'), ('CIFAL', 'CIFAL'), ('COA', 'System COA'), ('EXEC_HOUSE', 'Executive House'), ('SHRDO', 'System Human Resource Development Office (SHRDO)'), ('ITDC', 'Information Technology Development Center (ITDC)'), ('MPRO', 'Media and Public Relation (MPRO)'), ('OAd', 'Office of Admissions (OAd)'), ('OAR', 'Office of Alumni Relation (OAR)'), ('ODPI', 'Office of Design and Planning Initiatives (ODPI)'), ('OIL', 'Office of International Linkages (OIL)'), ('OSR', 'Office of Sectoral Regents (OSR)'), ('OSFA', 'Office of Student Financial Assistance (OSFA)'), ('OSU', 'Office of the Secretary of the University (OSU)'), ('PPSO', 'Padayon Public Service Office'), ('PERPI', 'Philippine Energy Research and Policy Institute (PERPI)'), ('PGC', 'Philippine Genome Center (PGC)'), ('PMO', 'Project Management Office (PMO)'), ('SPMO', 'System Supply and Property Management Office (SPMO)'), ('TTBDO', 'Technology Transfer and Business Development Office (TTBDO)'), ('TVUP', 'TVUP'), ('UPS', 'Ugnayan ng Pahinungod -System'), ('UPBGC', 'UP Bonifacio Global City (UPBGC)'), ('UP_ISC', 'UP Intelligent System Center (UP-ISC)'), ('UPKRC', 'UP Korea Research Center (UPKRC)'), ('UP_PRESS', 'UP Press'), ('UP_PROC', 'UP Procurement Unit'), ('UPRI', 'UP Resilience Institute (UPRI)'), ('UPRI_PROJ', 'UP Resilience Institute Projects'), ('UP_SRP', 'UP Strategic Relations Program'), ('DPO', 'UP System Data Protection Office'), ('UPS_OSDS', 'UPS OSDS'), ('FMO', 'Facilities Management Office'), ('UP_DT', 'UP Digital Transformation'), ('OTHER', 'Other')], max_length=100, verbose_name='Unit Office'),
+            model_name="bookingrequest",
+            name="unit_office",
+            field=models.CharField(
+                choices=[
+                    ("SAO", "System Accounting Office"),
+                    ("SBO", "System Budget Office"),
+                    ("SCO", "System Cash Office"),
+                    ("CIDS", "Center for Integrative Development Studies (CIDS)"),
+                    ("CWGS", "Center for Women and Gender Studies (CWGS)"),
+                    ("CIFAL", "CIFAL"),
+                    ("COA", "System COA"),
+                    ("EXEC_HOUSE", "Executive House"),
+                    ("SHRDO", "System Human Resource Development Office (SHRDO)"),
+                    ("ITDC", "Information Technology Development Center (ITDC)"),
+                    ("MPRO", "Media and Public Relation (MPRO)"),
+                    ("OAd", "Office of Admissions (OAd)"),
+                    ("OAR", "Office of Alumni Relation (OAR)"),
+                    ("ODPI", "Office of Design and Planning Initiatives (ODPI)"),
+                    ("OIL", "Office of International Linkages (OIL)"),
+                    ("OSR", "Office of Sectoral Regents (OSR)"),
+                    ("OSFA", "Office of Student Financial Assistance (OSFA)"),
+                    ("OSU", "Office of the Secretary of the University (OSU)"),
+                    ("PPSO", "Padayon Public Service Office"),
+                    (
+                        "PERPI",
+                        "Philippine Energy Research and Policy Institute (PERPI)",
+                    ),
+                    ("PGC", "Philippine Genome Center (PGC)"),
+                    ("PMO", "Project Management Office (PMO)"),
+                    ("SPMO", "System Supply and Property Management Office (SPMO)"),
+                    (
+                        "TTBDO",
+                        "Technology Transfer and Business Development Office (TTBDO)",
+                    ),
+                    ("TVUP", "TVUP"),
+                    ("UPS", "Ugnayan ng Pahinungod -System"),
+                    ("UPBGC", "UP Bonifacio Global City (UPBGC)"),
+                    ("UP_ISC", "UP Intelligent System Center (UP-ISC)"),
+                    ("UPKRC", "UP Korea Research Center (UPKRC)"),
+                    ("UP_PRESS", "UP Press"),
+                    ("UP_PROC", "UP Procurement Unit"),
+                    ("UPRI", "UP Resilience Institute (UPRI)"),
+                    ("UPRI_PROJ", "UP Resilience Institute Projects"),
+                    ("UP_SRP", "UP Strategic Relations Program"),
+                    ("DPO", "UP System Data Protection Office"),
+                    ("UPS_OSDS", "UPS OSDS"),
+                    ("FMO", "Facilities Management Office"),
+                    ("UP_DT", "UP Digital Transformation"),
+                    ("OTHER", "Other"),
+                ],
+                max_length=100,
+                verbose_name="Unit Office",
+            ),
         ),
     ]

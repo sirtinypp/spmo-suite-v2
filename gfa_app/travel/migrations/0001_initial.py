@@ -7,47 +7,246 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='BookingRequest',
+            name="BookingRequest",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email', models.EmailField(max_length=254, verbose_name='Email Address')),
-                ('full_name', models.CharField(max_length=200, verbose_name='Official Name of Traveler')),
-                ('employee_id', models.CharField(max_length=50, verbose_name='Employee ID')),
-                ('unit_office', models.CharField(choices=[('OP', 'Office of the President'), ('OVPA', 'Office of the Vice President for Administration'), ('OVPAA', 'Office of the Vice President for Academic Affairs'), ('OVPD', 'Office of the Vice President for Development'), ('OVPPF', 'Office of the Vice President for Planning and Finance'), ('OVPPA', 'Office of the Vice President for Public Affairs'), ('OVPLA', 'Office of the Vice President for Legal Affairs'), ('OVPDT', 'Office of the Vice President for Digital Transformation'), ('SPMO', 'System Supply and Property Management Office'), ('HRDO', 'System Human Resource Development Office'), ('BUDGET', 'System Budget Office'), ('ACCOUNTING', 'System Accounting Office'), ('CASH', 'System Cash Office'), ('OTHER', 'Other')], max_length=100, verbose_name='Unit Office')),
-                ('mother_unit', models.CharField(choices=[('OP', 'Office of the President'), ('OVPA', 'Office of the Vice President for Administration'), ('OVPAA', 'Office of the Vice President for Academic Affairs'), ('OVPD', 'Office of the Vice President for Development'), ('OVPPF', 'Office of the Vice President for Planning and Finance'), ('OVPPA', 'Office of the Vice President for Public Affairs'), ('OVPLA', 'Office of the Vice President for Legal Affairs'), ('OVPDT', 'Office of the Vice President for Digital Transformation'), ('SPMO', 'System Supply and Property Management Office'), ('HRDO', 'System Human Resource Development Office'), ('BUDGET', 'System Budget Office'), ('ACCOUNTING', 'System Accounting Office'), ('CASH', 'System Cash Office'), ('OTHER', 'Other')], max_length=100, verbose_name='Mother Unit')),
-                ('birthday', models.DateField(verbose_name='Birthday')),
-                ('designation', models.CharField(max_length=100, verbose_name='Designation')),
-                ('up_mail', models.EmailField(max_length=254, verbose_name='UP Mail')),
-                ('contact_number', models.CharField(max_length=50, verbose_name='Contact Phone Number')),
-                ('admin_officer', models.CharField(max_length=200, verbose_name='Admin Officer (Requesting Staff)')),
-                ('purpose', models.TextField(verbose_name='Purpose of Travel')),
-                ('trip_type', models.CharField(choices=[('ONE_WAY', 'One-Way'), ('ROUND_TRIP', 'Round-Trip'), ('MULTI_CITY', 'Multi-City')], default='ROUND_TRIP', max_length=20)),
-                ('destination_details', models.CharField(max_length=255, verbose_name='Destination Details')),
-                ('departure_date', models.DateField()),
-                ('departure_time', models.TimeField(verbose_name='Specific Time (Departure)')),
-                ('return_date', models.DateField()),
-                ('return_time', models.TimeField(verbose_name='Specific Time (Return)')),
-                ('is_official', models.BooleanField(default=False, verbose_name='Is this Travel Official and Approved?')),
-                ('airline', models.CharField(choices=[('PAL', 'Philippine Airlines'), ('CEB', 'Cebu Pacific')], max_length=20)),
-                ('seat_class', models.CharField(choices=[('ECONOMY', 'Economy'), ('BUSINESS', 'Business Class'), ('PREMIUM', 'Premium / First Class')], default='ECONOMY', max_length=20)),
-                ('avail_insurance', models.BooleanField(default=False, verbose_name='Avail Travel Insurance?')),
-                ('baggage_type', models.CharField(choices=[('HAND_CARRY', 'Hand-carry only'), ('CHECK_IN', 'Additional check-in baggage')], default='HAND_CARRY', max_length=20)),
-                ('special_requests', models.TextField(blank=True, null=True)),
-                ('supervisor_name', models.CharField(max_length=200, verbose_name="Immediate Supervisor's Name")),
-                ('supervisor_email', models.EmailField(max_length=254, verbose_name="Supervisor's Email")),
-                ('approval_date', models.DateField(verbose_name='Date of Approval')),
-                ('remarks', models.TextField(blank=True, null=True)),
-                ('agreed_to_policy', models.BooleanField(default=False, verbose_name='I hereby certify that information is true')),
-                ('doc_travel_order', models.FileField(blank=True, null=True, upload_to='docs/to/')),
-                ('doc_itinerary', models.FileField(blank=True, null=True, upload_to='docs/itin/')),
-                ('doc_gov_id', models.FileField(blank=True, null=True, upload_to='docs/ids/')),
-                ('status', models.CharField(choices=[('DRAFT', 'Draft / Printing'), ('PENDING', 'Pending Review'), ('APPROVED', 'Approved'), ('RETURNED', 'Returned')], default='DRAFT', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(max_length=254, verbose_name="Email Address"),
+                ),
+                (
+                    "full_name",
+                    models.CharField(
+                        max_length=200, verbose_name="Official Name of Traveler"
+                    ),
+                ),
+                (
+                    "employee_id",
+                    models.CharField(max_length=50, verbose_name="Employee ID"),
+                ),
+                (
+                    "unit_office",
+                    models.CharField(
+                        choices=[
+                            ("OP", "Office of the President"),
+                            ("OVPA", "Office of the Vice President for Administration"),
+                            (
+                                "OVPAA",
+                                "Office of the Vice President for Academic Affairs",
+                            ),
+                            ("OVPD", "Office of the Vice President for Development"),
+                            (
+                                "OVPPF",
+                                "Office of the Vice President for Planning and Finance",
+                            ),
+                            (
+                                "OVPPA",
+                                "Office of the Vice President for Public Affairs",
+                            ),
+                            ("OVPLA", "Office of the Vice President for Legal Affairs"),
+                            (
+                                "OVPDT",
+                                "Office of the Vice President for Digital Transformation",
+                            ),
+                            ("SPMO", "System Supply and Property Management Office"),
+                            ("HRDO", "System Human Resource Development Office"),
+                            ("BUDGET", "System Budget Office"),
+                            ("ACCOUNTING", "System Accounting Office"),
+                            ("CASH", "System Cash Office"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=100,
+                        verbose_name="Unit Office",
+                    ),
+                ),
+                (
+                    "mother_unit",
+                    models.CharField(
+                        choices=[
+                            ("OP", "Office of the President"),
+                            ("OVPA", "Office of the Vice President for Administration"),
+                            (
+                                "OVPAA",
+                                "Office of the Vice President for Academic Affairs",
+                            ),
+                            ("OVPD", "Office of the Vice President for Development"),
+                            (
+                                "OVPPF",
+                                "Office of the Vice President for Planning and Finance",
+                            ),
+                            (
+                                "OVPPA",
+                                "Office of the Vice President for Public Affairs",
+                            ),
+                            ("OVPLA", "Office of the Vice President for Legal Affairs"),
+                            (
+                                "OVPDT",
+                                "Office of the Vice President for Digital Transformation",
+                            ),
+                            ("SPMO", "System Supply and Property Management Office"),
+                            ("HRDO", "System Human Resource Development Office"),
+                            ("BUDGET", "System Budget Office"),
+                            ("ACCOUNTING", "System Accounting Office"),
+                            ("CASH", "System Cash Office"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=100,
+                        verbose_name="Mother Unit",
+                    ),
+                ),
+                ("birthday", models.DateField(verbose_name="Birthday")),
+                (
+                    "designation",
+                    models.CharField(max_length=100, verbose_name="Designation"),
+                ),
+                ("up_mail", models.EmailField(max_length=254, verbose_name="UP Mail")),
+                (
+                    "contact_number",
+                    models.CharField(
+                        max_length=50, verbose_name="Contact Phone Number"
+                    ),
+                ),
+                (
+                    "admin_officer",
+                    models.CharField(
+                        max_length=200, verbose_name="Admin Officer (Requesting Staff)"
+                    ),
+                ),
+                ("purpose", models.TextField(verbose_name="Purpose of Travel")),
+                (
+                    "trip_type",
+                    models.CharField(
+                        choices=[
+                            ("ONE_WAY", "One-Way"),
+                            ("ROUND_TRIP", "Round-Trip"),
+                            ("MULTI_CITY", "Multi-City"),
+                        ],
+                        default="ROUND_TRIP",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "destination_details",
+                    models.CharField(
+                        max_length=255, verbose_name="Destination Details"
+                    ),
+                ),
+                ("departure_date", models.DateField()),
+                (
+                    "departure_time",
+                    models.TimeField(verbose_name="Specific Time (Departure)"),
+                ),
+                ("return_date", models.DateField()),
+                (
+                    "return_time",
+                    models.TimeField(verbose_name="Specific Time (Return)"),
+                ),
+                (
+                    "is_official",
+                    models.BooleanField(
+                        default=False,
+                        verbose_name="Is this Travel Official and Approved?",
+                    ),
+                ),
+                (
+                    "airline",
+                    models.CharField(
+                        choices=[
+                            ("PAL", "Philippine Airlines"),
+                            ("CEB", "Cebu Pacific"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "seat_class",
+                    models.CharField(
+                        choices=[
+                            ("ECONOMY", "Economy"),
+                            ("BUSINESS", "Business Class"),
+                            ("PREMIUM", "Premium / First Class"),
+                        ],
+                        default="ECONOMY",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "avail_insurance",
+                    models.BooleanField(
+                        default=False, verbose_name="Avail Travel Insurance?"
+                    ),
+                ),
+                (
+                    "baggage_type",
+                    models.CharField(
+                        choices=[
+                            ("HAND_CARRY", "Hand-carry only"),
+                            ("CHECK_IN", "Additional check-in baggage"),
+                        ],
+                        default="HAND_CARRY",
+                        max_length=20,
+                    ),
+                ),
+                ("special_requests", models.TextField(blank=True, null=True)),
+                (
+                    "supervisor_name",
+                    models.CharField(
+                        max_length=200, verbose_name="Immediate Supervisor's Name"
+                    ),
+                ),
+                (
+                    "supervisor_email",
+                    models.EmailField(
+                        max_length=254, verbose_name="Supervisor's Email"
+                    ),
+                ),
+                ("approval_date", models.DateField(verbose_name="Date of Approval")),
+                ("remarks", models.TextField(blank=True, null=True)),
+                (
+                    "agreed_to_policy",
+                    models.BooleanField(
+                        default=False,
+                        verbose_name="I hereby certify that information is true",
+                    ),
+                ),
+                (
+                    "doc_travel_order",
+                    models.FileField(blank=True, null=True, upload_to="docs/to/"),
+                ),
+                (
+                    "doc_itinerary",
+                    models.FileField(blank=True, null=True, upload_to="docs/itin/"),
+                ),
+                (
+                    "doc_gov_id",
+                    models.FileField(blank=True, null=True, upload_to="docs/ids/"),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DRAFT", "Draft / Printing"),
+                            ("PENDING", "Pending Review"),
+                            ("APPROVED", "Approved"),
+                            ("RETURNED", "Returned"),
+                        ],
+                        default="DRAFT",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
         ),
     ]

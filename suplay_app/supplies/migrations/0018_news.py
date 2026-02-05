@@ -7,23 +7,37 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0017_alter_annualprocurementplan_options_and_more'),
+        ("supplies", "0017_alter_annualprocurementplan_options_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='News',
+            name="News",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('content', models.TextField()),
-                ('image', models.ImageField(blank=True, null=True, upload_to='news_images/')),
-                ('date_posted', models.DateTimeField(default=django.utils.timezone.now)),
-                ('is_active', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                ("content", models.TextField()),
+                (
+                    "image",
+                    models.ImageField(blank=True, null=True, upload_to="news_images/"),
+                ),
+                (
+                    "date_posted",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                ("is_active", models.BooleanField(default=True)),
             ],
             options={
-                'verbose_name_plural': 'News',
-                'ordering': ['-date_posted'],
+                "verbose_name_plural": "News",
+                "ordering": ["-date_posted"],
             },
         ),
     ]

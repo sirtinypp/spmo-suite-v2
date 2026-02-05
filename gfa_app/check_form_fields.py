@@ -9,10 +9,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from travel.forms import BookingRequestForm
+
 try:
     form = BookingRequestForm()
     print("Form Fields:", list(form.fields.keys()))
-    if 'full_name' in form.fields:
+    if "full_name" in form.fields:
         print("✅ full_name is present.")
     else:
         print("❌ full_name is MISSING.")

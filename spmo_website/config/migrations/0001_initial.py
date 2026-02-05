@@ -8,24 +8,64 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='NewsPost',
+            name="NewsPost",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200)),
-                ('category', models.CharField(choices=[('MEMO', 'Memorandum'), ('EVENT', 'Event'), ('ADVISORY', 'Advisory'), ('GFA', 'GFA Update')], default='ADVISORY', max_length=10)),
-                ('summary', models.TextField(help_text='Short description for the card (Max 200 chars recommended)')),
-                ('image', models.ImageField(help_text='Card thumbnail image', upload_to='news_images/')),
-                ('attachment', models.FileField(blank=True, help_text='Optional: Upload PDF Memo', null=True, upload_to='news_docs/')),
-                ('date_posted', models.DateTimeField(default=django.utils.timezone.now)),
-                ('is_published', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=200)),
+                (
+                    "category",
+                    models.CharField(
+                        choices=[
+                            ("MEMO", "Memorandum"),
+                            ("EVENT", "Event"),
+                            ("ADVISORY", "Advisory"),
+                            ("GFA", "GFA Update"),
+                        ],
+                        default="ADVISORY",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "summary",
+                    models.TextField(
+                        help_text="Short description for the card (Max 200 chars recommended)"
+                    ),
+                ),
+                (
+                    "image",
+                    models.ImageField(
+                        help_text="Card thumbnail image", upload_to="news_images/"
+                    ),
+                ),
+                (
+                    "attachment",
+                    models.FileField(
+                        blank=True,
+                        help_text="Optional: Upload PDF Memo",
+                        null=True,
+                        upload_to="news_docs/",
+                    ),
+                ),
+                (
+                    "date_posted",
+                    models.DateTimeField(default=django.utils.timezone.now),
+                ),
+                ("is_published", models.BooleanField(default=True)),
             ],
             options={
-                'ordering': ['-date_posted'],
+                "ordering": ["-date_posted"],
             },
         ),
     ]

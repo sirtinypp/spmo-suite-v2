@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0002_order_product_orderitem'),
+        ("supplies", "0002_order_product_orderitem"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='document1',
-            field=models.FileField(blank=True, null=True, upload_to='order_documents/'),
+            model_name="order",
+            name="document1",
+            field=models.FileField(blank=True, null=True, upload_to="order_documents/"),
         ),
         migrations.AddField(
-            model_name='order',
-            name='document2',
-            field=models.FileField(blank=True, null=True, upload_to='order_documents/'),
+            model_name="order",
+            name="document2",
+            field=models.FileField(blank=True, null=True, upload_to="order_documents/"),
         ),
         migrations.AddField(
-            model_name='order',
-            name='document3',
-            field=models.FileField(blank=True, null=True, upload_to='order_documents/'),
+            model_name="order",
+            name="document3",
+            field=models.FileField(blank=True, null=True, upload_to="order_documents/"),
         ),
     ]

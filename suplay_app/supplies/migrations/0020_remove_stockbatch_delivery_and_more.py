@@ -6,19 +6,19 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0019_stockbatch_expiry_date_delivery_stockbatch_delivery'),
+        ("supplies", "0019_stockbatch_expiry_date_delivery_stockbatch_delivery"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='stockbatch',
-            name='delivery',
+            model_name="stockbatch",
+            name="delivery",
         ),
         migrations.RemoveField(
-            model_name='stockbatch',
-            name='expiry_date',
+            model_name="stockbatch",
+            name="expiry_date",
         ),
         migrations.DeleteModel(
-            name='Delivery',
+            name="Delivery",
         ),
     ]

@@ -6,22 +6,56 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('travel', '0008_bookingrequest_total_amount'),
+        ("travel", "0008_bookingrequest_total_amount"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AirlineCredit',
+            name="AirlineCredit",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('airline', models.CharField(choices=[('PAL', 'Philippine Airlines'), ('CEB', 'Cebu Pacific')], max_length=3, unique=True)),
-                ('total_credit_limit', models.DecimalField(decimal_places=2, default=0.0, max_digits=12, verbose_name='Total Allocation')),
-                ('current_balance', models.DecimalField(decimal_places=2, default=0.0, max_digits=12, verbose_name='Remaining Balance')),
-                ('last_updated', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "airline",
+                    models.CharField(
+                        choices=[
+                            ("PAL", "Philippine Airlines"),
+                            ("CEB", "Cebu Pacific"),
+                        ],
+                        max_length=3,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "total_credit_limit",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0.0,
+                        max_digits=12,
+                        verbose_name="Total Allocation",
+                    ),
+                ),
+                (
+                    "current_balance",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0.0,
+                        max_digits=12,
+                        verbose_name="Remaining Balance",
+                    ),
+                ),
+                ("last_updated", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Airline Credit Balance',
-                'verbose_name_plural': 'Airline Credit Balances',
+                "verbose_name": "Airline Credit Balance",
+                "verbose_name_plural": "Airline Credit Balances",
             },
         ),
     ]

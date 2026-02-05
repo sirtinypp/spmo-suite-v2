@@ -1,15 +1,16 @@
-
 import os
 import django
 from django.contrib.auth import get_user_model
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')  # Changed loop logic below
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE", "office_supplies_project.settings"
+)
 django.setup()
 
 User = get_user_model()
-USERNAME = 'grootadmin'
-PASSWORD = 'xiarabasa12'
-EMAIL = 'admin@example.com'
+USERNAME = os.environ.get("DJANGO_SUPERUSER_USERNAME", "grootadmin")
+PASSWORD = os.environ.get("DJANGO_SUPERUSER_PASSWORD", "xiarabasa12") # Fallback for dev convenience, but overridable
+EMAIL = os.environ.get("DJANGO_SUPERUSER_EMAIL", "admin@example.com")
 
 try:
     if User.objects.filter(username=USERNAME).exists():

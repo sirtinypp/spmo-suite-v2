@@ -4,9 +4,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     # This line tells Django to look inside supplies/urls.py for ALL other paths
-    path('', include('supplies.urls')),
+    path("", include("supplies.urls")),
 ]
 
 if settings.DEBUG:

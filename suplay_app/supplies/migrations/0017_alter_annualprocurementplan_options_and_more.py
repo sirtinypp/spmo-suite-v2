@@ -7,58 +7,83 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0016_alter_annualprocurementplan_department_and_more'),
+        ("supplies", "0016_alter_annualprocurementplan_department_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='annualprocurementplan',
-            options={'ordering': ['department__name', 'product__name'], 'verbose_name': 'APP Allocation'},
+            name="annualprocurementplan",
+            options={
+                "ordering": ["department__name", "product__name"],
+                "verbose_name": "APP Allocation",
+            },
         ),
         migrations.AlterModelOptions(
-            name='category',
-            options={'ordering': ['name'], 'verbose_name_plural': 'Categories'},
+            name="category",
+            options={"ordering": ["name"], "verbose_name_plural": "Categories"},
         ),
         migrations.AlterModelOptions(
-            name='department',
-            options={'ordering': ['name']},
+            name="department",
+            options={"ordering": ["name"]},
         ),
         migrations.AlterModelOptions(
-            name='product',
-            options={'ordering': ['name']},
+            name="product",
+            options={"ordering": ["name"]},
         ),
         migrations.AlterModelOptions(
-            name='supplier',
-            options={'ordering': ['name']},
+            name="supplier",
+            options={"ordering": ["name"]},
         ),
         migrations.AddField(
-            model_name='userprofile',
-            name='role',
-            field=models.CharField(choices=[('staff', 'Admin Officer (Staff)'), ('head', 'Head of Unit')], default='staff', max_length=10),
+            model_name="userprofile",
+            name="role",
+            field=models.CharField(
+                choices=[("staff", "Admin Officer (Staff)"), ("head", "Head of Unit")],
+                default="staff",
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='annualprocurementplan',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='plans', to='supplies.department'),
+            model_name="annualprocurementplan",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="plans",
+                to="supplies.department",
+            ),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='name',
+            model_name="category",
+            name="name",
             field=models.CharField(max_length=255),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='supplies.department'),
+            model_name="order",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="orders",
+                to="supplies.department",
+            ),
         ),
         migrations.AlterField(
-            model_name='supplier',
-            name='name',
+            model_name="supplier",
+            name="name",
             field=models.CharField(max_length=255),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='profiles', to='supplies.department'),
+            model_name="userprofile",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="profiles",
+                to="supplies.department",
+            ),
         ),
     ]

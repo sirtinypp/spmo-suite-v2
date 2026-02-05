@@ -7,23 +7,35 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('supplies', '0015_department_annualprocurementplan_date_requested_and_more'),
+        ("supplies", "0015_department_annualprocurementplan_date_requested_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='annualprocurementplan',
-            name='department',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='supplies.department'),
+            model_name="annualprocurementplan",
+            name="department",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="supplies.department"
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='supplies.department'),
+            model_name="order",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="supplies.department",
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='supplies.department'),
+            model_name="userprofile",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="supplies.department",
+            ),
         ),
     ]

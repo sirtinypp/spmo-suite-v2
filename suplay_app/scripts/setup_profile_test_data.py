@@ -3,9 +3,9 @@ import django
 import sys
 
 # Add the project root to sys.path to ensure imports work correctly
-sys.path.append('/app') 
+sys.path.append("/app")
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'office_supplies_project.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "office_supplies_project.settings")
 django.setup()
 
 from django.contrib.auth.models import User
@@ -13,12 +13,13 @@ from supplies.models import Order, Product, OrderItem
 from django.utils import timezone
 import random
 
+
 def setup():
     print("Setting up test data...")
-    
+
     # 1. Setup Data for History User
-    user1, created = User.objects.get_or_create(username='history_user')
-    user1.set_password('password123')
+    user1, created = User.objects.get_or_create(username="history_user")
+    user1.set_password("password123")
     user1.first_name = "History"
     user1.last_name = "User"
     user1.save()
@@ -32,6 +33,7 @@ def setup():
     if not products:
         print("No products found! Creating dummy products...")
         from supplies.models import Category
+
         cat, _ = Category.objects.get_or_create(name="Office Supplies")
         for i in range(10):
             p = Product.objects.create(
@@ -39,7 +41,7 @@ def setup():
                 description="Test Description",
                 price=100.00 + (i * 10),
                 category=cat,
-                stock=100
+                stock=100,
             )
             products.append(p)
 
@@ -52,8 +54,8 @@ def setup():
                 employee_name="History User",
                 department="IT Department",
                 total_amount=0,
-                status=random.choice(['pending', 'approved', 'delivered']),
-                created_at=timezone.now()
+                status=random.choice(["pending", "approved", "delivered"]),
+                created_at=timezone.now(),
             )
             # Add random items
             p = random.choice(products)
@@ -65,8 +67,8 @@ def setup():
         print(f"Created/Ensured 7 orders for history_user")
 
     # 2. Setup Data for New User (No History)
-    user2, created = User.objects.get_or_create(username='new_user')
-    user2.set_password('password123')
+    user2, created = User.objects.get_or_create(username="new_user")
+    user2.set_password("password123")
     user2.first_name = "New"
     user2.last_name = "User"
     user2.save()
@@ -77,5 +79,6 @@ def setup():
 
     print("Test data setup complete.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     setup()

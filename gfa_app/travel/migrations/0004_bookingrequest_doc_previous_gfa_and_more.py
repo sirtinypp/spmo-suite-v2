@@ -6,33 +6,58 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('travel', '0003_alter_bookingrequest_mother_unit_and_more'),
+        ("travel", "0003_alter_bookingrequest_mother_unit_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bookingrequest',
-            name='doc_previous_gfa',
-            field=models.FileField(blank=True, null=True, upload_to='docs/prev/', verbose_name='Previous GFA (If Rebooking)'),
+            model_name="bookingrequest",
+            name="doc_previous_gfa",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="docs/prev/",
+                verbose_name="Previous GFA (If Rebooking)",
+            ),
         ),
         migrations.AddField(
-            model_name='bookingrequest',
-            name='doc_signed_slip',
-            field=models.FileField(blank=True, null=True, upload_to='docs/ris/', verbose_name='Signed Requisition Slip (RIS)'),
+            model_name="bookingrequest",
+            name="doc_signed_slip",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="docs/ris/",
+                verbose_name="Signed Requisition Slip (RIS)",
+            ),
         ),
         migrations.AlterField(
-            model_name='bookingrequest',
-            name='doc_gov_id',
-            field=models.FileField(blank=True, null=True, upload_to='docs/ids/', verbose_name='Government Issued ID'),
+            model_name="bookingrequest",
+            name="doc_gov_id",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="docs/ids/",
+                verbose_name="Government Issued ID",
+            ),
         ),
         migrations.AlterField(
-            model_name='bookingrequest',
-            name='doc_itinerary',
-            field=models.FileField(blank=True, null=True, upload_to='docs/itin/', verbose_name='Itinerary / Invitation Letter'),
+            model_name="bookingrequest",
+            name="doc_itinerary",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="docs/itin/",
+                verbose_name="Itinerary / Invitation Letter",
+            ),
         ),
         migrations.AlterField(
-            model_name='bookingrequest',
-            name='doc_travel_order',
-            field=models.FileField(blank=True, null=True, upload_to='docs/to/', verbose_name='Approved Travel Order'),
+            model_name="bookingrequest",
+            name="doc_travel_order",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="docs/to/",
+                verbose_name="Approved Travel Order",
+            ),
         ),
     ]

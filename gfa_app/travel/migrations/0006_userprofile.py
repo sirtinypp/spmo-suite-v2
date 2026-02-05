@@ -8,17 +8,101 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('travel', '0005_bookingrequest_admin_instructions_and_more'),
+        ("travel", "0005_bookingrequest_admin_instructions_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='UserProfile',
+            name="UserProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('office', models.CharField(blank=True, choices=[('SAO', 'System Accounting Office'), ('SBO', 'System Budget Office'), ('SCO', 'System Cash Office'), ('CIDS', 'Center for Integrative Development Studies (CIDS)'), ('CWGS', 'Center for Women and Gender Studies (CWGS)'), ('CIFAL', 'CIFAL'), ('COA', 'System COA'), ('EXEC_HOUSE', 'Executive House'), ('SHRDO', 'System Human Resource Development Office (SHRDO)'), ('ITDC', 'Information Technology Development Center (ITDC)'), ('MPRO', 'Media and Public Relation (MPRO)'), ('OAd', 'Office of Admissions (OAd)'), ('OAR', 'Office of Alumni Relation (OAR)'), ('ODPI', 'Office of Design and Planning Initiatives (ODPI)'), ('OIL', 'Office of International Linkages (OIL)'), ('OSR', 'Office of Sectoral Regents (OSR)'), ('OSFA', 'Office of Student Financial Assistance (OSFA)'), ('OSU', 'Office of the Secretary of the University (OSU)'), ('PPSO', 'Padayon Public Service Office'), ('PERPI', 'Philippine Energy Research and Policy Institute (PERPI)'), ('PGC', 'Philippine Genome Center (PGC)'), ('PMO', 'Project Management Office (PMO)'), ('SPMO', 'System Supply and Property Management Office (SPMO)'), ('TTBDO', 'Technology Transfer and Business Development Office (TTBDO)'), ('TVUP', 'TVUP'), ('UPS', 'Ugnayan ng Pahinungod -System'), ('UPBGC', 'UP Bonifacio Global City (UPBGC)'), ('UP_ISC', 'UP Intelligent System Center (UP-ISC)'), ('UPKRC', 'UP Korea Research Center (UPKRC)'), ('UP_PRESS', 'UP Press'), ('UP_PROC', 'UP Procurement Unit'), ('UPRI', 'UP Resilience Institute (UPRI)'), ('UPRI_PROJ', 'UP Resilience Institute Projects'), ('UP_SRP', 'UP Strategic Relations Program'), ('DPO', 'UP System Data Protection Office'), ('UPS_OSDS', 'UPS OSDS'), ('FMO', 'Facilities Management Office'), ('UP_DT', 'UP Digital Transformation'), ('OTHER', 'Other')], max_length=100, null=True, verbose_name='Assigned Office')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "office",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("SAO", "System Accounting Office"),
+                            ("SBO", "System Budget Office"),
+                            ("SCO", "System Cash Office"),
+                            (
+                                "CIDS",
+                                "Center for Integrative Development Studies (CIDS)",
+                            ),
+                            ("CWGS", "Center for Women and Gender Studies (CWGS)"),
+                            ("CIFAL", "CIFAL"),
+                            ("COA", "System COA"),
+                            ("EXEC_HOUSE", "Executive House"),
+                            (
+                                "SHRDO",
+                                "System Human Resource Development Office (SHRDO)",
+                            ),
+                            (
+                                "ITDC",
+                                "Information Technology Development Center (ITDC)",
+                            ),
+                            ("MPRO", "Media and Public Relation (MPRO)"),
+                            ("OAd", "Office of Admissions (OAd)"),
+                            ("OAR", "Office of Alumni Relation (OAR)"),
+                            (
+                                "ODPI",
+                                "Office of Design and Planning Initiatives (ODPI)",
+                            ),
+                            ("OIL", "Office of International Linkages (OIL)"),
+                            ("OSR", "Office of Sectoral Regents (OSR)"),
+                            ("OSFA", "Office of Student Financial Assistance (OSFA)"),
+                            ("OSU", "Office of the Secretary of the University (OSU)"),
+                            ("PPSO", "Padayon Public Service Office"),
+                            (
+                                "PERPI",
+                                "Philippine Energy Research and Policy Institute (PERPI)",
+                            ),
+                            ("PGC", "Philippine Genome Center (PGC)"),
+                            ("PMO", "Project Management Office (PMO)"),
+                            (
+                                "SPMO",
+                                "System Supply and Property Management Office (SPMO)",
+                            ),
+                            (
+                                "TTBDO",
+                                "Technology Transfer and Business Development Office (TTBDO)",
+                            ),
+                            ("TVUP", "TVUP"),
+                            ("UPS", "Ugnayan ng Pahinungod -System"),
+                            ("UPBGC", "UP Bonifacio Global City (UPBGC)"),
+                            ("UP_ISC", "UP Intelligent System Center (UP-ISC)"),
+                            ("UPKRC", "UP Korea Research Center (UPKRC)"),
+                            ("UP_PRESS", "UP Press"),
+                            ("UP_PROC", "UP Procurement Unit"),
+                            ("UPRI", "UP Resilience Institute (UPRI)"),
+                            ("UPRI_PROJ", "UP Resilience Institute Projects"),
+                            ("UP_SRP", "UP Strategic Relations Program"),
+                            ("DPO", "UP System Data Protection Office"),
+                            ("UPS_OSDS", "UPS OSDS"),
+                            ("FMO", "Facilities Management Office"),
+                            ("UP_DT", "UP Digital Transformation"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=100,
+                        null=True,
+                        verbose_name="Assigned Office",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]
