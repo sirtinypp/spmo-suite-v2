@@ -1,151 +1,110 @@
-{% extends 'travel/base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Issue Ticket - GFA Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --up-maroon: #7b1113; --slate-900: #0f172a; }
+        body { font-family: 'Inter', sans-serif; }
+        .hero-pattern {
+            background-color: var(--slate-900);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
 
-{% block extra_head %}
-<style>
-    .hero-pattern {
-        background-color: #0f172a;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e293b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-
-    input[type="text"],
-    input[type="number"],
-    textarea,
-    select {
-        width: 100%;
-        padding: 0.75rem 1.25rem;
-        background-color: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 1rem;
-        font-size: 0.875rem;
-        outline: none;
-        transition: all 0.2s;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-        background-color: white;
-        border-color: #3b82f6;
-        ring: 2px;
-        ring-color: #3b82f6;
-    }
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="-mt-10 -mx-4 sm:-mx-6 lg:-mx-8">
-    <!-- Header Hero -->
-    <div class="hero-pattern h-64 w-full relative rounded-b-[3rem] overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-900 to-slate-900 opacity-90"></div>
-        <div class="relative max-w-7xl mx-auto px-6 pt-12 md:px-12 flex justify-between items-start h-full text-white">
-            <div>
-                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 block">Administrative
-                    Action</span>
-                <h2 class="text-3xl font-black tracking-tight italic uppercase">Issue<span
-                        class="text-blue-500 not-italic">.</span> Ticket</h2>
-                <p class="text-slate-300 text-sm mt-1">Finalize booking details and attach official documents for the
-                    traveler.</p>
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'gfa_dashboard' %}" class="flex items-center gap-4 group">
+                    <img src="https://upload.wikimedia.org/wikipedia/en/3/3a/University_of_the_Philippines_Seal.svg" alt="UP Seal" class="w-12 h-12 transition group-hover:scale-105 drop-shadow-sm">
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">SPMO System</span>
+                        <h1 class="text-xl font-bold text-slate-900 leading-none">GFA <span class="text-[#7b1113]">Executive</span></h1>
+                    </div>
+                </a>
             </div>
-            <a href="{% url 'dashboard' %}"
-                class="text-white/60 hover:text-white text-xs font-black flex items-center gap-2 uppercase tracking-widest transition-colors">
-                <i class="fas fa-arrow-left"></i> Dashboard
-            </a>
+            <div class="flex items-center gap-6">
+                <span class="text-xs font-bold bg-slate-100 px-3 py-1 rounded-full text-slate-600 uppercase">{{ user.username }}</span>
+                <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="text-sm font-medium text-red-600 hover:text-red-800 transition">Logout</button></form>
+            </div>
         </div>
-    </div>
+    </header>
 
-    <div class="max-w-3xl mx-auto px-6 -mt-24 relative z-10 pb-12">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden">
-            <!-- Passenger Summary -->
-            <div
-                class="px-8 py-8 border-b border-slate-50 bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="space-y-1 text-center md:text-left">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Traveler
-                        Identity</span>
-                    <div class="font-black text-2xl text-slate-900 leading-tight uppercase tracking-tight">{{
-                        booking.full_name }}</div>
-                    <div
-                        class="text-xs text-blue-600 font-bold uppercase tracking-wide flex items-center justify-center md:justify-start gap-2">
-                        {{ booking.origin }} <i class="fas fa-plane text-[10px]"></i> {{ booking.destination_details }}
-                    </div>
+    <main class="flex-grow">
+        <div class="hero-pattern h-64 w-full relative">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#7b1113] to-slate-900 opacity-90"></div>
+            <div class="relative max-w-7xl mx-auto px-4 pt-10 flex justify-between items-start h-full">
+                <div class="text-white">
+                    <h2 class="text-3xl font-bold tracking-tight mb-1">Issue Ticket</h2>
+                    <p class="text-white/80 text-sm">Finalize booking details and attach official documents.</p>
                 </div>
-                <div class="flex flex-col items-end gap-2">
-                    <span
-                        class="bg-blue-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 italic">
-                        {{ booking.get_airline_display }}
-                    </span>
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Reference: GFA-{{
-                        booking.id|stringformat:"06d" }}</span>
-                </div>
+                <a href="{% url 'gfa_dashboard' %}" class="text-white/80 hover:text-white text-sm font-bold flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg> Back to Dashboard
+                </a>
             </div>
+        </div>
 
-            <!-- Form -->
-            <form method="post" enctype="multipart/form-data" class="p-8 md:p-12 space-y-10">
-                {% csrf_token %}
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-2">
-                        <label
-                            class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Airline
-                            PNR / Ref No.</label>
-                        {{ form.booking_reference_no }}
-                        <p class="text-[9px] text-slate-400 font-bold italic pl-1 italic">Internal Airline Locator
-                            Record</p>
+        <div class="max-w-3xl mx-auto px-4 -mt-24 relative z-10 pb-12">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-200">
+                <div class="bg-slate-50 px-8 py-6 border-b border-slate-200 flex justify-between items-center">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Passenger</span>
+                        <div class="font-bold text-xl text-slate-900">{{ booking.full_name }}</div>
+                        <div class="text-xs text-slate-500">{{ booking.origin }} ➝ {{ booking.destination_details }}</div>
                     </div>
-                    <div class="space-y-2">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Final
-                            Ticket Cost (PHP)</label>
-                        <div class="relative group">
-                            <div
-                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 font-bold">
-                                ₱</div>
-                            <div class="pl-3">{{ form.total_amount }}</div>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-bold italic pl-1 italic">Total charge against agency
-                            GFA credits</p>
+                    <div class="text-right">
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ booking.get_airline_display }}</span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-3">
-                        <label
-                            class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Attachment:
-                            E-Ticket (PDF)</label>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <form method="post" enctype="multipart/form-data" class="p-8 space-y-6">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Airline PNR / Ref No.</label>
+                            {{ form.booking_reference_no }}
+                            <p class="text-[10px] text-slate-400 mt-1">Example: XJ59KL</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Total Ticket Cost (PHP)</label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-slate-500 font-bold">₱</span></div>
+                                {{ form.total_amount }}
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Final charge to credit line</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Upload Ticket (PDF)</label>
                             {{ form.doc_flight_ticket }}
                         </div>
-                    </div>
-                    <div class="space-y-3">
-                        <label
-                            class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Attachment:
-                            Payment Voucher</label>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-1">Other Docs (Voucher)</label>
                             {{ form.doc_voucher }}
                         </div>
                     </div>
-                </div>
 
-                <div class="space-y-2">
-                    <label
-                        class="block text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Instructions
-                        for Traveler</label>
-                    <div class="textarea-container">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Instructions for Traveler</label>
                         {{ form.admin_instructions }}
+                        <p class="text-[10px] text-slate-400 mt-1">Visible on the user's booking summary.</p>
                     </div>
-                    <p class="text-[9px] text-slate-400 font-bold italic pl-1">Add details regarding check-in, baggage,
-                        or itinerary changes.</p>
-                </div>
 
-                <div class="pt-6">
-                    <button type="submit"
-                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-500/30 transition-all transform active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-xs">
-                        Finalize & Issue Ticket <i class="fas fa-paper-plane text-lg"></i>
-                    </button>
-                    <p class="text-center text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-widest italic">
-                        This action will notify the traveler and mark the request as BOOKED.</p>
-                </div>
-            </form>
+                    <div class="pt-4 border-t border-slate-100 flex justify-end">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2">
+                            <span>Confirm & Issue</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</div>
-{% endblock %}
+    </main>
+</body>
+</html>

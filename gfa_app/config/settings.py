@@ -9,7 +9,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-90glx^^)d=r6+5hbr!-7mp@6pouu%fp0&-ku+s6su4nxs+ks#&'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-LOCAL-DEV-FALLBACK-ONLY-90glx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG') == 'True'
@@ -30,15 +30,15 @@ CSRF_TRUSTED_ORIGINS = [
 # ... skipped ...
 
 # 1. Enforce SSL/HTTPS
-SECURE_SSL_REDIRECT = False
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL', 'False') == 'True'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_HSTS_SECONDS = 31536000 # 1 Year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
 # 2. Harden Cookies
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = os.environ.get('SECURE_COOKIES', 'False') == 'True'
+CSRF_COOKIE_SECURE = os.environ.get('SECURE_COOKIES', 'False') == 'True'
 
 
 # Application definition
@@ -76,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'config.context_processors.sspmo_hub_url',
             ],
         },
     },
@@ -148,9 +149,13 @@ LOGIN_REDIRECT_URL = 'index' # Changed from 'landing_page' to match urls.py 'nam
 LOGOUT_REDIRECT_URL = 'login'
 
 # Session Timeout Logic
-SESSION_COOKIE_AGE = 1800 # 30 Minutes (in seconds)
+SESSION_COOKIE_AGE = 600 # 10 Minutes (in seconds)
 SESSION_SAVE_EVERY_REQUEST = True # Reset timer on activity
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True # Logout when browser closes
+
+# --- SSPMO HUB URL ---
+SSPMO_HUB_URL = os.environ.get('SSPMO_HUB_URL', 'https://sspmo.up.edu.ph')
+
 
 # ... (bottom of file)
 
@@ -167,4 +172,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
 # DEFAULT_FROM_EMAIL = 'SPMO GFA System <no-reply@up.edu.ph>'
 
-# Duplicate security block removed
