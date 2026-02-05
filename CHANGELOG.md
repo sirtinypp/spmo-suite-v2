@@ -125,6 +125,16 @@ This is the first stable production release of the SPMO Suite, a unified contain
 
 ## [Unreleased]
 
+### Maintenance & Optimization
+- **Static Code Analysis**: Ran `flake8` on all services. Identified consistent style violations (PEP 8). Use of a formatter is recommended.
+- **Dependency Audit**: Ran `pip-audit`. Identified missing system dependencies (`libcairo2-dev`) required for `suplay_app` PDF generation.
+- **Baseline Tests**: Created baseline unit tests (`test_basics.py`) for `spmo_website`, `gfa_app`, and `suplay_app`.
+- **Docker Optimization**: Optimized Dockerfiles (added `PYTHONDONTWRITEBYTECODE`, cleaned up apt lists, added `--no-install-recommends`).
+- **Configuration**: Updated `suplay_app` settings to allow local testing with SQLite fallback.
+
+### Critical Findings
+- **Missing GAMIT Code**: The `gamit_app` directory is empty. Source code recovery is required.
+
 ### Added
 - **Monthly Allocation Limits (SUPLAY)**: Implemented strict month-only stock checking (jan/feb/etc.) in `add_to_cart`.
 - **Catalog Visibility**: Updated `home` and `search` views to display remaining monthly balance (`personal_stock`) on product cards.
