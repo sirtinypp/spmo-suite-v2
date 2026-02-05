@@ -1,0 +1,281 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PAR - {{ batch.transaction_id }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Palatino+Linotype:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- MODERN HEADER STYLES --- */
+        :root {
+            --up-maroon: #7b1113;
+            --forest-green: #1f513f;
+            --text-dark: #333;
+            --white: #ffffff;
+        }
+
+        .header-section {
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .univ-name {
+            color: var(--up-maroon);
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+            font-size: 13pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .office-title {
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            font-size: 10.5pt;
+            font-weight: 500;
+            margin: 5px 0 0 0;
+        }
+
+        .system-branding {
+            display: inline-block;
+            background-color: var(--forest-green);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 8.5pt;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 10px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* --- BASE SETTINGS --- */
+        body { 
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 9.5pt; 
+            color: #111; 
+            margin: 0;
+            padding: 0;
+            line-height: 1.25;
+            background-color: #555; 
+        }
+
+        /* A4 SIZE SETTINGS */
+        @page { size: A4; margin: 0; }
+
+        .report-wrapper { 
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto 20px auto; 
+            padding: 15mm; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            position: relative;
+        }
+
+        /* PRINT BREAK LOGIC */
+        @media print {
+            body { background: none; }
+            .no-print { display: none !important; }
+            .report-wrapper { 
+                margin: 0; 
+                width: 210mm; 
+                height: 297mm; 
+                border: none;
+                page-break-after: always; 
+            }
+            .report-wrapper:last-child {
+                page-break-after: auto;
+            }
+        }
+
+        /* --- BODY CONTENT --- */
+        .doc-title { 
+            text-align: center; 
+            font-weight: 700; 
+            text-transform: uppercase;
+            font-size: 11pt;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- INFO GRID --- */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 15px; }
+        .info-row { display: flex; align-items: baseline; margin-bottom: 4px; }
+        .label { font-weight: 600; font-size: 9pt; min-width: 100px; text-transform: uppercase; color: #444; }
+        .value { border-bottom: 1px solid #ccc; flex-grow: 1; padding: 0 5px; font-weight: 600; color: #000; }
+
+        /* --- TABLE --- */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th { background-color: #f8f9fa; border: 1px solid #333; padding: 6px; font-weight: 700; font-size: 8pt; text-transform: uppercase; }
+        td { border: 1px solid #333; padding: 5px 6px; vertical-align: top; font-size: 9pt; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .total-row { background-color: #f8f9fa; font-weight: 700; }
+
+        /* --- ASSET IMAGE SECTION (NEW) --- */
+        .asset-image-container {
+            width: 100%;
+            height: 240px; /* Fixed height to keep layout stable */
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            /* Subtle dashed border to denote attachment area */
+            border: 1px dashed #e0e0e0; 
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .asset-image-container img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain; /* Ensures the whole image is visible */
+            border-radius: 4px;
+            /* Modern shadow for the photo */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+        }
+
+        .image-placeholder {
+            color: #ccc;
+            font-size: 9pt;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        /* --- SUPPLIER INFO --- */
+        .supplier-info { font-size: 9pt; margin-bottom: 15px; color: #333; }
+        .supplier-row { margin-bottom: 3px; }
+
+        /* --- FOOTER --- */
+        .spacer { flex-grow: 1; }
+        .footer-section { border-top: 2px solid #222; padding-top: 15px; margin-top: 10px; }
+        
+        .signatory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 20px; }
+        .sign-box { display: flex; flex-direction: column; height: 120px; justify-content: space-between; }
+        .sign-label { font-weight: 700; font-size: 8pt; text-transform: uppercase; margin-bottom: 10px; }
+        
+        .signature-line { border-top: 1px solid #000; text-align: center; padding-top: 4px; width: 95%; margin: 0 auto; }
+        .signatory-name { font-weight: 700; text-transform: uppercase; font-size: 9.5pt; }
+        .signatory-pos { font-size: 8pt; color: #444; }
+        .date-line { font-size: 8.5pt; margin-top: 5px; text-align: center; }
+
+        .admin-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; font-size: 7.5pt; border-top: 1px solid #ddd; padding-top: 8px; color: #666; text-align: left; }
+        .admin-col div:first-child { font-weight: 700; margin-bottom: 1px; }
+    </style>
+</head>
+<body>
+
+<div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+    <button onclick="window.print()" style="padding: 10px 20px; background: #fff; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">
+        PRINT ALL ({{ par_pages|length }} Pages)
+    </button>
+</div>
+
+{% for page_item in par_pages %}
+<div class="report-wrapper">
+    
+    <div class="header-section">
+        <h1 class="univ-name">University of the Philippines System</h1>
+        <h2 class="office-title">System Supply and Property Management Office</h2>
+        <div class="system-branding">GAMIT 2.0</div>
+    </div>
+
+    <div class="doc-title">Property Acknowledgment Receipt</div>
+
+    <div class="info-grid">
+        <div>
+            <div class="info-row"><span class="label">Entity Name</span><span class="value">{{ batch.requesting_unit|default:"&nbsp;" }}</span></div>
+            <div class="info-row"><span class="label">Fund Cluster</span><span class="value">{{ batch.fund_cluster|default:"&nbsp;" }}</span></div>
+        </div>
+        <div>
+            <div class="info-row"><span class="label">PAR No.</span><span class="value">{{ batch.acceptance_report_number|default:batch.transaction_id }}</span></div>
+            <div class="info-row"><span class="label">UPS DV No.</span><span class="value">{{ batch.ups_dv_number|default:"&nbsp;" }}</span></div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="8%">Qty</th>
+                <th width="10%">UOM</th>
+                <th width="35%" class="text-left">Particulars / Description</th>
+                <th width="15%">Property No.</th>
+                <th width="12%">Date Acquired</th>
+                <th width="15%" class="text-right">Unit Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center">{{ page_item.quantity }}</td>
+                <td class="text-center">{{ page_item.unit }}</td>
+                <td class="text-left">{{ page_item.description }}</td>
+                <td class="text-center">&nbsp;</td> 
+                <td class="text-center">{{ batch.created_at|date:"m/d/Y" }}</td>
+                <td class="text-right">{{ page_item.amount|intcomma }}</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="5" class="text-right" style="padding-right: 15px;">TOTAL COST</td>
+                <td class="text-right">{{ page_item.total_price|intcomma }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="asset-image-container">
+        {% if page_item.image %}
+            <img src="{{ page_item.image.url }}" alt="Asset Photo - {{ page_item.description }}">
+        {% else %}
+            <span class="image-placeholder">No asset photo available</span>
+        {% endif %}
+    </div>
+    <div class="supplier-info">
+        <div class="supplier-row"><strong>Supplier Name:</strong> {{ batch.supplier_name|default:"-" }}</div>
+        <div class="supplier-row"><strong>Sales Invoice #:</strong> {{ batch.sales_invoice_number|default:"-" }}</div>
+        <div class="supplier-row"><strong>Purchase Order No.:</strong> {{ batch.po_number|default:"-" }}</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="footer-section">
+        <div class="signatory-grid">
+            <div class="sign-box">
+                <div class="sign-label">Received by:</div>
+                <div style="flex-grow: 1;"></div> 
+                <div class="signature-line">
+                    <div class="signatory-name">{{ received_by_name }}</div>
+                    <div class="signatory-pos">{{ received_by_position }}</div>
+                </div>
+                <div class="date-line">Date: __________________</div>
+            </div>
+
+            <div class="sign-box">
+                <div class="sign-label">Issued by:</div>
+                <div style="flex-grow: 1;"></div> 
+                <div class="signature-line">
+                    <div class="signatory-name">{{ issued_by_name }}</div>
+                    <div class="signatory-pos">{{ issued_by_position }}</div>
+                </div>
+                <div class="date-line">Date: __________________</div>
+            </div>
+        </div>
+
+        <div class="admin-footer">
+            <div class="admin-col"><div>Prepared by:</div><div>Eldefonso T. Sardual Jr</div></div>
+            <div class="admin-col"><div>Reviewed by:</div><div>Julius Mar Dela Cruz</div></div>
+            <div class="admin-col"><div>Posted by:</div><div>Joeven Exequiel Del Mundo</div></div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+</body>
+</html>

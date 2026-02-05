@@ -1,0 +1,166 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h4 fw-bold text-dark mb-0">
+                <i class="fas fa-boxes-packing text-primary me-2"></i>Batch Acquisition
+            </h2>
+            <p class="text-muted small mb-0 ms-1">Submit multiple assets via document upload</p>
+        </div>
+        <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary btn-sm shadow-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back to History
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row">
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-bold text-primary">
+                            <i class="fas fa-info-circle me-2"></i>Request Details
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Requesting Unit</label>
+                                {{ form.requesting_unit }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Date</label>
+                                {{ form.date_created }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-muted text-uppercase fw-bold mb-1">Supplier Name</label>
+                            {{ form.supplier_name }}
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Purchase Order No.</label>
+                                {{ form.po_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Sales Invoice Number</label>
+                                {{ form.sales_invoice_number }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-muted text-uppercase fw-bold mb-1">Acceptance Report Number</label>
+                            {{ form.acceptance_report_number }}
+                        </div>
+
+                        <hr class="text-muted opacity-25 my-3">
+
+                        <div class="mb-3">
+                            <label class="small text-muted text-uppercase fw-bold mb-2">Justification / Remarks</label>
+                            {{ form.remarks }}
+                            <div class="form-text small mt-2">
+                                Please describe the purpose of this batch acquisition (e.g., "Q1 IT Equipment Procurement").
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info d-flex align-items-center small" role="alert">
+                            <i class="fas fa-lightbulb me-2 fs-5"></i>
+                            <div>
+                                <strong>Note:</strong> Uploading documents here will create a pending batch request. The Administrator will review the documents and populate the inventory.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold text-success">
+                            <i class="fas fa-file-upload me-2"></i>Supporting Documents
+                        </h6>
+                        <span class="badge bg-light text-dark border">Max 5 Files</span>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-md-5">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 1 Name</label>
+                                {{ form.doc_1_name }}
+                            </div>
+                            <div class="col-md-7">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File (PO/Invoice)</label>
+                                {{ form.doc_1_file }}
+                            </div>
+                        </div>
+                        <hr class="text-muted opacity-25 my-3">
+
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-md-5">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 2 Name</label>
+                                {{ form.doc_2_name }}
+                            </div>
+                            <div class="col-md-7">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
+                                {{ form.doc_2_file }}
+                            </div>
+                        </div>
+                        <hr class="text-muted opacity-25 my-3">
+
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-md-5">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 3 Name</label>
+                                {{ form.doc_3_name }}
+                            </div>
+                            <div class="col-md-7">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
+                                {{ form.doc_3_file }}
+                            </div>
+                        </div>
+                        <hr class="text-muted opacity-25 my-3">
+
+                        <div class="row g-3 align-items-end mb-4">
+                            <div class="col-md-5">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 4 Name</label>
+                                {{ form.doc_4_name }}
+                            </div>
+                            <div class="col-md-7">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
+                                {{ form.doc_4_file }}
+                            </div>
+                        </div>
+                        <hr class="text-muted opacity-25 my-3">
+
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 5 Name</label>
+                                {{ form.doc_5_name }}
+                            </div>
+                            <div class="col-md-7">
+                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
+                                {{ form.doc_5_file }}
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div class="card-footer bg-light py-3 border-top text-end">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                            <i class="fas fa-paper-plane me-2"></i> Submit Batch Request
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+{% endblock %}

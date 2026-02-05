@@ -1,0 +1,110 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 fw-bold text-dark mb-0">
+            <i class="fas fa-exchange-alt text-primary me-2"></i>Asset Transfer
+        </h2>
+        <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-bold text-primary">1. Select Asset</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="small text-muted fw-bold mb-1">Target Asset</label>
+                            {{ form.asset }}
+                            <div class="form-text small">Select the asset you wish to transfer.</div>
+                        </div>
+
+                        <div class="alert alert-light border d-none" id="assetInfoCard">
+                            <h6 class="fw-bold text-dark mb-2"><i class="fas fa-info-circle me-2"></i>Asset Snapshot</h6>
+                            <div class="row g-2 small">
+                                <div class="col-4 text-muted">Property No:</div>
+                                <div class="col-8 fw-bold" id="info-prop"></div>
+                                
+                                <div class="col-4 text-muted">Current Status:</div>
+                                <div class="col-8 fw-bold" id="info-status"></div>
+                                
+                                <div class="col-4 text-muted">Current Officer:</div>
+                                <div class="col-8 fw-bold text-danger" id="info-officer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-bold text-success">2. New Accountability</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">New Officer First Name</label>
+                                {{ form.new_officer_firstname }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted fw-bold">New Officer Surname</label>
+                                {{ form.new_officer_surname }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold">Reason for Transfer</label>
+                            {{ form.remarks }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-bold text-secondary">3. Required Documents</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold">Transfer Form (PTR)</label>
+                            {{ form.document_1 }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold">Valid ID / Authorization</label>
+                            {{ form.document_2 }}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light py-3 text-end">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">Submit Transfer Request</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.getElementById('id_asset_select').addEventListener('change', function() {
+    let assetId = this.value;
+    let card = document.getElementById('assetInfoCard');
+    
+    if (assetId) {
+        fetch(`/inventory/api/asset-info/${assetId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('info-prop').innerText = data.property_number;
+                document.getElementById('info-status').innerText = data.status;
+                document.getElementById('info-officer').innerText = data.officer;
+                card.classList.remove('d-none');
+            });
+    } else {
+        card.classList.add('d-none');
+    }
+});
+</script>
+{% endblock %}

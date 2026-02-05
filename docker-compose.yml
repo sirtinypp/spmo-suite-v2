@@ -35,7 +35,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DEBUG=True
+      - DEBUG=False
 
   # --- App 2: GAMIT ---
   gamit_app:
@@ -58,7 +58,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DEBUG=True
+      - DEBUG=False
       - DJANGO_SECRET_KEY=+g1($$r^jwkprb)2o9fl8m=ba_(tq5v+^bj43)2z*$$l1c@7edx5
 
   # --- App 3: GFA ---
@@ -82,7 +82,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DEBUG=True
+      - DEBUG=False
       - DJANGO_SECRET_KEY=gfa-prod-secret-key-2026-secure-lipad-travel-system-v1
 
   # --- App 4: Virtual Store ---
@@ -106,7 +106,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DEBUG=True
+      - DEBUG=False
 
   # --- Reverse Proxy ---
   nginx:

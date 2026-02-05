@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMIT System</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'inventory/img/favicon.png' %}">
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #0f172a;
+            /* Deep midnight blue */
+            --sidebar-text: #94a3b8;
+            /* Soft blue-grey */
+            --primary-accent: #3b82f6;
+            /* Modern bright blue */
+            --bg-body: #f1f5f9;
+            /* Very light grey/blue tint */
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            color: #334155;
+        }
+
+        /* --- Sidebar Styling --- */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            z-index: 1000;
+            padding: 24px 16px;
+            background-color: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
+        }
+
+        .sidebar-brand {
+            color: #fff;
+            padding: 0 12px 24px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 16px;
+        }
+
+        /* Navigation Links */
+        .nav-link {
+            color: var(--sidebar-text);
+            margin-bottom: 4px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            /* "Pill" shape */
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 12px;
+            font-size: 1.1em;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        /* Hover State */
+        .nav-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+            /* Subtle movement */
+        }
+
+        .nav-link:hover i {
+            opacity: 1;
+        }
+
+        /* Active State */
+        .nav-link.active {
+            background-color: var(--primary-accent);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            /* Glowing effect */
+        }
+
+        .nav-link.active i {
+            opacity: 1;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 32px;
+        }
+
+        /* Utility */
+        .section-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: #475569;
+            font-weight: 700;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            padding-left: 12px;
+        }
+
+        /* Smooth fade in for pages */
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <div class="d-flex align-items-center mb-1">
+                <i class="fas fa-layer-group text-primary me-2 fs-4"></i>
+                <h4 class="fw-bold mb-0 tracking-tight">GAMIT</h4>
+            </div>
+            <div class="small text-secondary ps-4 ms-1" style="font-size: 0.8rem;">Gov. Asset Mgmt.</div>
+        </div>
+
+        <div class="d-flex align-items-center px-3 py-3 mb-4 rounded-3" style="background: rgba(255,255,255,0.03);">
+            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold me-3"
+                style="width: 32px; height: 32px;">
+                {{ user.username|make_list|first|upper }}
+            </div>
+            <div class="overflow-hidden">
+                <div class="text-white small fw-bold text-truncate">{{ user.username }}</div>
+                <div class="text-secondary small" style="font-size: 0.75rem;">Online</div>
+            </div>
+        </div>
+
+        <ul class="nav flex-column mb-auto">
+
+            <li class="nav-item">
+                <a href="{% url 'dashboard' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-gauge me-2"></i> Dashboard
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'asset_list' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'asset_list' %}active{% endif %}">
+                    <i class="fas fa-box-archive me-2"></i> All Assets
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'transaction_history' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %}">
+                    <i class="fas fa-history me-2"></i> My Transactions
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a href="{% url 'sitemap' %}"
+                    class="nav-link {% if request.resolver_match.url_name == 'sitemap' %}active{% endif %}">
+                    <i class="fas fa-sitemap me-2"></i> Site Map
+                </a>
+            </li>
+
+            {% if user.is_staff %}
+            <li class="section-label">Administration</li>
+            <li class="nav-item">
+                <a href="/admin/inventory/asset/add/" target="_blank" class="nav-link">
+                    <i class="fas fa-plus me-2"></i> Add Asset
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/" target="_blank" class="nav-link">
+                    <i class="fas fa-sliders me-2"></i> Admin Panel
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+
+        <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="nav-link w-100 text-start text-danger hover-danger">
+                    <i class="fas fa-arrow-right-from-bracket me-2"></i> Logout
+                </button>
+            </form>
+            <div class="text-center text-secondary mt-3" style="font-size: 0.7rem; opacity: 0.5;">
+                &copy; 2025 GAMIT System v1.0
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+</body>
+
+</html>

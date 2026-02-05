@@ -1,0 +1,135 @@
+{% extends 'layout.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container fade-in mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="h4 fw-bold text-body-emphasis mb-0">
+                <i class="fas fa-edit text-primary me-2"></i>Process Batch {{ batch.transaction_id }}
+            </h3>
+            <p class="text-body-secondary small mb-0 ms-1">Add line items and finalize details for the IAR and PAR Report Generation.</p>
+        </div>
+        <div>
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary btn-sm shadow-sm me-2">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+            
+            <div class="d-inline-flex gap-2">
+                <a href="{% url 'print_acceptance_report' pk=batch.id %}" target="_blank" class="btn btn-dark btn-sm shadow-sm border-0">
+                    <i class="fas fa-file-invoice me-2"></i>Print IAR
+                </a>
+                <a href="{% url 'print_par' pk=batch.id %}" target="_blank" class="btn btn-dark btn-sm shadow-sm border-0">
+                    <i class="fas fa-file-contract me-2"></i>Print PAR
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="card shadow-sm border-0 mb-4 bg-body-tertiary">
+            <div class="card-header bg-body-secondary fw-bold text-uppercase small text-body-emphasis border-bottom border-secondary-subtle">
+                <i class="fas fa-info-circle me-2 text-primary"></i>Primary Information
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="small text-body-secondary fw-bold">Supplier</label>
+                        {{ form.supplier_name }}
+                    </div>
+                    <div class="col-md-2">
+                        <label class="small text-body-secondary fw-bold text-success">AR Number</label>
+                        {{ form.acceptance_report_number }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-body-secondary fw-bold">PO Number</label>
+                        {{ form.po_number }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-body-secondary fw-bold">Invoice No.</label>
+                        {{ form.sales_invoice_number }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="small text-body-secondary fw-bold">Requesting Unit</label>
+                        {{ form.requesting_unit }}
+                    </div>
+                     <div class="col-md-2">
+                        <label class="small text-body-secondary fw-bold">Date</label>
+                        <input type="text" class="form-control" value="{{ batch.created_at|date:'m/d/Y' }}" disabled>
+                    </div>
+                    
+                    <div class="col-md-3">
+                        <label class="small text-body-secondary fw-bold text-primary">Fund Cluster (PAR)</label>
+                        {{ form.fund_cluster }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="small text-body-secondary fw-bold text-primary">UPS DV No. (PAR)</label>
+                        {{ form.ups_dv_number }}
+                    </div>
+
+                     <div class="col-md-12">
+                        <label class="small text-body-secondary fw-bold">Remarks</label>
+                        {{ form.remarks }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 mb-4 bg-body-tertiary">
+            <div class="card-header bg-body-secondary fw-bold text-uppercase small text-body-emphasis d-flex justify-content-between align-items-center border-bottom border-secondary-subtle">
+                <span><i class="fas fa-list me-2 text-success"></i>Asset Information (Items)</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0 align-middle text-body">
+                        <thead class="bg-body-secondary text-body-secondary small text-uppercase">
+                            <tr>
+                                <th style="width: 8%;" class="ps-3 bg-body-secondary">Unit</th>
+                                <th style="width: 7%;" class="bg-body-secondary">Qty</th>
+                                <th style="width: 10%;" class="bg-body-secondary">Image</th>
+                                <th style="width: 25%;" class="bg-body-secondary">Description / Particulars</th>
+                                <th style="width: 15%;" class="bg-body-secondary">Nature of Expense</th>
+                                <th style="width: 15%;" class="bg-body-secondary">Ref No.</th>
+                                <th style="width: 15%;" class="bg-body-secondary">Amount</th>
+                                <th style="width: 5%;" class="text-center bg-body-secondary">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ formset.management_form }}
+                            {% for form in formset %}
+                                <tr>
+                                    {{ form.id }}
+                                    <td class="ps-3">{{ form.unit }}</td>
+                                    <td>{{ form.quantity }}</td>
+                                    <td>{{ form.image }}</td> 
+                                    <td>{{ form.description }}</td>
+                                    <td>{{ form.nature_of_expense }}</td>
+                                    <td>{{ form.reference_number }}</td>
+                                    <td>{{ form.amount }}</td>
+                                    <td class="text-center">
+                                        {% if formset.can_delete %}
+                                            {{ form.DELETE }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-body-tertiary text-body-secondary small border-top border-secondary-subtle">
+                <i class="fas fa-lightbulb text-warning me-1"></i> <strong>Tip:</strong> Click "Save & Update" to add new rows or apply changes. Check the box on the right to delete a row.
+            </div>
+        </div>
+
+        <div class="text-end">
+             <button type="submit" class="btn btn-success px-5 fw-bold shadow-sm">
+                 <i class="fas fa-save me-2"></i>Save & Update
+             </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
