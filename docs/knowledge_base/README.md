@@ -57,6 +57,7 @@ Diagnostic guides and common troubleshooting procedures.
 
 ### 2026-02-06
 - [Admin Panel Static Files Fix](fixes/2026-02-06_admin-panel-static-files-whitenoise.md) - WhiteNoise implementation for GAMIT and LIPAD
+- [Logout Redirect Fix](fixes/2026-02-06_logout-redirect-fix.md) - Standardized logout and timeout redirects to login page
 
 ## Contributing Guidelines
 
