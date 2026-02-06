@@ -2,13 +2,49 @@
 
 **Purpose:** Quick reference for all stable checkpoints and rollback points  
 **Guardian:** SysOps Sentinel  
-**Updated:** 2026-01-29 09:35 PHT
+**Updated:** 2026-02-06 08:43 PHT
 
 ---
 
 ## Active Rollback Points
 
-### 1. stable-2026-02-05-production-v1.2.0 ⭐ CURRENT (Golden)
+### 1. stable-2026-02-06-local-fixes ⭐ CURRENT (Latest)
+**Date**: 2026-02-06 08:43 PHT  
+**Commit**: `1b75a43`  
+**Branch**: `main`  
+**Status**: Local Stable - Ready for Production Deployment
+
+**Fixes Applied**:
+- **WhiteNoise Static Files**: Admin panels now serve CSS correctly with DEBUG=False
+- **Logout Redirects**: Standardized all logout/timeout redirects to `/login`
+- **Session Timeout**: Verified 10-minute timeout across all apps
+- **Logo Standardization**: All apps now display consistent UP Logo (353KB)
+- **Knowledge Base**: Documented all fixes for future reference
+
+**Git Commits**:
+- `1b75a43` - Logo standardization across all apps
+- `8b1c355` - Knowledge base documentation
+- `370014f` - Logout redirect fix
+- `277adbd` - Hub WhiteNoise middleware
+- `6596650` - GAMIT/LIPAD WhiteNoise middleware
+
+**Rollback Command**:
+```bash
+git fetch origin main
+git reset --hard 1b75a43
+docker compose down && docker compose up -d --build
+```
+
+**Verification Checklist**:
+- ✅ All admin panels display with CSS
+- ✅ Logout buttons redirect to /login
+- ✅ Session timeout redirects to /login
+- ✅ All logos display UP Logo
+- ✅ All 4 apps running (Hub, GAMIT, LIPAD, SUPLAY)
+
+---
+
+### 2. stable-2026-02-05-production-v1.2.0 (Golden)
 **Date**: 2026-02-05 11:45 PHT  
 **Commit**: `4df3b6f`  
 **Branch**: `main`  
