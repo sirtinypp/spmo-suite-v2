@@ -31,7 +31,7 @@ ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 # Session timeout - 10 minutes of inactivity
 SESSION_COOKIE_AGE = 600  # 10 minutes
 SESSION_SAVE_EVERY_REQUEST = True  # Reset timer on activity
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Clear on browser close
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Logout when browser closes
 
 CSRF_TRUSTED_ORIGINS = [
     'https://sspmo.up.edu.ph',
