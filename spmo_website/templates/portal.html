@@ -184,12 +184,15 @@
     </footer>
 
     <!-- Session Timeout Warning System (Popout Modal) -->
-    {% load static %}
-    <script src="{% static 'js/session_timeout_warning.js' %}"></script>
+    <script src="{% static 'js/session_timeout.js' %}"></script>
     <script>
-        // Initialize 10-minute timeout system when DOM ready
         document.addEventListener('DOMContentLoaded', function () {
-            initSessionTimeout();
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}",
+                sessionMinutes: 10,
+                warningMinutes: 9
+            });
         });
     </script>
 </body>

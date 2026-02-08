@@ -16,7 +16,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='inventory/login.html'), name='login'),
 
     # 3. Logout View (FIXED: Wrapped in csrf_exempt to bypass stale token checks)
-    path('logout/', csrf_exempt(auth_views.LogoutView.as_view(next_page='login')), name='logout'),
+    path('logout/', csrf_exempt(auth_views.LogoutView.as_view(next_page='/login/?next=/dashboard/')), name='logout'),
 
     # 4. Inventory App URLs
     path('', include('inventory.urls')),

@@ -1922,6 +1922,18 @@
             }, 500);
         });
     </script>
+    <!-- Session Timeout Script (Standardized) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}", // Target: Hub Login
+                sessionMinutes: 10,
+                warningMinutes: 9
+            });
+        });
+    </script>
 </body>
 
 </html>

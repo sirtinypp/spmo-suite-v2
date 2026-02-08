@@ -225,6 +225,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Session Timeout Script (Standardized) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}", // Target: GAMIT Login
+                sessionMinutes: 10,
+                warningMinutes: 9
+            });
+        });
+    </script>
+
     <script>
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {

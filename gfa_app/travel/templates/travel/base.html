@@ -67,6 +67,19 @@
     <footer class="bg-slate-50 border-t border-slate-200 py-8 text-center text-sm text-slate-500 mt-auto">
         &copy; 2026 Government Fares Agreement | SSPMO Suite
     </footer>
+
+    <!-- Session Timeout Script (Standardized) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}", // Target: LIPAD Login
+                sessionMinutes: 10,
+                warningMinutes: 9
+            });
+        });
+    </script>
 </body>
 
 </html>

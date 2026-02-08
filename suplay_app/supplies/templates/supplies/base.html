@@ -149,13 +149,16 @@
     {% include 'supplies/includes/_footer.html' %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Session Timeout Warning System (Popout Modal) -->
-    {% load static %}
-    <script src="{% static 'supplies/js/session_timeout_warning.js' %}"></script>
+    <!-- Session Timeout Script (Standardized) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
     <script>
-        // Initialize 10-minute timeout system when DOM ready
         document.addEventListener('DOMContentLoaded', function () {
-            initSessionTimeout();
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}", // Target: SUPLAY Login
+                sessionMinutes: 10,
+                warningMinutes: 9
+            });
         });
     </script>
 </body>

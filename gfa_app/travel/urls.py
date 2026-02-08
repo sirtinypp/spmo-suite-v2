@@ -8,7 +8,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='travel/login.html'), name='login'),
     
     # 5. Logout (Updated to redirect to the new login page)
-    path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
 
     # --- APP VIEWS ---
     # 1. Landing Page (index.html)
