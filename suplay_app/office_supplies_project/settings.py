@@ -155,15 +155,20 @@ SESSION_COOKIE_AGE = 600  # 10 minutes of inactivity (changed from 3000)
 SESSION_SAVE_EVERY_REQUEST = True 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# Allow Docker to handle CSRF tokens
-# Allow Docker to handle CSRF tokens
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8003', 
-    'http://127.0.0.1:8003', 
-    'http://10.10.5.13:8003',
-    'https://suplay-sspmo.up.edu.ph',
-    'http://suplay-sspmo.up.edu.ph'
-]
+# CSRF Configuration - Read from environment or use production defaults
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    # Environment variable is set (dev/staging), use it
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    # Fallback to defaults
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8003', 
+        'http://127.0.0.1:8003', 
+        'http://10.10.5.13:8003',
+        'https://suplay-sspmo.up.edu.ph',
+        'http://suplay-sspmo.up.edu.ph'
+    ]
 
 # ==============================================================================
 # --- SECURITY HARDENING (DAST REMEDIATION) ---
