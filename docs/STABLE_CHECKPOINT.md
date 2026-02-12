@@ -18,8 +18,8 @@
 
 ### 1. Version Control
 - **Branch:** `staging`
-- **Latest Commit:** `24daa78` ("fix: explicitly pass CSRF_TRUSTED_ORIGINS in docker-compose.yml")
-- **Rollback Instruction:** `git checkout 24daa78`
+- **Latest Commit:** `290babe` ("docs: establish latest stable checkpoint and log CSRF sync fix")
+- **Rollback Instruction:** `git reset --hard v1.4.0-stable-parity`
 
 ### 2. Critical Fixes Applied
 - **CSRF Fix:** Implemented dynamic `CSRF_TRUSTED_ORIGINS` reading from `.env` in all Django apps.
