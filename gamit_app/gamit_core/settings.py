@@ -26,15 +26,18 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-t(-xpq#vv4ww!v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'gamit-sspmo.up.edu.ph,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://gamit-sspmo.up.edu.ph',
-    'http://gamit-sspmo.up.edu.ph',
-    'http://localhost:8001'
-]
-
-# ... skipped ...
+# CSRF Configuration - Read from environment or use production defaults
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://gamit-sspmo.up.edu.ph',
+        'http://gamit-sspmo.up.edu.ph',
+        'http://localhost:8001'
+    ]
 
 # 1. Enforce SSL/HTTPS
 SECURE_SSL_REDIRECT = False # Disabled

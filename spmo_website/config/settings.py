@@ -22,22 +22,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-8t%l20b)o0sjbse2yu$surohb07om_*(_1q3%o@0d05*2_ue1t')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
+
+# Security Settings
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-key-change-in-production')
+
+# CSRF Configuration - Read from environment or use production defaults
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    # Environment variable is set (dev/staging), use it
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    # Fallback to production defaults
+    CSRF_TRUSTED_ORIGINS = [
+        'https://sspmo.up.edu.ph',
+        'http://sspmo.up.edu.ph',
+        'http://localhost:8000'
+    ]
 
 # Session timeout - 10 minutes of inactivity
 SESSION_COOKIE_AGE = 600  # 10 minutes
 SESSION_SAVE_EVERY_REQUEST = True  # Reset timer on activity
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Logout when browser closes
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://sspmo.up.edu.ph',
-    'http://sspmo.up.edu.ph',
-    'http://localhost:8000'
-]
 
 # ... skipped ...
 

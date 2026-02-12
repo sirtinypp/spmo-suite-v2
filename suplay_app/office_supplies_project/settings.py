@@ -17,8 +17,18 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-spc7#!k=$cb8az
 # DEBUG = True  # Moved to line 181 (environment-controlled)
 
 # Allow all hosts so Docker containers can talk to each other
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'suplay-sspmo.up.edu.ph,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
+# CSRF Configuration - Read from environment or use production defaults
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://suplay-sspmo.up.edu.ph',
+        'http://suplay-sspmo.up.edu.ph',
+        'http://localhost:8003'
+    ]
 
 
 # Application definition

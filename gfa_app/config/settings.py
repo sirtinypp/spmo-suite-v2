@@ -17,15 +17,19 @@ DEBUG = os.environ.get('DEBUG') == 'True'
 # Allow all hosts so Docker networking works smoothly
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://lipad.sspmo.up.edu.ph',
-    'https://lipad-sspmo.up.edu.ph', 
-    'http://lipad.sspmo.up.edu.ph',
-    'http://localhost:8002',
-    'http://localhost',
-    'http://127.0.0.1:8002',
-    'http://127.0.0.1'
-]
+# CSRF Configuration - Read from environment or use production defaults
+csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://lipad-sspmo.up.edu.ph',
+        'http://lipad-sspmo.up.edu.ph',
+        'http://localhost:8002',
+        'http://localhost',
+        'http://127.0.0.1:8002',
+        'http://127.0.0.1'
+    ]
 
 # ... skipped ...
 
