@@ -33,8 +33,8 @@ services:
       - DB_NAME=db_spmo
       - DB_USER=spmo_admin
       - DB_PASSWORD=secret_password
-      - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
 
   # --- App 2: GAMIT ---
@@ -58,6 +58,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
       - DJANGO_SECRET_KEY=+g1($$r^jwkprb)2o9fl8m=ba_(tq5v+^bj43)2z*$$l1c@7edx5
 
@@ -82,6 +83,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
       - DJANGO_SECRET_KEY=gfa-prod-secret-key-2026-secure-lipad-travel-system-v1
 
@@ -106,6 +108,7 @@ services:
       - DB_PASSWORD=secret_password
       - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
 
   # --- Reverse Proxy ---
