@@ -8,11 +8,28 @@
 
 ## Active Rollback Points
 
-### 1. stable-2026-02-06-local-fixes ⭐ CURRENT (Latest)
-**Date**: 2026-02-06 08:43 PHT  
-**Commit**: `1b75a43`  
+### 1. v2.1.0-prod-final ⭐ CURRENT (Latest)
+**Date**: 2026-02-12 15:58 PHT  
+**Commit**: `8803aee`  
 **Branch**: `main`  
-**Status**: Local Stable - Ready for Production Deployment
+**Status**: Production Live - 1:1:1 Parity Achieved (Data Sync UTF-8)
+
+**Fixes Applied**:
+- **Phase 2 Deployment**: 1:1:1 Parity establishes between Local, Dev, and Production.
+- **Data Parity**: Production refreshed with verified UTF-8 dumps (337 products).
+- **CSRF Environment Fix**: standardizes CSRF_TRUSTED_ORIGINS across all apps.
+- **Prepared Phase 2.5**: Commited docker-compose changes for Nginx media exposure.
+
+**Git Commits**:
+- `8803aee` - docs: finalize Phase 2 and rollback protocols
+- `24daa78` - fix: explicitly pass CSRF_TRUSTED_ORIGINS in docker-compose.yml
+
+**Rollback Command**:
+```bash
+git fetch origin main
+git reset --hard v2.1.0-prod-final
+docker compose down && docker compose up -d --build
+```
 
 **Fixes Applied**:
 - **WhiteNoise Static Files**: Admin panels now serve CSS correctly with DEBUG=False
