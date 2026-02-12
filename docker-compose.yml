@@ -120,6 +120,10 @@ services:
       # - "443:443" # Uncomment when SSL certs are ready
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./spmo_website/media:/var/www/hub/media
+      - ./gamit_app/media:/var/www/gamit/media
+      - ./gfa_app/media:/var/www/gfa/media
+      - ./suplay_app/media:/var/www/suplay/media
     depends_on:
       - spmo_website
       - gamit_app
