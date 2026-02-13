@@ -21,11 +21,16 @@ from .forms import (
 def dashboard(request):
     # 1. INITIAL QUERYSET
     assets = Asset.objects.all()
+    
+    # PERMISSION FILTER: Non-staff users only see their Department's assets
     if not request.user.is_staff:
         try:
-            user_office = request.user.userprofile.office
-            assets = assets.filter(assigned_office__iexact=user_office)
-        except (UserProfile.DoesNotExist, AttributeError):
+            profile = request.user.userprofile
+            if profile.department:
+                assets = assets.filter(department=profile.department)
+            else:
+                assets = Asset.objects.none()
+        except UserProfile.DoesNotExist:
             assets = Asset.objects.none()
 
     # 2. SLICERS / FILTERS
@@ -157,12 +162,14 @@ def dashboard(request):
 def asset_list(request):
     assets = Asset.objects.all()
     
-    # 1. Permission Filter
+    # 1. Permission Filter: Non-staff users only see their Department's assets
+    user_department = None
     if not request.user.is_staff:
         try:
-            user_office = request.user.userprofile.office
-            if user_office:
-                assets = assets.filter(assigned_office__iexact=user_office)
+            profile = request.user.userprofile
+            user_department = profile.department
+            if user_department:
+                assets = assets.filter(department=user_department)
             else:
                 assets = Asset.objects.none()
         except (UserProfile.DoesNotExist, AttributeError):
@@ -172,7 +179,7 @@ def asset_list(request):
     selected_class = request.GET.get('asset_class', '')
     selected_nature = request.GET.get('asset_nature', '')
     selected_status = request.GET.get('status', '') # Status filter
-    selected_office = request.GET.get('office', '') # New Office filter
+    selected_department = request.GET.get('department', '') # NEW: Department ID filter
 
     if selected_class:
         assets = assets.filter(asset_class=selected_class)
@@ -180,9 +187,8 @@ def asset_list(request):
         assets = assets.filter(asset_nature=selected_nature)
     if selected_status:
         assets = assets.filter(status=selected_status)
-    if selected_office:
-        # Case insensitive filter for office
-        assets = assets.filter(assigned_office__icontains=selected_office)
+    if selected_department and request.user.is_staff: # Only staff can filter by other departments
+         assets = assets.filter(department__id=selected_department)
 
     # 3. Search Bar Filter
     search_term = request.GET.get('search', '').strip()
@@ -204,15 +210,16 @@ def asset_list(request):
     all_natures = [n[0] for n in Asset.NATURE_CHOICES]
     all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
     
-    # Get unique offices for the dropdown (efficiently)
-    all_offices = Asset.objects.order_by('assigned_office').values_list('assigned_office', flat=True).distinct()
-    
-    if not request.user.is_staff:
-          try:
-              user_office = request.user.userprofile.office
-              all_offices = [user_office]
-          except:
-              all_offices = []
+    # Get Departments for the dropdown
+    if request.user.is_staff:
+        # Staff can see all departments
+        all_departments = Department.objects.all().order_by('name')
+    else:
+        # Regular users only see their own department (or nothing if none assigned)
+        if user_department:
+            all_departments = [user_department]
+        else:
+            all_departments = []
 
     context = {
         'object_list': assets,
@@ -222,13 +229,13 @@ def asset_list(request):
         'all_classes': all_classes,
         'all_natures': all_natures,
         'all_statuses': all_statuses,
-        'all_offices': all_offices,
+        'all_departments': all_departments, # Renamed from all_offices
 
         # Selected Values (to keep dropdowns selected)
         'selected_class': selected_class,
         'selected_nature': selected_nature,
         'selected_status': selected_status,
-        'selected_office': selected_office,
+        'selected_department': int(selected_department) if selected_department else '',
     }
     return render(request, 'inventory/asset_list.html', context)
 
@@ -272,9 +279,11 @@ def add_asset_transaction(request):
             asset = form.save(commit=False)
             if not request.user.is_staff:
                 try:
-                    asset.assigned_office = request.user.userprofile.office
+                    profile = request.user.userprofile
+                    asset.assigned_office = profile.office
+                    asset.department = profile.department  # <--- NEW: Set Department FK
                 except (UserProfile.DoesNotExist, AttributeError):
-                    messages.error(request, "Error: You do not have an office assigned.")
+                    messages.error(request, "Error: You do not have an office/department assigned.")
                     return redirect('dashboard')
             else:
                 if not asset.assigned_office: asset.assigned_office = "Main (Admin)"
@@ -312,19 +321,40 @@ def create_batch_request(request):
 
     if request.method == 'POST':
         form = AssetBatchForm(request.POST, request.FILES)
-        if form.is_valid():
+        formset = BatchItemFormSet(request.POST, request.FILES)
+        
+        if form.is_valid() and formset.is_valid():
             batch = form.save(commit=False)
             batch.requestor = request.user
             batch.requesting_unit = current_office 
+            
+            # Auto-names for required docs
+            batch.doc_1_name = "Purchase Order"
+            batch.doc_2_name = "Purchase Request"
+            if batch.doc_3_file:
+                batch.doc_3_name = "Additional Document"
+
             batch.save()
+            
+            # Save Items
+            formset.instance = batch
+            formset.save()
+
             messages.success(request, f"Batch {batch.transaction_id} submitted successfully!")
             return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = AssetBatchForm(initial={
             'requesting_unit': current_office,
             'date_created': current_date_str
         })
-    return render(request, 'inventory/transaction_batch.html', {'form': form})
+        formset = BatchItemFormSet()
+
+    return render(request, 'inventory/transaction_batch.html', {
+        'form': form,
+        'formset': formset
+    })
 
 # 8. TRANSACTION HISTORY LIST
 @login_required
@@ -620,3 +650,102 @@ def delete_service_log(request, pk):
     log.delete()
     messages.success(request, "Service log deleted successfully.")
     return redirect('asset_detail', pk=asset_id)
+
+# ==========================================
+# 20. WORKFLOW VIEWS (NEW)
+# ==========================================
+from .models import UserSignature
+from .forms import UserSignatureForm
+from .workflow import WorkflowEngine
+from .services import PARGenerator
+
+@login_required
+def upload_signature(request):
+    """
+    Allows users to upload their digital signature for PAR signing.
+    """
+    try:
+        signature = request.user.signature
+    except UserSignature.DoesNotExist:
+        signature = None
+
+    if request.method == 'POST':
+        form = UserSignatureForm(request.POST, request.FILES, instance=signature)
+        if form.is_valid():
+            sig = form.save(commit=False)
+            sig.user = request.user
+            sig.save()
+            messages.success(request, "Signature updated successfully.")
+            return redirect('dashboard')
+    else:
+        form = UserSignatureForm(instance=signature)
+
+    return render(request, 'inventory/upload_signature.html', {'form': form})
+
+@login_required
+def batch_detail(request, pk):
+    """
+    Detailed view for AssetBatch with Workflow Controls.
+    """
+    batch = get_object_or_404(AssetBatch, pk=pk)
+    items = batch.items.all()
+    logs = batch.approval_logs.all().order_by('-timestamp')
+    
+    # Check permissions logic
+    # Determine allowed transitions for current user
+    allowed_transitions = []
+    
+    try:
+        current_state_rules = WorkflowEngine.TRANSITIONS.get(batch.status)
+        if current_state_rules:
+            required_role = current_state_rules['role']
+            # Check if user has this role
+            if request.user.groups.filter(name=required_role).exists() or request.user.is_superuser:
+                 allowed_transitions.append({
+                     'target': current_state_rules['target'],
+                     'action': current_state_rules['action'],
+                     'css_class': 'btn-success'  # simplified
+                 })
+    except Exception as e:
+        print(f"Workflow error: {e}")
+
+    return render(request, 'inventory/batch_detail.html', {
+        'batch': batch,
+        'items': items,
+        'logs': logs,
+        'allowed_transitions': allowed_transitions,
+        'workflow_steps': [
+            'ANTICIPATORY', 'AWAITING_DELIVERY', 'DELIVERY_VALIDATION', 
+            'FOR_INSPECTION', 'FOR_SUPERVISOR_APPROVAL', 'FOR_CHIEF_PRE_APPROVAL',
+            'FOR_AO_SIGNATURE', 'FOR_CHIEF_FINAL_SIGNATURE', 'PAR_RELEASED'
+        ]
+    })
+
+@login_required
+def approve_batch_workflow(request, pk, target_state):
+    """
+    Executes a workflow transition.
+    """
+    batch = get_object_or_404(AssetBatch, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            # Execute Transition
+            WorkflowEngine.transition(batch, target_state, request.user)
+            messages.success(request, f"Successfully transitioned to {target_state}")
+            
+            # TRIGGER PDF GENERATION
+            # If moved to FOR_AO_SIGNATURE, generate Draft
+            if target_state == 'FOR_AO_SIGNATURE':
+                PARGenerator.generate_draft(batch)
+                messages.info(request, "PAR Draft generated for AO Signature.")
+            
+            # If moved to PAR_RELEASED, Finalize
+            elif target_state == 'PAR_RELEASED':
+                PARGenerator.finalize_par(batch)
+                messages.success(request, "PAR Finalized and Sealed!")
+
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            
+    return redirect('batch_detail', pk=pk)

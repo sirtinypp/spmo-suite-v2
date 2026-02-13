@@ -48,11 +48,11 @@ class AssetBatchForm(forms.ModelForm):
             'sales_invoice_number', 
             'acceptance_report_number',
             'remarks', 
-            'doc_1_name', 'doc_1_file',
-            'doc_2_name', 'doc_2_file',
-            'doc_3_name', 'doc_3_file',
-            'doc_4_name', 'doc_4_file',
-            'doc_5_name', 'doc_5_file'
+            # Doc 1 & 2 are REQUIRED for AO
+            'doc_1_file', 
+            'doc_2_file',
+            'doc_3_file',
+            # doc_4 and doc_5 hidden/unused for now
         ]
         widgets = {
             # 1. AUTO / READ-ONLY FIELDS
@@ -62,25 +62,34 @@ class AssetBatchForm(forms.ModelForm):
                 'placeholder': 'Auto-generated'
             }),
 
-            # 2. NEW TEXT INPUTS
+            # 2. DETAILS
             'supplier_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Supplier Name'}),
             'po_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PO Number'}),
             'sales_invoice_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Invoice No.'}),
             'acceptance_report_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IAR No.'}),
 
-            # 3. EXISTING FIELDS
-            'remarks': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Purpose of acquisition...'}),
-            'doc_1_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doc 1 Name'}),
-            'doc_1_file': forms.FileInput(attrs={'class': 'form-control'}),
-            'doc_2_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doc 2 Name'}),
-            'doc_2_file': forms.FileInput(attrs={'class': 'form-control'}),
-            'doc_3_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doc 3 Name'}),
-            'doc_3_file': forms.FileInput(attrs={'class': 'form-control'}),
-            'doc_4_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doc 4 Name'}),
-            'doc_4_file': forms.FileInput(attrs={'class': 'form-control'}),
-            'doc_5_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Doc 5 Name'}),
-            'doc_5_file': forms.FileInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Justification / Purpose of acquisition...'}),
+            
+            # 3. DOCUMENTS
+            # Doc 1: PO
+            'doc_1_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+            # Doc 2: PR
+            'doc_2_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+            # Doc 3: Optional
+            'doc_3_file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
         }
+        labels = {
+            'doc_1_file': 'Purchase Order (Required)',
+            'doc_2_file': 'Purchase Request (Required)',
+            'doc_3_file': 'Additional Document (Optional)',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make Doc 1 & 2 Required
+        self.fields['doc_1_file'].required = True
+        self.fields['doc_2_file'].required = True
+        self.fields['doc_3_file'].required = False
 
 # ==========================================
 # 4. TRANSFER REQUEST FORM
@@ -171,4 +180,21 @@ class ServiceLogForm(forms.ModelForm):
             'next_service_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Details of work done...'}),
             'service_document': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+# ==========================================
+# 8. USER SIGNATURE FORM (NEW)
+# ==========================================
+from .models import UserSignature
+
+class UserSignatureForm(forms.ModelForm):
+    class Meta:
+        model = UserSignature
+        fields = ['position_title', 'signature_image']
+        widgets = {
+            'position_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Administrative Officer V'}),
+            'signature_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/png'}),
+        }
+        help_texts = {
+            'signature_image': 'Upload a clear PNG image of your signature on a transparent background.'
         }

@@ -8,7 +8,28 @@
 
 ## Active Rollback Points
 
-### 1. v2.1.0-prod-final ⭐ CURRENT (Latest)
+### 1. stable-2026-02-13-pre-workflow (Local)
+**Date**: 2026-02-13 10:55 PHT
+**Branch**: `main` (Local)
+**Status**: Stable, verified template fixes in GAMIT.
+**Preparation**: Ready for "GAMIT PAR Workflow Engine V2" implementation.
+
+**Fixes Included**:
+- GAMIT Department Model & Filtering
+- Asset List Template Syntax Fixes (Consolidated Tags)
+- Status Display Fixes
+
+**Rollback Command**:
+```bash
+# If workflow implementation fails, revert to this state
+git checkout stable-2026-02-13-pre-workflow
+# Or if commit hash known:
+# git reset --hard <commit-hash>
+```
+
+---
+
+### 2. v2.1.0-prod-final ⭐ CURRENT (Latest)
 **Date**: 2026-02-12 15:58 PHT  
 **Commit**: `84c0124`  
 **Branch**: `main`  

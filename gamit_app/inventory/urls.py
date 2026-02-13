@@ -40,6 +40,11 @@ urlpatterns = [
     path('transaction/batch/<int:pk>/print/', views.print_acceptance_report, name='print_acceptance_report'),
     path('transaction/batch/<int:pk>/print-par/', views.print_par, name='print_par'),
 
+    # --- WORKFLOW ---
+    path('profile/signature/', views.upload_signature, name='upload_signature'),
+    path('batch/<int:pk>/', views.batch_detail, name='batch_detail'),
+    path('batch/<int:pk>/workflow/<str:target_state>/', views.approve_batch_workflow, name='approve_batch_workflow'),
+
     # --- API HELPERS ---
     path('api/asset-info/<int:asset_id>/', views.get_asset_info, name='get_asset_info'),
 ]

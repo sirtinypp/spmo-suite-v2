@@ -1,8 +1,8 @@
-{% extends 'layout.html' %}
+{% extends 'inventory/base.html' %}
 
 {% block content %}
 <div class="container-fluid fade-in">
-    
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="h4 fw-bold text-dark mb-0">
@@ -17,18 +17,30 @@
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        
+
+        {% if form.errors or formset.errors %}
+        <div class="alert alert-danger">
+            <strong>Please correct the following errors:</strong>
+            {{ form.errors }}
+            {{ formset.errors }}
+            {{ formset.non_form_errors }}
+        </div>
+        {% endif %}
+
         <div class="row">
-            
+
+            <!-- LEFT COLUMN: Details & Docs -->
             <div class="col-lg-4 mb-4">
-                <div class="card border-0 shadow-sm h-100">
+
+                <!-- 1. REQUEST DETAILS -->
+                <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white py-3 border-bottom">
                         <h6 class="mb-0 fw-bold text-primary">
                             <i class="fas fa-info-circle me-2"></i>Request Details
                         </h6>
                     </div>
                     <div class="card-body p-4">
-                        
+
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
                                 <label class="small text-muted text-uppercase fw-bold mb-1">Requesting Unit</label>
@@ -41,126 +53,178 @@
                         </div>
 
                         <div class="mb-3">
+                            <label class="small text-muted text-uppercase fw-bold mb-1">Justification / Remarks</label>
+                            {{ form.remarks }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-muted text-uppercase fw-bold mb-1">Purchase Order No.</label>
+                            {{ form.po_number }}
+                        </div>
+
+                        <!-- Optional Fields Collapsed? No, user requested them -->
+                        <div class="mb-3">
                             <label class="small text-muted text-uppercase fw-bold mb-1">Supplier Name</label>
                             {{ form.supplier_name }}
                         </div>
-
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Purchase Order No.</label>
-                                {{ form.po_number }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Sales Invoice Number</label>
-                                {{ form.sales_invoice_number }}
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="small text-muted text-uppercase fw-bold mb-1">Acceptance Report Number</label>
-                            {{ form.acceptance_report_number }}
-                        </div>
-
-                        <hr class="text-muted opacity-25 my-3">
-
-                        <div class="mb-3">
-                            <label class="small text-muted text-uppercase fw-bold mb-2">Justification / Remarks</label>
-                            {{ form.remarks }}
-                            <div class="form-text small mt-2">
-                                Please describe the purpose of this batch acquisition (e.g., "Q1 IT Equipment Procurement").
-                            </div>
-                        </div>
-                        
-                        <div class="alert alert-info d-flex align-items-center small" role="alert">
-                            <i class="fas fa-lightbulb me-2 fs-5"></i>
-                            <div>
-                                <strong>Note:</strong> Uploading documents here will create a pending batch request. The Administrator will review the documents and populate the inventory.
-                            </div>
-                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-8 mb-4">
+                <!-- 2. DOCUMENTS -->
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white py-3 border-bottom">
                         <h6 class="mb-0 fw-bold text-success">
                             <i class="fas fa-file-upload me-2"></i>Supporting Documents
                         </h6>
-                        <span class="badge bg-light text-dark border">Max 5 Files</span>
                     </div>
                     <div class="card-body p-4">
-                        
-                        <div class="row g-3 align-items-end mb-4">
-                            <div class="col-md-5">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 1 Name</label>
-                                {{ form.doc_1_name }}
-                            </div>
-                            <div class="col-md-7">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File (PO/Invoice)</label>
-                                {{ form.doc_1_file }}
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">1. Purchase Order <span
+                                    class="text-danger">*</span></label>
+                            {{ form.doc_1_file }}
                         </div>
-                        <hr class="text-muted opacity-25 my-3">
-
-                        <div class="row g-3 align-items-end mb-4">
-                            <div class="col-md-5">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 2 Name</label>
-                                {{ form.doc_2_name }}
-                            </div>
-                            <div class="col-md-7">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
-                                {{ form.doc_2_file }}
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark">2. Purchase Request <span
+                                    class="text-danger">*</span></label>
+                            {{ form.doc_2_file }}
                         </div>
-                        <hr class="text-muted opacity-25 my-3">
-
-                        <div class="row g-3 align-items-end mb-4">
-                            <div class="col-md-5">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 3 Name</label>
-                                {{ form.doc_3_name }}
-                            </div>
-                            <div class="col-md-7">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
-                                {{ form.doc_3_file }}
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary">3. Additional Document (Optional)</label>
+                            {{ form.doc_3_file }}
                         </div>
-                        <hr class="text-muted opacity-25 my-3">
-
-                        <div class="row g-3 align-items-end mb-4">
-                            <div class="col-md-5">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 4 Name</label>
-                                {{ form.doc_4_name }}
-                            </div>
-                            <div class="col-md-7">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
-                                {{ form.doc_4_file }}
-                            </div>
-                        </div>
-                        <hr class="text-muted opacity-25 my-3">
-
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-5">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Document 5 Name</label>
-                                {{ form.doc_5_name }}
-                            </div>
-                            <div class="col-md-7">
-                                <label class="small text-muted text-uppercase fw-bold mb-1">Upload File</label>
-                                {{ form.doc_5_file }}
-                            </div>
-                        </div>
-
                     </div>
-                    
-                    <div class="card-footer bg-light py-3 border-top text-end">
-                        <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
-                            <i class="fas fa-paper-plane me-2"></i> Submit Batch Request
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Asset Information (FormSet) -->
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div
+                        class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold text-dark">
+                            <i class="fas fa-list me-2"></i>Asset Information
+                        </h6>
+                        <span class="badge bg-light text-dark border">PAR Report Format</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <!-- Management Form -->
+                        {{ formset.management_form }}
+
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="assetTable">
+                                <thead class="bg-light text-muted small text-uppercase">
+                                    <tr>
+                                        <th style="width: 10%;">Qty</th>
+                                        <th style="width: 15%;">Unit</th>
+                                        <th style="width: 40%;">Description</th>
+                                        <th style="width: 20%;">Amount (Unit Cost)</th>
+                                        <th style="width: 5%;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="formfs">
+                                    {% for form in formset %}
+                                    <tr class="align-middle item-row">
+                                        <!-- Hidden Fields -->
+                                        {% for hidden in form.hidden_fields %}
+                                        {{ hidden }}
+                                        {% endfor %}
+
+                                        <td>{{ form.quantity }}</td>
+                                        <td>{{ form.unit }}</td>
+                                        <td>{{ form.description }}</td>
+                                        <td>{{ form.amount }}</td>
+                                        <td class="text-center">
+                                            {% if formset.can_delete %}
+                                            <div class="form-check d-none">
+                                                {{ form.DELETE }}
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove"
+                                                tabindex="-1">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light py-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-item-btn">
+                            <i class="fas fa-plus me-1"></i> Add Another Asset
                         </button>
                     </div>
                 </div>
             </div>
 
         </div>
+
+        <!-- Sticky Footer -->
+        <div class="fixed-bottom bg-white border-top py-3 shadow-lg" style="z-index: 1030;">
+            <div class="container-fluid d-flex justify-content-end">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary px-5 fw-bold">
+                    <i class="fas fa-paper-plane me-2"></i> Submit Batch Request
+                </button>
+            </div>
+        </div>
+        <div style="height: 80px;"></div> <!-- Spacer for fixed bottom -->
+
     </form>
 </div>
+
+<!-- Formset JS (Simple Clone Method) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addButton = document.getElementById('add-item-btn');
+        const tableBody = document.getElementById('formfs');
+        const totalFormsInput = document.getElementById('id_items-TOTAL_FORMS');
+
+        // Check if empty form template exists, usually Django provides it if configured, 
+        // but here we might need to rely on the last row cloning.
+        // Let's use the 'empty_form' pattern if available, else clone 0.
+
+        addButton.addEventListener('click', function () {
+            const formIdx = totalFormsInput.value;
+            const lastRow = tableBody.querySelector('.item-row:last-of-type');
+
+            if (lastRow) {
+                const newRow = lastRow.cloneNode(true);
+                const regex = new RegExp(`items-(\\d+)-`, 'g');
+
+                newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${formIdx}-`);
+
+                // Clear inputs
+                newRow.querySelectorAll('input').forEach(input => {
+                    input.value = '';
+                    if (input.name.includes('quantity')) input.value = 1;
+                });
+
+                tableBody.appendChild(newRow);
+                totalFormsInput.value = parseInt(formIdx) + 1;
+                attachRemoveListeners();
+            }
+        });
+
+        function attachRemoveListeners() {
+            document.querySelectorAll('.btn-remove').forEach(btn => {
+                btn.onclick = function () {
+                    const row = this.closest('tr');
+                    const deleteInput = row.querySelector('input[name*="DELETE"]');
+                    if (deleteInput) {
+                        deleteInput.checked = true;
+                        row.style.display = 'none';
+                    } else {
+                        // If no delete button (extra form), just remove
+                        // But we rely on Django's can_delete.
+                    }
+                };
+            });
+        }
+
+        attachRemoveListeners();
+    });
+</script>
 {% endblock %}

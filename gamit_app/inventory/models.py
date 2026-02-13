@@ -3,11 +3,38 @@ from django.contrib.auth.models import User
 from django.utils.crypto import get_random_string
 import datetime
 
+# 0. DEPARTMENT MODEL (New)
+class Department(models.Model):
+    name = models.CharField(max_length=150, unique=True, verbose_name="Department / Office Name")
+    
+    def __str__(self): return self.name
+
+    class Meta:
+        ordering = ['name']
+
 # 1. USER PROFILE
 class UserProfile(models.Model):
+    ROLE_CHOICES = [
+        ('ADMIN_OFFICER', 'Admin Officer'),
+        ('HEAD_OF_UNIT', 'Head of Unit'),
+        ('USER', 'User (Staff)'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    office = models.CharField(max_length=100, verbose_name="Assigned Office Access")
-    def __str__(self): return f"{self.user.username} - {self.office}"
+    office = models.CharField(max_length=100, blank=True, null=True, verbose_name="Assigned Office Access (Legacy)") # Kept for safety
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='USER', verbose_name="User Role")
+    
+    def __str__(self): return f"{self.user.username} - {self.role}"
+
+# 1.1 USER SIGNATURE (New for Workflow)
+class UserSignature(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='signature')
+    signature_image = models.ImageField(upload_to='signatures/', verbose_name="Digital Signature")
+    position_title = models.CharField(max_length=150, verbose_name="Official Position Title")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self): return f"Signature: {self.user.username}"
 
 # 2. MAIN ASSET MODEL
 class Asset(models.Model):
@@ -16,6 +43,7 @@ class Asset(models.Model):
         ('DISPOSED', 'Disposed'), ('UNDER_REPAIR', 'Under Repair'),
         ('PENDING', 'Pending Approval'),
     ]
+    # ... choices ...
     CLASS_CHOICES = [
         ('ICT EQUIPMENT', 'ICT Equipment'), ('VEHICLE', 'Vehicle'),
         ('AIRCONDITIONING', 'Airconditioning'), ('OFFICE EQUIPMENT', 'Office Equipment'),
@@ -33,7 +61,10 @@ class Asset(models.Model):
     description = models.TextField(blank=True, null=True, verbose_name="Description (Full)")
     date_acquired = models.DateField(verbose_name="Date Acquired")
     acquisition_cost = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Acquisition Cost")
-    assigned_office = models.CharField(max_length=255, verbose_name="Office/Unit")
+    
+    assigned_office = models.CharField(max_length=255, verbose_name="Office/Unit (Legacy)") # Kept for safety
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
+    
     asset_class = models.CharField(max_length=50, choices=CLASS_CHOICES, default='OTHER', verbose_name="Class/Type")
     asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OFFICE', verbose_name="Nature")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SERVICEABLE', verbose_name="Status")
@@ -76,11 +107,27 @@ class InspectionRequest(models.Model):
 
 # 4. BATCH ASSET UPLOAD
 class AssetBatch(models.Model):
-    STATUS_CHOICES = [('PENDING', 'Pending Approval'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected'), ('RETURNED', 'Returned')]
+    # Old Status Choices (kept for migration safety if needed, but overwritten below)
+    # STATUS_CHOICES = [('PENDING', 'Pending Approval'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected'), ('RETURNED', 'Returned')]
+    
+    # NEW STRICT WORKFLOW STATES
+    WORKFLOW_STATUS = [
+        ('ANTICIPATORY', 'Anticipatory Procurement'),
+        ('AWAITING_DELIVERY', 'Awaiting Delivery'),
+        ('DELIVERY_VALIDATION', 'Delivery Validation'),
+        ('FOR_INSPECTION', 'For Inspection'),
+        ('FOR_SUPERVISOR_APPROVAL', 'For Supervisor Approval'),
+        ('FOR_CHIEF_PRE_APPROVAL', 'For Chief Pre-Approval'),
+        ('FOR_AO_SIGNATURE', 'For AO Signature'),
+        ('FOR_CHIEF_FINAL_SIGNATURE', 'For Chief Final Signature'),
+        ('PAR_RELEASED', 'PAR Released (Final)'),
+        ('REJECTED', 'Rejected'),
+    ]
+
     transaction_id = models.CharField(max_length=20, unique=True, editable=False)
     requestor = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(max_length=30, choices=WORKFLOW_STATUS, default='ANTICIPATORY')
     
     # --- HEADER DETAILS ---
     requesting_unit = models.CharField(max_length=150, blank=True, null=True, verbose_name="Requesting Unit")
@@ -95,6 +142,10 @@ class AssetBatch(models.Model):
     
     remarks = models.TextField(blank=True, null=True)
     admin_remarks = models.TextField(blank=True, null=True)
+    
+    # --- IMMUTABLE PAR STORAGE ---
+    par_file = models.FileField(upload_to='pars/final/', blank=True, null=True, verbose_name="Finalized PAR PDF")
+    par_hash = models.CharField(max_length=64, blank=True, null=True, verbose_name="SHA256 Hash")
     
     # --- 5 DOCUMENT SLOTS ---
     doc_1_name = models.CharField(max_length=100, blank=True, null=True)
@@ -118,6 +169,20 @@ class AssetBatch(models.Model):
         super().save(*args, **kwargs)
     
     def __str__(self): return self.transaction_id
+
+# 4.1 APPROVAL LOG (New for Audit Trail)
+class ApprovalLog(models.Model):
+    batch = models.ForeignKey(AssetBatch, related_name='approval_logs', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    role = models.CharField(max_length=50, verbose_name="Role at time of approval")
+    action = models.CharField(max_length=100) # e.g. "Approved Inspection", "Signed PAR"
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    # Snapshot of signature used (path to a copy, not the user's live profile to prevent mutation)
+    signature_snapshot = models.ImageField(upload_to='signatures/snapshots/', null=True, blank=True)
+
+    def __str__(self): return f"{self.batch.transaction_id} - {self.action} by {self.user}"
 
 # 5. BATCH ITEM DETAILS
 class BatchItem(models.Model):

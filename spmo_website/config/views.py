@@ -101,7 +101,7 @@ def admin_portal(request):
             conn.close()
             return result
         except Exception as e:
-            # print(f"DB Error ({db_name}): {e}") # Debug only
+            print(f"DB Error ({db_name}): {e}") # Debug only
             return 0
 
     # 1. GAMIT Metrics (Assets)

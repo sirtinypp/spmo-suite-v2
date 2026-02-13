@@ -1,0 +1,148 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header: Status & Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Batch #{{ batch.transaction_id }}</h4>
+            <span class="badge bg-primary fs-6">{{ batch.get_status_display }}</span>
+        </div>
+        <div>
+            {% if batch.par_file %}
+            <a href="{{ batch.par_file.url }}" target="_blank" class="btn btn-success">
+                <i class="fas fa-file-pdf me-2"></i>Download Final PAR
+            </a>
+            {% endif %}
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <!-- Workflow Progress (Simplified) -->
+    <div class="progress mb-4" style="height: 5px;">
+        {% for step in workflow_steps %}
+        <div class="progress-bar {% if step == batch.status %}bg-primary{% elif batch.status == 'PAR_RELEASED' %}bg-success{% else %}bg-secondary{% endif %}"
+            role="progressbar"
+            style="width: 11.11%; opacity: {% if step == batch.status or batch.status == 'PAR_RELEASED' %}1{% else %}0.2{% endif %};">
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row">
+        <!-- LEFT: Batch Details -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Requestor:</strong> {{
+                                batch.requestor.get_full_name|default:batch.requestor.username }}</p>
+                            <p><strong>Unit:</strong> {{ batch.requesting_unit }}</p>
+                            <p><strong>Date:</strong> {{ batch.created_at|date:"Y-m-d" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Supplier:</strong> {{ batch.supplier_name }}</p>
+                            <p><strong>PO No.:</strong> {{ batch.po_number }}</p>
+                            <p><strong>Appr. No (IAR):</strong> {{ batch.acceptance_report_number }}</p>
+                        </div>
+                    </div>
+                    {% if batch.par_hash %}
+                    <div class="alert alert-success py-2 mt-3">
+                        <small class="d-block text-uppercase fw-bold">Immutable SHA256 Hash</small>
+                        <code class="text-dark">{{ batch.par_hash }}</code>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Items Table -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Items in Batch</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Qty</th>
+                                <th>Unit</th>
+                                <th>Description</th>
+                                <th class="text-end">Cost</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.unit }}</td>
+                                <td>{{ item.description }}</td>
+                                <td class="text-end">{{ item.amount }}</td>
+                                <td class="text-end fw-bold">{{ item.total_price }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Actions & History -->
+        <div class="col-md-4">
+            <!-- Action Panel -->
+            <div class="card shadow mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if allowed_transitions %}
+                    <p class="text-muted small">You are authorized to perform the following actions:</p>
+                    <div class="d-grid gap-2">
+                        {% for transition in allowed_transitions %}
+                        <form method="post" action="{% url 'approve_batch_workflow' batch.id transition.target %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn {{ transition.css_class|default:'btn-primary' }} w-100">
+                                {{ transition.action }}
+                            </button>
+                        </form>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center my-3">
+                        <em>No actions available for your role in this state.</em>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Approval Log -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Audit Trail</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for log in logs %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ log.action }}</h6>
+                            <small class="text-muted">{{ log.timestamp|date:"M d H:i" }}</small>
+                        </div>
+                        <p class="mb-1 small">{{ log.user.get_full_name }} ({{ log.role }})</p>
+                        {% if log.signature_snapshot %}
+                        <small class="text-success"><i class="fas fa-check-circle me-1"></i>Signed</small>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-center text-muted">
+                        No activity yet.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

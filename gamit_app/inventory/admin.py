@@ -3,13 +3,20 @@ from import_export.admin import ImportExportModelAdmin
 from .models import (
     Asset, 
     UserProfile, 
+    Department, # <--- Added Department
     InspectionRequest, 
     AssetBatch, 
-    BatchItem, # Make sure BatchItem is registered if you want to see items in admin
+    BatchItem,
     AssetTransferRequest,
-    ServiceLog # <--- ADDED ServiceLog
+    ServiceLog
 )
 from .resources import AssetResource
+
+# --- 0. DEPARTMENT ADMIN (New) ---
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
 
 # --- 1. INLINE FOR SERVICE LOGS (View logs inside Asset page) ---
 class ServiceLogInline(admin.TabularInline):
@@ -26,9 +33,9 @@ class AssetAdmin(ImportExportModelAdmin):
     resource_class = AssetResource 
     
     # Existing Admin configuration
-    list_display = ('property_number', 'name', 'assigned_office', 'status', 'acquisition_cost')
-    search_fields = ('property_number', 'name', 'assigned_office')
-    list_filter = ('asset_class', 'status', 'assigned_office')
+    list_display = ('property_number', 'name', 'department', 'assigned_office', 'status', 'acquisition_cost')
+    search_fields = ('property_number', 'name', 'assigned_office', 'department__name') # Added department lookup
+    list_filter = ('asset_class', 'status', 'department', 'assigned_office')
     
     # ADDED THE INLINE HERE
     inlines = [ServiceLogInline]
@@ -41,19 +48,39 @@ class AssetAdmin(ImportExportModelAdmin):
             'fields': (('asset_class', 'asset_nature'),)
         }),
         ('Accountability & Location', {
-            'fields': ('assigned_office', ('accountable_firstname', 'accountable_surname'), ('latitude', 'longitude'))
+            'fields': ('department', 'assigned_office', ('accountable_firstname', 'accountable_surname'), ('latitude', 'longitude'))
         }),
         ('Documents & Images', {
             'fields': ('image_serial', 'image_condition', 'attachment')
         })
     )
 
-# --- USER PROFILE ---
+# --- USER PROFILE INLINE (Embedded in Standard User Admin) ---
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'office')
-    search_fields = ('user__username', 'office')
+class UserProfileInline(admin.StackedInline):
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'GAMIT Profile'
+    fk_name = 'user'
+
+# Re-register UserAdmin
+class UserAdmin(BaseUserAdmin):
+    inlines = [UserProfileInline]
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_department', 'get_role')
+    
+    def get_department(self, instance):
+        return instance.userprofile.department.name if hasattr(instance, 'userprofile') and instance.userprofile.department else '-'
+    get_department.short_description = 'Department'
+
+    def get_role(self, instance):
+        return instance.userprofile.get_role_display() if hasattr(instance, 'userprofile') else '-'
+    get_role.short_description = 'Role'
+
+# Unregister default User and register new one
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
 
 
 # --- TRANSACTION MODELS ---
