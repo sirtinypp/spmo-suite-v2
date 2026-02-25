@@ -181,7 +181,8 @@
                     <h2 class="text-3xl font-bold tracking-tight text-white mb-1">{% if booking.status == 'BOOKED' %}
                         Flight Confirmed {% else %} Request Details {% endif %}</h2>
                     <p class="text-white/80 text-sm flex items-center gap-2">Status: <span
-                            class="font-bold text-white uppercase bg-white/20 px-2 py-0.5 rounded">{{ booking.get_status_display }}</span></p>
+                            class="font-bold text-white uppercase bg-white/20 px-2 py-0.5 rounded">{{
+                            booking.get_status_display }}</span></p>
                 </div>
             </div>
         </div>
@@ -199,7 +200,8 @@
             </div>
             <div class="text-right">
                 <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Reference No.</div>
-                <div class="text-3xl font-mono font-bold text-slate-900 leading-none">GFA-{{ booking.id|stringformat:"06d" }}</div>
+                <div class="text-3xl font-mono font-bold text-slate-900 leading-none">GFA-{{
+                    booking.id|stringformat:"06d" }}</div>
                 <div class="text-[10px] text-slate-400 mt-1">{{ booking.created_at|date:"F d, Y" }}</div>
             </div>
         </div>
@@ -222,7 +224,8 @@
                     </div>
                     <div class="text-right"><span
                             class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Airline
-                            PNR</span><span class="text-2xl font-mono font-bold text-[#7b1113] tracking-wider">{{ booking.booking_reference_no|default:"-" }}</span></div>
+                            PNR</span><span class="text-2xl font-mono font-bold text-[#7b1113] tracking-wider">{{
+                            booking.booking_reference_no|default:"-" }}</span></div>
                 </div>
 
                 <div class="p-8 print-full-width">
@@ -288,7 +291,8 @@
                             <div><span
                                     class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Flight
                                     Route</span>
-                                <div class="font-medium text-slate-800 flex items-center gap-2 text-base">{{ booking.origin }} <svg class="w-3 h-3 text-slate-400" fill="none"
+                                <div class="font-medium text-slate-800 flex items-center gap-2 text-base">{{
+                                    booking.origin }} <svg class="w-3 h-3 text-slate-400" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
@@ -297,14 +301,16 @@
                             <div><span
                                     class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Schedule</span>
                                 <div class="font-bold text-slate-800">{{ booking.departure_date|date:"M d, Y" }} <span
-                                        class="text-slate-400 font-normal mx-1">|</span> {{ booking.departure_time|time:"g:i A" }}</div>
+                                        class="text-slate-400 font-normal mx-1">|</span> {{
+                                    booking.departure_time|time:"g:i A" }}</div>
                             </div>
                         </div>
                         <div class="space-y-5">
                             <div><span
                                     class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Preferences</span>
                                 <div class="font-medium text-slate-800">{{ booking.get_airline_display }}</div>
-                                <div class="text-xs text-slate-500">{{ booking.get_seat_class_display }} • {{ booking.get_baggage_type_display }}</div>
+                                <div class="text-xs text-slate-500">{{ booking.get_seat_class_display }} • {{
+                                    booking.get_baggage_type_display }}</div>
                             </div>
                             <div><span
                                     class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Contact</span>

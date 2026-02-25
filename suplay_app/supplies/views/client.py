@@ -260,15 +260,24 @@ def search(request):
                 year=current_year
             ).values_list('product_id', flat=True)
             
-            # Filter search results to only allocated products
-            products = products.filter(id__in=list(allocated_product_ids))
-        else:
-            # No department = no products
-            products = Product.objects.none()
+            # FALLBACK: If no current year, check previous year (matching home view logic)
+            if not allocated_product_ids:
+                allocated_product_ids = AnnualProcurementPlan.objects.filter(
+                    department=user_dept,
+                    year=current_year - 1
+                ).values_list('product_id', flat=True)
+
+            if allocated_product_ids:
+                # Filter search results to only allocated products
+                products = products.filter(id__in=list(allocated_product_ids))
         
         products = products.order_by('category__name', 'name')
+        total_count_all = products.count()
+        
         valid_category_ids = products.values_list('category_id', flat=True).distinct()
-        categories = Category.objects.filter(id__in=valid_category_ids).order_by('name')
+        categories = Category.objects.filter(id__in=valid_category_ids).annotate(
+            product_count=Count('product', filter=Q(product__id__in=products.values_list('id', flat=True)))
+        ).order_by('name')
 
         # --- PAGINATION (Search Results) ---
         paginator = Paginator(products, 12)
@@ -316,7 +325,8 @@ def search(request):
     return render(request, 'supplies/home.html', {
         'products': products, 
         'categories': categories, 
-        'search_query': query
+        'search_query': query,
+        'total_count_all': total_count_all
     })
 
 # --- PRODUCT DETAIL ---
