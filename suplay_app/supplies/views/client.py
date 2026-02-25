@@ -4,6 +4,7 @@ from django.db.models import Sum, Q, Count
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from io import BytesIO
 from xhtml2pdf import pisa
 
@@ -148,17 +149,24 @@ def home(request):
              # Default behavior (including stock_status == 'in_stock')
              products = products.filter(stock__gt=0)
     
-    # --- CALCULATE MONTHLY PERSONAL STOCK (MOVED) ---
-    # Convert to list AFTER filters are applied
-    products = list(products)
-    
+    # --- PAGINATION (DAST Optimization) ---
+    paginator = Paginator(products, 12) # 12 items per page
+    page = request.GET.get('page')
+    try:
+        products_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        products_paginated = paginator.page(1)
+    except EmptyPage:
+        products_paginated = paginator.page(paginator.num_pages)
+
+    # --- CALCULATE MONTHLY PERSONAL STOCK (Current Page Only) ---
     if request.user.is_authenticated and user_dept:
         now = timezone.now()
         month_str = now.strftime('%b').lower()
         current_cart = request.session.get('cart', {})
         current_year = now.year
         
-        for p in products:
+        for p in products_paginated:
             try:
                 plan = AnnualProcurementPlan.objects.get(
                     department=user_dept, 
@@ -169,8 +177,6 @@ def home(request):
             except AnnualProcurementPlan.DoesNotExist:
                 limit = 0
             
-            # Re-fetch consumed (Optimization: extract this to helper function?)
-            # For now, inline is fine.
             monthly_orders = Order.objects.filter(
                 department=user_dept,
                 created_at__year=current_year,
@@ -208,16 +214,17 @@ def home(request):
     # categories = Category.objects.all() # OLD
     # suppliers = Supplier.objects.all() # OLD
     
-    # Newly Added (Last 30 days)
+    # Newly Added (Last 30 days) - Based on ALL filtered products
     thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
-    product_ids = [p.id for p in products]
-    newly_added = Product.objects.filter(created_at__gte=thirty_days_ago, id__in=product_ids).order_by('-created_at')[:5]
+    # Re-query for newly added within the current filtered set
+    newly_added = products.filter(created_at__gte=thirty_days_ago).order_by('-created_at')[:5]
     
     # Latest News
     news_items = News.objects.filter(is_active=True).order_by('-date_posted')[:5]
 
     context = {
-        'products': products,
+        'products': products_paginated,
+        'total_count_all': products.count(),
         'categories': categories,
         'suppliers': suppliers,
         'newly_added': newly_added,
@@ -263,15 +270,23 @@ def search(request):
         valid_category_ids = products.values_list('category_id', flat=True).distinct()
         categories = Category.objects.filter(id__in=valid_category_ids).order_by('name')
 
-        # --- CALCULATE MONTHLY PERSONAL STOCK (SEARCH) ---
-        products = list(products)
+        # --- PAGINATION (Search Results) ---
+        paginator = Paginator(products, 12)
+        page = request.GET.get('page')
+        try:
+            products_paginated = paginator.page(page)
+        except PageNotAnInteger:
+            products_paginated = paginator.page(1)
+        except EmptyPage:
+            products_paginated = paginator.page(paginator.num_pages)
+
         if user_dept:
             now = timezone.now()
             month_str = now.strftime('%b').lower()
             current_cart = request.session.get('cart', {})
             current_year = now.year
 
-            for p in products:
+            for p in products_paginated:
                 try:
                     plan = AnnualProcurementPlan.objects.get(
                         department=user_dept, 
@@ -295,9 +310,8 @@ def search(request):
                 
                 in_cart = current_cart.get(str(p.id), 0)
                 p.personal_stock = max(0, limit - (consumed + in_cart))
-        else:
-            # If no dept, personal_stock not relevant/used, or 0
-            pass
+        
+        products = products_paginated # Re-assign for context
     
     return render(request, 'supplies/home.html', {
         'products': products, 

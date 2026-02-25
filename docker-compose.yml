@@ -33,9 +33,11 @@ services:
       - DB_NAME=db_spmo
       - DB_USER=spmo_admin
       - DB_PASSWORD=secret_password
+      - DB_HOST=db
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY_HUB}
 
   # --- App 2: GAMIT ---
   gamit_app:
@@ -60,7 +62,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
-      - DJANGO_SECRET_KEY=+g1($$r^jwkprb)2o9fl8m=ba_(tq5v+^bj43)2z*$$l1c@7edx5
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY_GAMIT}
 
   # --- App 3: GFA ---
   gfa_app:
@@ -85,7 +87,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
-      - DJANGO_SECRET_KEY=gfa-prod-secret-key-2026-secure-lipad-travel-system-v1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY_GFA}
 
   # --- App 4: Virtual Store ---
   virtual_store:
@@ -110,6 +112,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
       - DEBUG=${DEBUG}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY_STORE}
 
   # --- Reverse Proxy ---
   nginx:

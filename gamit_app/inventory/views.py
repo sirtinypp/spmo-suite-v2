@@ -7,6 +7,7 @@ from django.http import Http404, JsonResponse
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 from django.urls import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
 from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog
@@ -205,12 +206,23 @@ def asset_list(request):
 
     assets = assets.order_by('property_number')
 
-    # 4. Context Data for Dropdowns
+    # 4. Pagination
+    paginator = Paginator(assets, 20) # 20 assets per page
+    page = request.GET.get('page')
+    try:
+        assets_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        assets_paginated = paginator.page(1)
+    except EmptyPage:
+        assets_paginated = paginator.page(paginator.num_pages)
+
+    # 5. Context Data for Dropdowns
     all_classes = [c[0] for c in Asset.CLASS_CHOICES]
     all_natures = [n[0] for n in Asset.NATURE_CHOICES]
     all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
     
     # Get Departments for the dropdown
+    from .models import Department # Ensure Department is imported locally or at top
     if request.user.is_staff:
         # Staff can see all departments
         all_departments = Department.objects.all().order_by('name')
@@ -222,7 +234,8 @@ def asset_list(request):
             all_departments = []
 
     context = {
-        'object_list': assets,
+        'object_list': assets_paginated,
+        'total_count_all': assets.count(), # Full filtered count
         'search_term': search_term,
         
         # Dropdown Options

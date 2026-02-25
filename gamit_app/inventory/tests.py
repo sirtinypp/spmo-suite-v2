@@ -1,18 +1,26 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from .models import Asset, UserProfile
 from django.urls import reverse
 from datetime import date
+from .models import Asset, UserProfile, Department
 
 class AssetSecurityTests(TestCase):
     def setUp(self):
+        # 0. Create Departments
+        self.dept_finance = Department.objects.create(name='Finance')
+        self.dept_it = Department.objects.create(name='IT')
+
         # 1. Create a "Finance" User
         self.user_finance = User.objects.create_user(username='finance_user', password='password123')
-        UserProfile.objects.create(user=self.user_finance, office='Finance')
+        profile_finance = self.user_finance.userprofile
+        profile_finance.department = self.dept_finance
+        profile_finance.save()
 
         # 2. Create an "IT" User
         self.user_it = User.objects.create_user(username='it_user', password='password123')
-        UserProfile.objects.create(user=self.user_it, office='IT')
+        profile_it = self.user_it.userprofile
+        profile_it.department = self.dept_it
+        profile_it.save()
 
         # 3. Create Assets for both offices
         self.asset_finance = Asset.objects.create(
@@ -20,6 +28,7 @@ class AssetSecurityTests(TestCase):
             name='Finance Laptop',
             date_acquired=date(2023, 1, 1),
             acquisition_cost=50000,
+            department=self.dept_finance,
             assigned_office='Finance',
             status='SERVICEABLE'
         )
@@ -29,6 +38,7 @@ class AssetSecurityTests(TestCase):
             name='Server Rack',
             date_acquired=date(2023, 1, 1),
             acquisition_cost=100000,
+            department=self.dept_it,
             assigned_office='IT',
             status='SERVICEABLE'
         )
@@ -49,6 +59,11 @@ class AssetSecurityTests(TestCase):
         """
         self.client.login(username='finance_user', password='password123')
         response = self.client.get(reverse('asset_list'))
+        
+        # Debugging: Print status and content if it fails
+        if response.status_code != 200 or b'Finance Laptop' not in response.content:
+             print(f"DEBUG: Status {response.status_code}")
+             # print(response.content.decode('utf-8'))
         
         # Check that Finance asset is in the list
         self.assertContains(response, 'Finance Laptop')

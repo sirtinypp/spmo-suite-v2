@@ -114,8 +114,10 @@
                                         style="max-height: 150px; object-fit: cover;">
                                     {% endif %}
                                     <h6 class="fw-bold mb-1 small">{{ news.title }}</h6>
-                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">{{ news.formatted_date }}</small>
-                                    <p class="small mb-0 text-secondary" style="font-size: 0.8rem; line-height: 1.4;">{{ news.short_content }}</p>
+                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">{{
+                                        news.formatted_date }}</small>
+                                    <p class="small mb-0 text-secondary" style="font-size: 0.8rem; line-height: 1.4;">{{
+                                        news.short_content }}</p>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -256,7 +258,9 @@
                     <h4 class="fw-bold text-dark mb-1">Office Supplies</h4>
                     <p class="text-muted small mb-0">Browse our inventory.</p>
                 </div>
-                <span class="badge bg-success rounded-pill px-3 py-2">{{ products|length }} Items Found</span>
+                <span class="badge bg-success rounded-pill px-3 py-2">
+                    {{ total_count_all|default:products.paginator.count }} Items Found
+                </span>
             </div>
 
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
@@ -359,6 +363,37 @@
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- Pagination -->
+            {% if products.has_other_pages %}
+            <nav class="mt-5" aria-label="Product pagination">
+                <ul class="pagination pagination-sm justify-content-center mb-0 gap-1">
+                    {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link border-0 shadow-sm rounded-pill text-success fw-bold px-3"
+                            href="?page={{ products.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i> Prev
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link border-0 bg-transparent text-muted small px-3">
+                            Page {{ products.number }} of {{ products.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0 shadow-sm rounded-pill text-success fw-bold px-3"
+                            href="?page={{ products.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
 </div>

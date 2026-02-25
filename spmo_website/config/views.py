@@ -50,8 +50,8 @@ def admin_portal(request):
         {
             'name': 'GAMIT System',
             'description': 'Property & Asset Management',
-            'url': 'http://gamit-sspmo.up.edu.ph/', 
-            'admin_url': 'http://gamit-sspmo.up.edu.ph/admin/',
+            'url': 'https://gamit-sspmo.up.edu.ph/', 
+            'admin_url': 'https://gamit-sspmo.up.edu.ph/admin/',
             'icon': 'bi-building-gear',
             'color': 'text-amber-600',
             'bg': 'bg-amber-50',
@@ -60,8 +60,8 @@ def admin_portal(request):
         {
             'name': 'Virtual Store',
             'description': 'Office Supplies & Inventory',
-            'url': 'http://suplay-sspmo.up.edu.ph/', 
-            'admin_url': 'http://suplay-sspmo.up.edu.ph/admin/',
+            'url': 'https://suplay-sspmo.up.edu.ph/', 
+            'admin_url': 'https://suplay-sspmo.up.edu.ph/admin/',
             'icon': 'bi-cart4',
             'color': 'text-emerald-600',
             'bg': 'bg-emerald-50',
@@ -70,8 +70,8 @@ def admin_portal(request):
         {
             'name': 'GFA Portal',
             'description': 'Flight Bookings (PAL/Cebu Pac)',
-            'url': 'http://lipad-sspmo.up.edu.ph/',
-            'admin_url': 'http://lipad-sspmo.up.edu.ph/admin/',
+            'url': 'https://lipad-sspmo.up.edu.ph/',
+            'admin_url': 'https://lipad-sspmo.up.edu.ph/admin/',
             'icon': 'bi-airplane-engines',
             'color': 'text-blue-600',
             'bg': 'bg-blue-50',

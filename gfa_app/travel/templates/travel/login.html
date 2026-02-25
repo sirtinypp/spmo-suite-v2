@@ -63,7 +63,7 @@
                 <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
                     <div class="card-body p-4 p-md-5">
 
-                        <form method="post">
+                        <form method="post" action="{% url 'login' %}">
                             {% csrf_token %}
                             {% if form.errors %}
                             <div
