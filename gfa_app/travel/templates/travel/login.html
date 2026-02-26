@@ -60,6 +60,12 @@
             line-height: 1.5;
         }
 
+        .branding-text .acronym span {
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 1rem;
+        }
+
         .branding-text .version {
             font-size: 0.7rem;
             color: #999;
@@ -186,7 +192,11 @@
             <img src="{% static 'travel/logo.png' %}" alt="UP Seal">
             <div class="branding-text">
                 <h1>LIPAD</h1>
-                <p>General Fund for Activities<br>Travel Booking System</p>
+                <p class="acronym">
+                    <span>L</span>ogistics and travel <span>I</span>tinerary<br>
+                    <span>P</span>ortal for <span>A</span>uthorized<br>
+                    <span>D</span>epartures
+                </p>
                 <div class="version">version 2.0</div>
             </div>
         </div>
