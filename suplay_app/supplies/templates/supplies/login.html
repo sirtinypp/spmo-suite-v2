@@ -60,6 +60,12 @@
             line-height: 1.5;
         }
 
+        .branding-text .acronym span {
+            font-weight: 700;
+            color: #0a4d2e;
+            font-size: 1rem;
+        }
+
         .branding-text .version {
             font-size: 0.7rem;
             color: #999;
@@ -186,7 +192,11 @@
             <img src="{% static 'up_logo_official.png' %}" alt="UP Seal">
             <div class="branding-text">
                 <h1>SUPLAY</h1>
-                <p>Office Supplies Request<br>& Management System</p>
+                <p class="acronym">
+                    <span>S</span>ustainable supply <span>U</span>tilization,<br>
+                    <span>P</span>urchasing, <span>L</span>ogistics, <span>A</span>ssets<br>
+                    and <span>Y</span>ield assessment
+                </p>
                 <div class="version">version 2.0</div>
             </div>
         </div>
