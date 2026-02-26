@@ -54,7 +54,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'travel',
+    # --- Google SSO (django-allauth) ---
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required by django-allauth
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -176,4 +183,28 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # EMAIL_HOST_USER = 'your-email@up.edu.ph'
 # EMAIL_HOST_PASSWORD = 'your-app-password'
 # DEFAULT_FROM_EMAIL = 'SPMO GFA System <no-reply@up.edu.ph>'
+
+# --- GOOGLE SSO CONFIGURATION (django-allauth) ---
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',          # Default Django auth (username/password)
+    'allauth.account.auth_backends.AuthenticationBackend', # allauth (Google SSO)
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
+        },
+    }
+}
+
+SOCIALACCOUNT_ADAPTER = 'config.sso_adapter.UPSSOAdapter'
+SOCIALACCOUNT_AUTO_SIGNUP = False      # No self-registration
+ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
+ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Keep username login as primary
 

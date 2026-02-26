@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In Error | SPMO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-sm px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z">
+                    </path>
+                </svg>
+            </div>
+            <h2 class="text-lg font-bold text-slate-900 mb-2">Access Denied</h2>
+            <p class="text-sm text-slate-600 mb-1">{{ error }}</p>
+            {% if email %}
+            <p class="text-xs text-slate-400 mb-6">Attempted with: {{ email }}</p>
+            {% endif %}
+            <a href="/login/"
+                class="inline-block w-full bg-red-900 hover:bg-red-800 text-white font-bold py-2.5 rounded-lg shadow-lg text-xs uppercase tracking-wide transition-transform active:scale-95">
+                ← Back to Sign In
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

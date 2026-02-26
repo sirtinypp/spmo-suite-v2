@@ -23,6 +23,9 @@ urlpatterns = [
 
     # 5. Root Redirect
     path('', RedirectView.as_view(url='dashboard/', permanent=False)),
+
+    # 6. Google SSO (django-allauth)
+    path('sso/', include('allauth.urls')),
 ]
 
 if settings.DEBUG:

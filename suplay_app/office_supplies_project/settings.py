@@ -40,9 +40,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'supplies',             # Your App
     'import_export',        # For Excel import/export
     'django.contrib.humanize',
+    # --- Google SSO (django-allauth) ---
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # Required by django-allauth
 ]
 
 ROOT_URLCONF = 'office_supplies_project.urls'
@@ -200,5 +207,27 @@ if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
      MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-# Production Ready Configuration
-pass
+
+# --- GOOGLE SSO CONFIGURATION (django-allauth) ---
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',          # Default Django auth (username/password)
+    'allauth.account.auth_backends.AuthenticationBackend', # allauth (Google SSO)
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID', ''),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET', ''),
+        },
+    }
+}
+
+SOCIALACCOUNT_ADAPTER = 'office_supplies_project.sso_adapter.UPSSOAdapter'
+SOCIALACCOUNT_AUTO_SIGNUP = False      # No self-registration
+ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
+ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Keep username login as primary
