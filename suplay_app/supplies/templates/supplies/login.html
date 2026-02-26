@@ -1,113 +1,220 @@
-{% extends 'supplies/base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Login - SSPMO Virtual Store{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log-in | SUPLAY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{% static 'favicon.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block navbar %}
-<!-- Navbar removed for login page -->
-{% endblock %}
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-{% block content %}
-<div class="container py-5 mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5 col-lg-4">
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 60px;
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
 
-            <div class="text-center mb-5">
-                <img src="{% static 'up_logo_official.png' %}" alt="UP Logo" class="img-fluid mb-3"
-                    style="height: 100px;">
-                <h1 class="display-3 fw-bold text-success mb-3" style="letter-spacing: -2px; font-weight: 800;">SUPLAY
-                </h1>
-                <p class="text-secondary fw-medium text-uppercase px-4"
-                    style="font-size: 0.85rem; letter-spacing: 1px; line-height: 1.8;">
-                    <span class="text-success fw-bolder fs-5">S</span>ustainable Supply
-                    <span class="text-success fw-bolder fs-5">U</span>tilization,
-                    <span class="text-success fw-bolder fs-5">P</span>urchasing,
-                    <span class="text-success fw-bolder fs-5">L</span>ogistics,
-                    <span class="text-success fw-bolder fs-5">A</span>ssets and
-                    <span class="text-success fw-bolder fs-5">Y</span>ield
-                    Assessment
-                </p>
-                <hr class="w-25 mx-auto my-4 text-success opacity-25">
+        .branding {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .branding img {
+            height: 120px;
+            width: 120px;
+            object-fit: contain;
+        }
+
+        .branding-text h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            letter-spacing: -1px;
+        }
+
+        .branding-text p {
+            font-size: 0.85rem;
+            color: #555;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .branding-text .version {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .login-card {
+            width: 320px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        .login-header {
+            background: #0a4d2e;
+            color: #fff;
+            text-align: center;
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .login-body {
+            padding: 30px 24px;
+            text-align: center;
+        }
+
+        .sso-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #7b1113;
+            border-radius: 25px;
+            background: #fff;
+            color: #7b1113;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .sso-btn:hover {
+            background: #7b1113;
+            color: #fff;
+        }
+
+        .sso-btn:hover svg path {
+            fill: #fff;
+        }
+
+        .sso-btn svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #ccc;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .divider span {
+            padding: 0 12px;
+        }
+
+        .admin-link {
+            font-size: 0.72rem;
+            color: #aaa;
+            text-decoration: none;
+        }
+
+        .admin-link:hover {
+            color: #7b1113;
+        }
+
+        .footer-text {
+            margin-top: 24px;
+            font-size: 0.65rem;
+            color: #bbb;
+        }
+
+        @media (max-width: 768px) {
+            .login-wrapper {
+                flex-direction: column;
+                gap: 30px;
+                padding: 24px;
+            }
+
+            .branding {
+                justify-content: center;
+                text-align: center;
+                flex-direction: column;
+            }
+
+            .login-card {
+                width: 100%;
+                max-width: 360px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-wrapper">
+        <div class="branding">
+            <img src="{% static 'logo.png' %}" alt="UP Seal">
+            <div class="branding-text">
+                <h1>SUPLAY</h1>
+                <p>Office Supplies Request<br>& Management System</p>
+                <div class="version">version 2.0</div>
             </div>
+        </div>
 
-            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
-                <div class="card-body p-4 p-md-5">
+        <div class="login-card">
+            <div class="login-header">Log-in to SUPLAY</div>
+            <div class="login-body">
+                <a href="/sso/google/login/?process=login" class="sso-btn">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#4285F4"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
+                        <path fill="#34A853"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    Log-in via UP Mail
+                </a>
 
-                    <form method="post">
-                        {% csrf_token %}
+                <div class="divider"><span>or</span></div>
+                <a href="/admin/login/?next=/dashboard/" class="admin-link">Sign in with username & password</a>
 
-                        {% if form.errors %}
-                        <div
-                            class="alert alert-danger border-0 bg-danger-subtle text-danger rounded-3 small mb-4 d-flex align-items-center">
-                            <i class="bi bi-exclamation-circle-fill me-2"></i>
-                            <div>Invalid username or password</div>
-                        </div>
-                        {% endif %}
-
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase"
-                                style="font-size: 0.75rem; letter-spacing: 0.5px;">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0 text-muted ps-3"><i
-                                        class="bi bi-person"></i></span>
-                                <input type="text" name="username" class="form-control bg-light border-0 py-2"
-                                    placeholder="Enter your username" required autofocus>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label small fw-bold text-muted text-uppercase"
-                                style="font-size: 0.75rem; letter-spacing: 0.5px;">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0 text-muted ps-3"><i
-                                        class="bi bi-lock"></i></span>
-                                <input type="password" name="password" class="form-control bg-light border-0 py-2"
-                                    placeholder="••••••••" required>
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-success fw-bold py-2 shadow-sm">
-                                Sign In <i class="bi bi-arrow-right-short ms-1"></i>
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
-
-                <div class="px-4 px-md-5 pb-4">
-                    <div class="d-flex align-items-center my-3">
-                        <hr class="flex-grow-1"><span class="mx-2 text-muted small">or</span>
-                        <hr class="flex-grow-1">
-                    </div>
-                    <a href="/sso/google/login/?process=login"
-                        class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24">
-                            <path fill="#4285F4"
-                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                            <path fill="#34A853"
-                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                            <path fill="#FBBC05"
-                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                            <path fill="#EA4335"
-                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                        </svg>
-                        Sign in with Google
-                    </a>
-                </div>
-
-                <div class="card-footer bg-light border-0 text-center py-3">
-                    <small class="text-muted">
-                        Forgot password? <a href="#" class="text-decoration-none fw-bold text-success">Contact Admin</a>
-                    </small>
-                </div>
+                <div class="footer-text">© {% now "Y" %} SSPMO — University of the Philippines</div>
             </div>
-
-            <div class="text-center mt-4">
-                <small class="text-muted opacity-50">System SPMO | SUPLAY &copy; {% now "Y" %}</small>
-            </div>
-
         </div>
     </div>
-</div>
-{% endblock %}
+</body>
+
+</html>
