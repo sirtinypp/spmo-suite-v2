@@ -228,6 +228,7 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_ADAPTER = 'office_supplies_project.sso_adapter.UPSSOAdapter'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = False      # No self-registration
 ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
 ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Keep username login as primary
