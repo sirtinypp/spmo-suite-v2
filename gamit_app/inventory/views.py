@@ -235,6 +235,7 @@ def asset_list(request):
 
     context = {
         'object_list': assets_paginated,
+        'num_pages': paginator.num_pages,
         'total_count_all': assets.count(), # Full filtered count
         'search_term': search_term,
         
