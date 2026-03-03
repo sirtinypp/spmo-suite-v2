@@ -15,9 +15,13 @@ class Department(models.Model):
 # 1. USER PROFILE
 class UserProfile(models.Model):
     ROLE_CHOICES = [
-        ('ADMIN_OFFICER', 'Admin Officer'),
+        # Legacy (kept for backward compat)
+        ('ADMIN_OFFICER', 'Admin Officer (Legacy)'),
         ('HEAD_OF_UNIT', 'Head of Unit'),
         ('USER', 'User (Staff)'),
+        # Office-specific admin roles
+        ('SPMO_ADMIN', 'Admin Officer — SPMO'),
+        ('ACCT_ADMIN', 'Admin Officer — Accounting'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -79,6 +83,78 @@ class Asset(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # ==============================================
+    # FINANCE & VALUATION FIELDS (Tab 2)
+    # ==============================================
+    DEPRECIATION_METHOD_CHOICES = [
+        ('STRAIGHT_LINE', 'Straight-Line'),
+        ('DECLINING_BALANCE', 'Declining Balance'),
+        ('SUM_OF_YEARS', 'Sum-of-Years Digits'),
+    ]
+    fair_market_value = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Fair Market Value")
+    salvage_value = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Salvage/Residual Value")
+    useful_life_years = models.PositiveIntegerField(blank=True, null=True, verbose_name="Useful Life (Years)")
+    depreciation_method = models.CharField(max_length=30, choices=DEPRECIATION_METHOD_CHOICES, default='STRAIGHT_LINE', verbose_name="Depreciation Method")
+    accumulated_depreciation = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Accumulated Depreciation")
+    depreciation_start_date = models.DateField(blank=True, null=True, verbose_name="Depreciation Start Date")
+
+    # ==============================================
+    # LIFECYCLE FIELDS (Tab 3)
+    # ==============================================
+    warranty_expiry = models.DateField(blank=True, null=True, verbose_name="Warranty Expiry Date")
+    insurance_value = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Insurance Value")
+    disposal_date = models.DateField(blank=True, null=True, verbose_name="Disposal Date")
+    DISPOSAL_METHOD_CHOICES = [
+        ('AUCTION', 'Public Auction'), ('CONDEMNATION', 'Condemnation'),
+        ('DONATION', 'Donation'), ('BARTER', 'Barter'),
+        ('TRANSFER', 'Transfer to Other Agency'),
+    ]
+    disposal_method = models.CharField(max_length=30, choices=DISPOSAL_METHOD_CHOICES, blank=True, null=True, verbose_name="Disposal Method")
+    disposal_proceeds = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Disposal Proceeds")
+
+    # ==============================================
+    # GOVERNMENT / COA FIELDS (Tab 4)
+    # ==============================================
+    PROPERTY_CLASSIFICATION_CHOICES = [
+        ('PPE', 'Property, Plant & Equipment'),
+        ('SEMI_EXPENDABLE', 'Semi-Expendable'),
+        ('EXPENDABLE', 'Expendable'),
+    ]
+    FUND_SOURCE_CHOICES = [
+        ('GAA', 'General Appropriations Act'),
+        ('INCOME', 'Income'),
+        ('TRUST', 'Trust Fund'),
+        ('EXTERNAL', 'Externally Funded'),
+    ]
+    uacs_object_code = models.CharField(max_length=20, blank=True, null=True, verbose_name="UACS Object Code")
+    fund_source = models.CharField(max_length=20, choices=FUND_SOURCE_CHOICES, blank=True, null=True, verbose_name="Fund Source")
+    property_classification = models.CharField(max_length=20, choices=PROPERTY_CLASSIFICATION_CHOICES, blank=True, null=True, verbose_name="Property Classification")
+    appraisal_date = models.DateField(blank=True, null=True, verbose_name="Last Appraisal Date")
+    appraised_value = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Appraised Value")
+
+    # ==============================================
+    # COMPUTED PROPERTIES
+    # ==============================================
+    @property
+    def book_value(self):
+        """Acquisition Cost - Accumulated Depreciation"""
+        if self.acquisition_cost and self.accumulated_depreciation:
+            return self.acquisition_cost - self.accumulated_depreciation
+        return self.acquisition_cost
+
+    @property
+    def annual_depreciation(self):
+        """(Acquisition Cost - Salvage Value) / Useful Life"""
+        if self.acquisition_cost and self.salvage_value and self.useful_life_years:
+            return (self.acquisition_cost - self.salvage_value) / self.useful_life_years
+        return None
+
+    @property
+    def is_fully_depreciated(self):
+        if self.acquisition_cost and self.accumulated_depreciation and self.salvage_value:
+            return self.accumulated_depreciation >= (self.acquisition_cost - self.salvage_value)
+        return False
 
     def __str__(self): return f"{self.property_number} - {self.name}"
 
@@ -272,3 +348,49 @@ class ServiceLog(models.Model):
 
     def __str__(self):
         return f"{self.service_type} - {self.asset.property_number} ({self.service_date})"
+
+# ==========================================
+# 8. ASSET CHANGE LOG (Audit Trail)
+# ==========================================
+class AssetChangeLog(models.Model):
+    TAB_CHOICES = [
+        ('PROPERTY', 'Property Details'),
+        ('FINANCE', 'Finance & Valuation'),
+        ('LIFECYCLE', 'Lifecycle'),
+        ('GOVERNMENT', 'Government / COA'),
+    ]
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='change_logs')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    tab = models.CharField(max_length=30, choices=TAB_CHOICES)
+    field_name = models.CharField(max_length=100)
+    old_value = models.TextField(blank=True, null=True)
+    new_value = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.user} changed {self.field_name} on {self.asset.property_number}"
+
+# ==========================================
+# 9. ASSET NOTIFICATION
+# ==========================================
+class AssetNotification(models.Model):
+    RECIPIENT_ROLE_CHOICES = [
+        ('SPMO_ADMIN', 'SPMO Officers'),
+        ('ACCT_ADMIN', 'Accounting Officers'),
+    ]
+    recipient_role = models.CharField(max_length=30, choices=RECIPIENT_ROLE_CHOICES)
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=500)
+    triggered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.recipient_role}] {self.message}"
