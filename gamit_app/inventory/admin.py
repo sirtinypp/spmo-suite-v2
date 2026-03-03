@@ -3,12 +3,14 @@ from import_export.admin import ImportExportModelAdmin
 from .models import (
     Asset, 
     UserProfile, 
-    Department, # <--- Added Department
+    Department,
     InspectionRequest, 
     AssetBatch, 
     BatchItem,
     AssetTransferRequest,
-    ServiceLog
+    ServiceLog,
+    AssetChangeLog,
+    AssetNotification,
 )
 from .resources import AssetResource
 
@@ -52,7 +54,19 @@ class AssetAdmin(ImportExportModelAdmin):
         }),
         ('Documents & Images', {
             'fields': ('image_serial', 'image_condition', 'attachment')
-        })
+        }),
+        ('Finance & Valuation', {
+            'classes': ('collapse',),
+            'fields': ('fair_market_value', 'salvage_value', 'useful_life_years', 'depreciation_method', 'accumulated_depreciation', 'depreciation_start_date')
+        }),
+        ('Lifecycle', {
+            'classes': ('collapse',),
+            'fields': ('warranty_expiry', 'insurance_value', 'disposal_date', 'disposal_method', 'disposal_proceeds')
+        }),
+        ('Government / COA', {
+            'classes': ('collapse',),
+            'fields': ('uacs_object_code', 'fund_source', 'property_classification', 'appraisal_date', 'appraised_value')
+        }),
     )
 
 # --- USER PROFILE INLINE (Embedded in Standard User Admin) ---
@@ -118,3 +132,20 @@ class ServiceLogAdmin(admin.ModelAdmin):
     list_filter = ('service_type', 'service_date')
     search_fields = ('asset__property_number', 'service_provider', 'description')
     date_hierarchy = 'service_date'
+
+# --- 9. ASSET CHANGE LOG ---
+@admin.register(AssetChangeLog)
+class AssetChangeLogAdmin(admin.ModelAdmin):
+    list_display = ('timestamp', 'asset', 'user', 'tab', 'field_name', 'old_value', 'new_value')
+    list_filter = ('tab', 'timestamp')
+    search_fields = ('asset__property_number', 'user__username', 'field_name')
+    readonly_fields = ('asset', 'user', 'tab', 'field_name', 'old_value', 'new_value', 'timestamp', 'ip_address')
+    date_hierarchy = 'timestamp'
+
+# --- 10. ASSET NOTIFICATION ---
+@admin.register(AssetNotification)
+class AssetNotificationAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'recipient_role', 'asset', 'message', 'triggered_by', 'is_read')
+    list_filter = ('recipient_role', 'is_read', 'created_at')
+    search_fields = ('asset__property_number', 'message')
+    date_hierarchy = 'created_at'

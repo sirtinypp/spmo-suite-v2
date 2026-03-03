@@ -3,11 +3,12 @@
 
 {% block content %}
 <div class="container-fluid fade-in mb-5">
-    
+
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
         <nav aria-label="breadcrumb" class="mb-3 mb-md-0">
             <ol class="breadcrumb m-0">
-                <li class="breadcrumb-item"><a href="{% url 'asset_list' %}" class="text-decoration-none">All Assets</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'asset_list' %}" class="text-decoration-none">All Assets</a>
+                </li>
                 <li class="breadcrumb-item active" aria-current="page">{{ asset.property_number }}</li>
             </ol>
         </nav>
@@ -16,7 +17,7 @@
             <a href="{% url 'print_service_log' asset.pk %}" target="_blank" class="btn btn-primary shadow-sm">
                 <i class="fas fa-file-invoice me-2"></i>Print Service Record
             </a>
-            
+
             <button onclick="window.print()" class="btn btn-primary shadow-sm">
                 <i class="fas fa-print me-2"></i>Print Property Card
             </button>
@@ -24,76 +25,228 @@
     </div>
 
     <div class="row screen-only">
-        
+
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-body-tertiary py-3 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold m-0 text-primary">{{ asset.name }}</h5>
-                    <span class="badge 
-                        {% if asset.status == 'SERVICEABLE' %}bg-success
-                        {% elif asset.status == 'UNSERVICEABLE' %}bg-danger
-                        {% else %}bg-warning{% endif %}">
-                        {{ asset.get_status_display }}
-                    </span>
+                    <span
+                        class="badge {% if asset.status == 'SERVICEABLE' %}bg-success{% elif asset.status == 'UNSERVICEABLE' %}bg-danger{% else %}bg-warning{% endif %}">{{ asset.get_status_display }}</span>
                 </div>
-                
-                <div class="card-body p-4">
-                    <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Basic Information</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="small text-muted">Property Number</label>
-                            <div class="fw-semibold text-body-emphasis">{{ asset.property_number }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted">Assigned Office</label>
-                            <div class="fw-semibold text-body-emphasis">{{ asset.assigned_office }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted">Date Acquired</label>
-                            <div>{{ asset.date_acquired }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted">Acquisition Cost</label>
-                            <div class="fw-bold text-success">₱{{ asset.acquisition_cost|intcomma }}</div>
-                        </div>
-                    </div>
 
-                    <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Classification</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="small text-muted">Class</label>
-                            <div>{{ asset.get_asset_class_display }}</div>
+                <!-- ====== PILL TABS NAVIGATION ====== -->
+                <div class="card-body pb-0">
+                    <ul class="nav nav-pills nav-fill mb-0" id="assetTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="property-tab" data-bs-toggle="pill"
+                                data-bs-target="#property-pane" type="button" role="tab" aria-selected="true"><i
+                                    class="fas fa-clipboard-list me-1"></i> Property</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="finance-tab" data-bs-toggle="pill"
+                                data-bs-target="#finance-pane" type="button" role="tab" aria-selected="false"><i
+                                    class="fas fa-coins me-1"></i> Finance</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="lifecycle-tab" data-bs-toggle="pill"
+                                data-bs-target="#lifecycle-pane" type="button" role="tab" aria-selected="false"><i
+                                    class="fas fa-sync-alt me-1"></i> Lifecycle</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="government-tab" data-bs-toggle="pill"
+                                data-bs-target="#government-pane" type="button" role="tab" aria-selected="false"><i
+                                    class="fas fa-landmark me-1"></i> COA</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- ====== TAB CONTENT ====== -->
+                <div class="tab-content p-4" id="assetTabContent">
+
+                    <!-- TAB 1: PROPERTY DETAILS -->
+                    <div class="tab-pane fade show active" id="property-pane" role="tabpanel">
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Basic
+                            Information</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Property Number</label>
+                                <div class="fw-semibold text-body-emphasis">{{ asset.property_number }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Assigned Office</label>
+                                <div class="fw-semibold text-body-emphasis">{{ asset.assigned_office }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Date Acquired</label>
+                                <div>{{ asset.date_acquired }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Acquisition Cost</label>
+                                <div class="fw-bold text-success">&#8369;{{ asset.acquisition_cost|intcomma }}</div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="small text-muted">Nature</label>
-                            <div>{{ asset.get_asset_nature_display }}</div>
+
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Classification</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Class</label>
+                                <div>{{ asset.get_asset_class_display }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Nature</label>
+                                <div>{{ asset.get_asset_nature_display }}</div>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="small text-muted">Full Description</label>
+                                <div class="bg-body-tertiary p-3 rounded text-body-secondary small">{{ asset.description|default:"No description provided." }}</div>
+                            </div>
                         </div>
-                        <div class="col-md-12">
-                            <label class="small text-muted">Full Description</label>
-                            <div class="bg-body-tertiary p-3 rounded text-body-secondary small">
-                                {{ asset.description|default:"No description provided." }}
+
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Accountability</h6>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="small text-muted">Accountable Officer</label>
+                                <div class="fw-semibold text-body-emphasis">{{ asset.accountable_firstname }} {{ asset.accountable_middle_initial }} {{ asset.accountable_surname }}</div>
                             </div>
                         </div>
                     </div>
 
-                    <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Accountability</h6>
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="small text-muted">Accountable Officer</label>
-                            <div class="fw-semibold text-body-emphasis">
-                                {{ asset.accountable_firstname }} {{ asset.accountable_middle_initial }} {{ asset.accountable_surname }}
+                    <!-- TAB 2: FINANCE & VALUATION -->
+                    <div class="tab-pane fade" id="finance-pane" role="tabpanel">
+                        <!-- Value Summary Cards -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-light border-0 text-center p-3">
+                                    <div class="small text-muted">Acquisition Cost</div>
+                                    <div class="fw-bold text-primary fs-6">&#8369;{{ asset.acquisition_cost|intcomma|default:"--" }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light border-0 text-center p-3">
+                                    <div class="small text-muted">Book Value</div>
+                                    <div class="fw-bold text-success fs-6">{% if asset.book_value %}&#8369;{{ asset.book_value|intcomma }}{% else %}--{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light border-0 text-center p-3">
+                                    <div class="small text-muted">Annual Depreciation</div>
+                                    <div class="fw-bold text-warning fs-6">{% if asset.annual_depreciation %}&#8369;{{ asset.annual_depreciation|intcomma }}{% else %}--{% endif %}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light border-0 text-center p-3">
+                                    <div class="small text-muted">Salvage Value</div>
+                                    <div class="fw-bold text-secondary fs-6">{% if asset.salvage_value %}&#8369;{{ asset.salvage_value|intcomma }}{% else %}--{% endif %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Depreciation Details</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Depreciation Method</label>
+                                <div>{{ asset.get_depreciation_method_display|default:"Not set" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Useful Life</label>
+                                <div>{% if asset.useful_life_years %}{{ asset.useful_life_years }} years{% else %}Not
+                                    set{% endif %}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Depreciation Start Date</label>
+                                <div>{{ asset.depreciation_start_date|default:"Not set" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Accumulated Depreciation</label>
+                                <div>{% if asset.accumulated_depreciation %}&#8369;{{ asset.accumulated_depreciation|intcomma }}{% else %}Not set{% endif %}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Fully Depreciated?</label>
+                                <div>{% if asset.is_fully_depreciated %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-success">No</span>{% endif %}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Fair Market Value</label>
+                                <div>{% if asset.fair_market_value %}&#8369;{{ asset.fair_market_value|intcomma }}{% else %}Not set{% endif %}</div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- TAB 3: LIFECYCLE -->
+                    <div class="tab-pane fade" id="lifecycle-pane" role="tabpanel">
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Warranty &
+                            Insurance</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Warranty Expiry</label>
+                                <div>{{ asset.warranty_expiry|default:"Not set" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Insurance Value</label>
+                                <div>{% if asset.insurance_value %}&#8369;{{ asset.insurance_value|intcomma }}{% else %}Not set{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Disposal
+                            Information</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Disposal Date</label>
+                                <div>{{ asset.disposal_date|default:"Not disposed" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Disposal Method</label>
+                                <div>{{ asset.get_disposal_method_display|default:"N/A" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Disposal Proceeds</label>
+                                <div>{% if asset.disposal_proceeds %}&#8369;{{ asset.disposal_proceeds|intcomma }}{% else %}N/A{% endif %}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: GOVERNMENT / COA -->
+                    <div class="tab-pane fade" id="government-pane" role="tabpanel">
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">COA
+                            Classification</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">UACS Object Code</label>
+                                <div class="fw-semibold">{{ asset.uacs_object_code|default:"Not set" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Fund Source</label>
+                                <div>{{ asset.get_fund_source_display|default:"Not set" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Property Classification</label>
+                                <div>{{ asset.get_property_classification_display|default:"Not set" }}</div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Appraisal
+                        </h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="small text-muted">Last Appraisal Date</label>
+                                <div>{{ asset.appraisal_date|default:"Not appraised" }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted">Appraised Value</label>
+                                <div>{% if asset.appraised_value %}&#8369;{{ asset.appraised_value|intcomma }}{% else %}Not appraised{% endif %}</div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
+            <!-- SERVICE & MAINTENANCE HISTORY (always visible, below tabs) -->
             <div class="card border-0 shadow-sm mt-4">
                 <div class="card-header bg-body-tertiary py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold m-0"><i class="fas fa-tools me-2 text-secondary"></i>Service & Maintenance History</h6>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
-                        <i class="fas fa-plus me-1"></i> Add Log
-                    </button>
+                    <h6 class="fw-bold m-0"><i class="fas fa-tools me-2 text-secondary"></i>Service & Maintenance
+                        History</h6>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#addServiceModal"><i class="fas fa-plus me-1"></i> Add Log</button>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -113,35 +266,22 @@
                                 {% for log in service_logs %}
                                 <tr>
                                     <td class="ps-4 fw-bold">{{ log.service_date|date:"M d, Y" }}</td>
-                                    <td>
-                                        <span class="badge bg-secondary text-light rounded-pill">{{ log.get_service_type_display }}</span>
-                                    </td>
+                                    <td><span class="badge bg-secondary text-light rounded-pill">{{ log.get_service_type_display }}</span></td>
                                     <td>{{ log.description|truncatechars:40 }}</td>
                                     <td>{{ log.service_provider }}</td>
-                                    <td>{% if log.cost > 0 %}₱{{ log.cost|intcomma }}{% else %}-{% endif %}</td>
-                                    <td>
-                                        {% if log.service_document %}
-                                            <a href="{{ log.service_document.url }}" target="_blank" class="text-primary" title="View Document">
-                                                <i class="fas fa-paperclip"></i>
-                                            </a>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        {% if user.is_staff %}
-                                        <a href="{% url 'delete_service_log' log.pk %}" 
-                                           class="text-danger" 
-                                           onclick="return confirm('Are you sure you want to delete this log?');"
-                                           title="Delete Record">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </a>
-                                        {% endif %}
-                                    </td>
+                                    <td>{% if log.cost > 0 %}&#8369;{{ log.cost|intcomma }}{% else %}-{% endif %}</td>
+                                    <td>{% if log.service_document %}<a href="{{ log.service_document.url }}"
+                                            target="_blank" class="text-primary" title="View Document"><i
+                                                class="fas fa-paperclip"></i></a>{% endif %}</td>
+                                    <td class="text-end pe-4">{% if user.is_staff %}<a
+                                            href="{% url 'delete_service_log' log.pk %}" class="text-danger"
+                                            onclick="return confirm('Are you sure you want to delete this log?');"
+                                            title="Delete Record"><i class="fas fa-trash-alt"></i></a>{% endif %}</td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">
-                                        No maintenance or repair records found.
-                                    </td>
+                                    <td colspan="7" class="text-center py-4 text-muted">No maintenance or repair records
+                                        found.</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -152,62 +292,42 @@
         </div>
 
         <div class="col-lg-4">
-            
+
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary">
-                    <i class="fas fa-barcode me-2"></i>SERIAL NUMBER
-                </div>
+                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary"><i
+                        class="fas fa-barcode me-2"></i>SERIAL NUMBER</div>
                 <div class="card-body text-center bg-body-tertiary">
-                    {% if asset.image_serial %}
-                        <img src="{{ asset.image_serial.url }}" class="img-fluid rounded shadow-sm" alt="Serial">
-                    {% else %}
-                        <div class="text-muted py-4 opacity-50">
-                            <i class="fas fa-camera fa-3x mb-2"></i><br>No Photo
-                        </div>
-                    {% endif %}
+                    {% if asset.image_serial %}<img src="{{ asset.image_serial.url }}"
+                        class="img-fluid rounded shadow-sm" alt="Serial">{% else %}<div
+                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{% endif %}
                 </div>
             </div>
 
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary">
-                    <i class="fas fa-stethoscope me-2"></i>PHYSICAL CONDITION
-                </div>
+                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary"><i
+                        class="fas fa-stethoscope me-2"></i>PHYSICAL CONDITION</div>
                 <div class="card-body text-center bg-body-tertiary">
-                    {% if asset.image_condition %}
-                        <img src="{{ asset.image_condition.url }}" class="img-fluid rounded shadow-sm" alt="Condition">
-                    {% else %}
-                        <div class="text-muted py-4 opacity-50">
-                            <i class="fas fa-camera fa-3x mb-2"></i><br>No Photo
-                        </div>
-                    {% endif %}
+                    {% if asset.image_condition %}<img src="{{ asset.image_condition.url }}"
+                        class="img-fluid rounded shadow-sm" alt="Condition">{% else %}<div
+                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{% endif %}
                 </div>
             </div>
 
             <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary">
-                    <i class="fas fa-folder-open me-2"></i>DOCUMENTS
-                </div>
+                <div class="card-header bg-body-tertiary fw-bold small text-body-secondary"><i
+                        class="fas fa-folder-open me-2"></i>DOCUMENTS</div>
                 <div class="card-body">
-                    {% if asset.attachment %}
-                        <div class="d-flex align-items-center p-2 border rounded mb-2 bg-light">
-                            <div class="me-3 text-primary">
-                                <i class="fas fa-file-alt fa-2x"></i>
-                            </div>
-                            <div class="flex-grow-1 text-truncate">
-                                <div class="small fw-bold text-dark text-truncate" title="{{ asset.attachment.name }}" style="max-width: 180px;">
-                                    {{ asset.attachment.name }}
-                                </div>
-                                <div class="small text-muted" style="font-size: 10px;">Attached File</div>
-                            </div>
-                            <a href="{{ asset.attachment.url }}" target="_blank" class="btn btn-sm btn-outline-primary" title="View/Download">
-                                <i class="fas fa-download"></i>
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="text-center text-muted py-3 small">
-                            <i class="fas fa-file mb-2 opacity-50"></i><br>No documents attached.
-                        </div>
-                    {% endif %}
+                    {% if asset.attachment %}<div class="d-flex align-items-center p-2 border rounded mb-2 bg-light">
+                        <div class="me-3 text-primary"><i class="fas fa-file-alt fa-2x"></i></div>
+                        <div class="flex-grow-1 text-truncate">
+                            <div class="small fw-bold text-dark text-truncate" title="{{ asset.attachment.name }}"
+                                style="max-width: 180px;">{{ asset.attachment.name }}</div>
+                            <div class="small text-muted" style="font-size: 10px;">Attached File</div>
+                        </div><a href="{{ asset.attachment.url }}" target="_blank"
+                            class="btn btn-sm btn-outline-primary" title="View/Download"><i
+                                class="fas fa-download"></i></a>
+                    </div>{% else %}<div class="text-center text-muted py-3 small"><i
+                            class="fas fa-file mb-2 opacity-50"></i><br>No documents attached.</div>{% endif %}
                 </div>
             </div>
 
@@ -281,11 +401,11 @@
     <table class="par-table">
         <tr>
             <td colspan="4" class="label-cell">
-                <strong>Class/Type:</strong> 
+                <strong>Class/Type:</strong>
                 <span class="data-field">{{ asset.get_asset_class_display|default:"ICT EQUIPMENT" }}</span>
             </td>
             <td colspan="4" class="label-cell" style="border-left: 2px solid #000;">
-                <strong>Property Number:</strong> 
+                <strong>Property Number:</strong>
                 <span class="data-field">{{ asset.property_number }}</span>
             </td>
         </tr>
@@ -325,8 +445,17 @@
             <td>₱{{ asset.acquisition_cost|intcomma }}</td>
             <td></td>
         </tr>
-        
-        <tr class="data-row" style="height: 30px;"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+        <tr class="data-row" style="height: 30px;">
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
     </table>
 
     <table class="par-table" style="border-top: none;">
@@ -334,7 +463,7 @@
             <td width="50%" class="section-header">RECEIVED BY:</td>
             <td width="50%" class="section-header" style="border-left: 2px solid #000;">TRANSFERRED TO:</td>
         </tr>
-        
+
         <tr>
             <td class="p-2">
                 <div class="d-flex align-items-center">
@@ -368,58 +497,104 @@
 </div>
 
 <style>
-    #print-area { display: none; }
+    #print-area {
+        display: none;
+    }
 
     @media print {
-        body * { visibility: hidden; }
-        .screen-only, nav, button, footer, .btn { display: none !important; }
+        body * {
+            visibility: hidden;
+        }
 
-        #print-area, #print-area * { visibility: visible; }
-        
+        .screen-only,
+        nav,
+        button,
+        footer,
+        .btn {
+            display: none !important;
+        }
+
+        #print-area,
+        #print-area * {
+            visibility: visible;
+        }
+
         #print-area {
-            display: block; position: absolute;
-            top: 0; left: 0; width: 100%;
-            background: white; color: black;
-            padding: 20px; font-family: Arial, sans-serif;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            color: black;
+            padding: 20px;
+            font-family: Arial, sans-serif;
         }
 
         /* HEADER STYLES - Updated for Palatino & Size */
-        .print-header { 
-            text-align: center; 
-            margin-bottom: 20px; 
-            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif; 
-        }
-        .print-header h4 { 
-            margin: 0; 
-            font-weight: bold; 
-            font-size: 14px; 
-        }
-        .print-header h5 { 
-            margin: 5px 0 0 0; 
-            font-weight: bold; 
-            font-size: 11px; 
-        }
-        .print-header h3 { 
-            margin: 10px 0 0 0; 
-            font-weight: bold; 
-            font-size: 16px; 
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
         }
 
-        .print-meta { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+        .print-header h4 {
+            margin: 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-        .par-table { width: 100%; border-collapse: collapse; border: 2px solid #000; font-size: 11px; }
-        .par-table td { border: 1px solid #000; padding: 4px; vertical-align: middle; }
-        .bold-headers td { font-weight: bold; }
-        .section-header { text-align: center; font-weight: bold; padding: 8px; border-bottom: 1px solid #000; }
+        .print-header h5 {
+            margin: 5px 0 0 0;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .print-header h3 {
+            margin: 10px 0 0 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .print-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .par-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000;
+            font-size: 11px;
+        }
+
+        .par-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: middle;
+        }
+
+        .bold-headers td {
+            font-weight: bold;
+        }
+
+        .section-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+            border-bottom: 1px solid #000;
+        }
 
         .data-field {
-            background-color: #f2f2f2 !important; 
+            background-color: #f2f2f2 !important;
             padding: 2px 5px;
             display: inline-block;
             min-width: 50px;
-            height: 18px; 
+            height: 18px;
             border-radius: 2px;
-            -webkit-print-color-adjust: exact; 
+            -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
     }
