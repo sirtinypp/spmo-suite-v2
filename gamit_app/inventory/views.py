@@ -10,12 +10,13 @@ from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
-from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog
+from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification
 
 from .forms import (
     AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
     AssetTransferRequestForm, AdminBatchProcessForm, BatchItemFormSet,
-    ServiceLogForm 
+    ServiceLogForm,
+    PropertyTabForm, FinanceTabForm, LifecycleTabForm, GovernmentTabForm,
 )
 
 @login_required
@@ -254,7 +255,74 @@ def asset_list(request):
     return render(request, 'inventory/asset_list.html', context)
 
 
-# 3. ASSET DETAIL
+# 3. ASSET DETAIL (Phase 5: Tab Forms + Role-Based Access)
+
+def get_user_tab_permissions(user):
+    """Returns dict of which tabs the user can edit based on role."""
+    perms = {'property': False, 'finance': False, 'lifecycle': False, 'government': False}
+    if not user.is_authenticated:
+        return perms
+    # Superusers can edit everything
+    if user.is_superuser:
+        return {k: True for k in perms}
+    try:
+        role = user.userprofile.role
+    except (UserProfile.DoesNotExist, AttributeError):
+        return perms
+    # SPMO Admin: Property, Lifecycle, Government
+    if role in ('SPMO_ADMIN', 'ADMIN_OFFICER'):
+        perms['property'] = True
+        perms['lifecycle'] = True
+        perms['government'] = True
+    # Accounting Admin: Finance only
+    if role == 'ACCT_ADMIN':
+        perms['finance'] = True
+    return perms
+
+
+def _detect_changes(asset, form, tab_name, user, request):
+    """Detect field changes and create AssetChangeLog entries. Returns list of changed field names."""
+    changed = []
+    for field_name in form.changed_data:
+        old_val = getattr(asset, field_name, None)
+        new_val = form.cleaned_data.get(field_name)
+        # Stringify for storage
+        old_str = str(old_val) if old_val is not None else ''
+        new_str = str(new_val) if new_val is not None else ''
+        if old_str != new_str:
+            AssetChangeLog.objects.create(
+                asset=asset,
+                user=user,
+                tab=tab_name,
+                field_name=field_name,
+                old_value=old_str[:500],
+                new_value=new_str[:500],
+                ip_address=request.META.get('REMOTE_ADDR', ''),
+            )
+            changed.append(field_name)
+    return changed
+
+
+def _create_cross_office_notification(asset, user, tab_name, changed_fields):
+    """Alert the OTHER office when changes are made."""
+    if not changed_fields:
+        return
+    field_list = ', '.join(changed_fields[:5])
+    suffix = f' (+{len(changed_fields) - 5} more)' if len(changed_fields) > 5 else ''
+    msg = f"{user.get_full_name() or user.username} updated {tab_name}: {field_list}{suffix}"
+    # SPMO edits → notify Accounting; Accounting edits → notify SPMO
+    if tab_name in ('property', 'lifecycle', 'government'):
+        target_role = 'ACCT_ADMIN'
+    else:
+        target_role = 'SPMO_ADMIN'
+    AssetNotification.objects.create(
+        asset=asset,
+        recipient_role=target_role,
+        triggered_by=user,
+        message=msg,
+    )
+
+
 @login_required
 def asset_detail(request, pk):
     asset = get_object_or_404(Asset, pk=pk)
@@ -265,17 +333,53 @@ def asset_detail(request, pk):
                 raise Http404("You are not authorized to view this asset.")
         except (UserProfile.DoesNotExist, AttributeError):
             raise Http404("User profile not found.")
-    
+
+    # Role permissions
+    tab_perms = get_user_tab_permissions(request.user)
+
+    # Handle POST (tab-specific save)
+    active_tab = request.POST.get('active_tab', 'property')
+    if request.method == 'POST' and active_tab in ('property', 'finance', 'lifecycle', 'government'):
+        TAB_FORMS = {
+            'property': PropertyTabForm,
+            'finance': FinanceTabForm,
+            'lifecycle': LifecycleTabForm,
+            'government': GovernmentTabForm,
+        }
+        if tab_perms.get(active_tab):
+            FormClass = TAB_FORMS[active_tab]
+            form_tab = FormClass(request.POST, instance=asset)
+            if form_tab.is_valid():
+                changed = _detect_changes(asset, form_tab, active_tab, request.user, request)
+                form_tab.save()
+                _create_cross_office_notification(asset, request.user, active_tab, changed)
+                messages.success(request, f'{active_tab.title()} tab updated successfully.')
+                return redirect('asset_detail', pk=pk)
+            else:
+                messages.error(request, 'Please correct the errors below.')
+        else:
+            messages.error(request, 'You do not have permission to edit this tab.')
+
+    # Build form instances for each tab (GET or after POST errors)
+    property_form = PropertyTabForm(instance=asset)
+    finance_form = FinanceTabForm(instance=asset)
+    lifecycle_form = LifecycleTabForm(instance=asset)
+    government_form = GovernmentTabForm(instance=asset)
+
     # Fetch related service logs
     service_logs = asset.service_logs.all().order_by('-service_date')
-    
-    # Instantiate an empty form for the modal
     form = ServiceLogForm()
 
     return render(request, 'inventory/asset_detail.html', {
         'asset': asset,
         'service_logs': service_logs,
-        'form': form
+        'form': form,
+        'tab_perms': tab_perms,
+        'property_form': property_form,
+        'finance_form': finance_form,
+        'lifecycle_form': lifecycle_form,
+        'government_form': government_form,
+        'active_tab': active_tab if request.method == 'POST' else 'property',
     })
 
 

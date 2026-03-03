@@ -198,3 +198,83 @@ class UserSignatureForm(forms.ModelForm):
         help_texts = {
             'signature_image': 'Upload a clear PNG image of your signature on a transparent background.'
         }
+
+# ==========================================
+# 9. TAB-SPECIFIC ASSET FORMS (NEW — Phase 5)
+# ==========================================
+
+class PropertyTabForm(forms.ModelForm):
+    """Fields editable by SPMO Admin: basic property info, classification, accountability."""
+    class Meta:
+        model = Asset
+        fields = [
+            'property_number', 'name', 'description', 'status',
+            'date_acquired', 'acquisition_cost',
+            'asset_class', 'asset_nature',
+            'assigned_office', 'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
+        ]
+        widgets = {
+            'date_acquired': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            css = field.widget.attrs.get('class', '')
+            if 'form-select' not in css:
+                field.widget.attrs['class'] = 'form-control' + (' ' + css if css else '')
+
+class FinanceTabForm(forms.ModelForm):
+    """Fields editable by Accounting Admin: depreciation, valuation."""
+    class Meta:
+        model = Asset
+        fields = [
+            'fair_market_value', 'salvage_value', 'useful_life_years',
+            'depreciation_method', 'accumulated_depreciation', 'depreciation_start_date',
+        ]
+        widgets = {
+            'depreciation_start_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            css = field.widget.attrs.get('class', '')
+            if 'form-select' not in css:
+                field.widget.attrs['class'] = 'form-control' + (' ' + css if css else '')
+
+class LifecycleTabForm(forms.ModelForm):
+    """Fields editable by SPMO Admin: warranty, insurance, disposal."""
+    class Meta:
+        model = Asset
+        fields = [
+            'warranty_expiry', 'insurance_value',
+            'disposal_date', 'disposal_method', 'disposal_proceeds',
+        ]
+        widgets = {
+            'warranty_expiry': forms.DateInput(attrs={'type': 'date'}),
+            'disposal_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            css = field.widget.attrs.get('class', '')
+            if 'form-select' not in css:
+                field.widget.attrs['class'] = 'form-control' + (' ' + css if css else '')
+
+class GovernmentTabForm(forms.ModelForm):
+    """Fields editable by SPMO Admin: COA codes, fund source, appraisal."""
+    class Meta:
+        model = Asset
+        fields = [
+            'uacs_object_code', 'fund_source', 'property_classification',
+            'appraisal_date', 'appraised_value',
+        ]
+        widgets = {
+            'appraisal_date': forms.DateInput(attrs={'type': 'date'}),
+        }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            css = field.widget.attrs.get('class', '')
+            if 'form-select' not in css:
+                field.widget.attrs['class'] = 'form-control' + (' ' + css if css else '')
