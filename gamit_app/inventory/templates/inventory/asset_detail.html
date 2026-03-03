@@ -65,8 +65,9 @@
 
                     <!-- TAB 1: PROPERTY DETAILS -->
                     <div class="tab-pane fade show active" id="property-pane" role="tabpanel">
-                        {% if tab_perms.property %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary edit-toggle-btn" data-tab="property"><i class="fas fa-edit me-1"></i>Edit</button></div>{% endif %}
-                        <div class="view-mode" id="property-view">
+                        {% if tab_perms.property %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editPropertyModal"><i class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
+                        
+                        
                         <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Basic
                             Information</h6>
                         <div class="row g-3 mb-4">
@@ -112,29 +113,12 @@
                             </div>
                         </div>
                     </div>
-                        </div>
-                        {% if tab_perms.property %}
-                        <div class="edit-mode d-none" id="property-edit">
-                            <form method="POST" action="">{% csrf_token %}<input type="hidden" name="active_tab" value="property">
-                                <div class="row g-3">
-                                    {% for field in property_form %}
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
-                                        {{ field }}
-                                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Save Property</button><button type="button" class="btn btn-outline-secondary btn-sm cancel-edit-btn" data-tab="property">Cancel</button></div>
-                            </form>
-                        </div>
-                        {% endif %}
-                    </div>
 
                     <!-- TAB 2: FINANCE & VALUATION -->
                     <div class="tab-pane fade" id="finance-pane" role="tabpanel">
-                        {% if tab_perms.finance %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary edit-toggle-btn" data-tab="finance"><i class="fas fa-edit me-1"></i>Edit</button></div>{% endif %}
-                        <div class="view-mode" id="finance-view">
+                        {% if tab_perms.finance %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editFinanceModal"><i class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
+                        
+                        
                         <!-- Value Summary Cards -->
                         <div class="row g-3 mb-4">
                             <div class="col-md-3">
@@ -192,29 +176,12 @@
                             </div>
                         </div>
                     </div>
-                        </div>
-                        {% if tab_perms.finance %}
-                        <div class="edit-mode d-none" id="finance-edit">
-                            <form method="POST" action="">{% csrf_token %}<input type="hidden" name="active_tab" value="finance">
-                                <div class="row g-3">
-                                    {% for field in finance_form %}
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
-                                        {{ field }}
-                                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Save Finance</button><button type="button" class="btn btn-outline-secondary btn-sm cancel-edit-btn" data-tab="finance">Cancel</button></div>
-                            </form>
-                        </div>
-                        {% endif %}
-                    </div>
 
                     <!-- TAB 3: LIFECYCLE -->
                     <div class="tab-pane fade" id="lifecycle-pane" role="tabpanel">
-                        {% if tab_perms.lifecycle %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary edit-toggle-btn" data-tab="lifecycle"><i class="fas fa-edit me-1"></i>Edit</button></div>{% endif %}
-                        <div class="view-mode" id="lifecycle-view">
+                        {% if tab_perms.lifecycle %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editLifecycleModal"><i class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
+                        
+                        
                         <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">Warranty &
                             Insurance</h6>
                         <div class="row g-3 mb-4">
@@ -245,29 +212,12 @@
                             </div>
                         </div>
                     </div>
-                        </div>
-                        {% if tab_perms.lifecycle %}
-                        <div class="edit-mode d-none" id="lifecycle-edit">
-                            <form method="POST" action="">{% csrf_token %}<input type="hidden" name="active_tab" value="lifecycle">
-                                <div class="row g-3">
-                                    {% for field in lifecycle_form %}
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
-                                        {{ field }}
-                                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Save Lifecycle</button><button type="button" class="btn btn-outline-secondary btn-sm cancel-edit-btn" data-tab="lifecycle">Cancel</button></div>
-                            </form>
-                        </div>
-                        {% endif %}
-                    </div>
 
                     <!-- TAB 4: GOVERNMENT / COA -->
                     <div class="tab-pane fade" id="government-pane" role="tabpanel">
-                        {% if tab_perms.government %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary edit-toggle-btn" data-tab="government"><i class="fas fa-edit me-1"></i>Edit</button></div>{% endif %}
-                        <div class="view-mode" id="government-view">
+                        {% if tab_perms.government %}<div class="text-end mb-2"><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editGovernmentModal"><i class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
+                        
+                        
                         <h6 class="text-uppercase text-body-secondary small fw-bold mb-3 border-bottom pb-2">COA
                             Classification</h6>
                         <div class="row g-3 mb-4">
@@ -297,24 +247,6 @@
                                 <div>{% if asset.appraised_value %}&#8369;{{ asset.appraised_value|intcomma }}{% else %}Not appraised{% endif %}</div>
                             </div>
                         </div>
-                    </div>
-                        </div>
-                        {% if tab_perms.government %}
-                        <div class="edit-mode d-none" id="government-edit">
-                            <form method="POST" action="">{% csrf_token %}<input type="hidden" name="active_tab" value="government">
-                                <div class="row g-3">
-                                    {% for field in government_form %}
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
-                                        {{ field }}
-                                        {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="mt-3 d-flex gap-2"><button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Save Government</button><button type="button" class="btn btn-outline-secondary btn-sm cancel-edit-btn" data-tab="government">Cancel</button></div>
-                            </form>
-                        </div>
-                        {% endif %}
                     </div>
 
                 </div>
@@ -691,31 +623,153 @@
 </div>
 {% endif %}
 
+
+
+{% if messages %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ====== EDIT MODALS ====== -->
+{% if tab_perms.property %}
+<div class="modal fade" id="editPropertyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-clipboard-list me-2"></i>Edit Property Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="property">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% for field in property_form %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if tab_perms.finance %}
+<div class="modal fade" id="editFinanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fas fa-coins me-2"></i>Edit Finance & Valuation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="finance">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% for field in finance_form %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning"><i class="fas fa-save me-1"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if tab_perms.lifecycle %}
+<div class="modal fade" id="editLifecycleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-sync-alt me-2"></i>Edit Lifecycle & Maintenance</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="lifecycle">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% for field in lifecycle_form %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info text-white"><i class="fas fa-save me-1"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if tab_perms.government %}
+<div class="modal fade" id="editGovernmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="fas fa-landmark me-2"></i>Edit Government / COA Fields</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="active_tab" value="government">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% for field in government_form %}
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-dark"><i class="fas fa-save me-1"></i>Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Edit toggle buttons
-    document.querySelectorAll('.edit-toggle-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var tab = this.getAttribute('data-tab');
-            document.getElementById(tab + '-view').classList.add('d-none');
-            document.getElementById(tab + '-edit').classList.remove('d-none');
-            this.classList.add('d-none');
-        });
-    });
-    // Cancel buttons
-    document.querySelectorAll('.cancel-edit-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var tab = this.getAttribute('data-tab');
-            document.getElementById(tab + '-edit').classList.add('d-none');
-            document.getElementById(tab + '-view').classList.remove('d-none');
-            var editBtn = document.querySelector('.edit-toggle-btn[data-tab="' + tab + '"]');
-            if (editBtn) editBtn.classList.remove('d-none');
-        });
-    });
-    // Auto-dismiss alerts after 4 seconds
-    setTimeout(function() {
-        document.querySelectorAll('.alert').forEach(function(a) { a.classList.remove('show'); });
-    }, 4000);
-});
+// Auto-dismiss alerts after 4 seconds
+setTimeout(function() {
+    document.querySelectorAll('.alert').forEach(function(a) { a.classList.remove('show'); });
+}, 4000);
 </script>
+
 {% endblock %}

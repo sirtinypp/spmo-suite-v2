@@ -98,6 +98,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'inventory.context_processors.pending_count',
+                'inventory.context_processors.unread_notifications',
             ],
         },
     },

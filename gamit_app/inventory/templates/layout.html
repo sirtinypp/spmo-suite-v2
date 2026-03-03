@@ -222,6 +222,36 @@
             </button>
         </div>
 
+        {% if unread_notif_count > 0 %}
+        <div class="px-3 mb-3">
+            <div class="dropdown">
+                <button
+                    class="btn btn-sm w-100 d-flex align-items-center justify-content-between text-white rounded-3 px-3 py-2 dropdown-toggle"
+                    type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                    style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);">
+                    <span><i class="fas fa-bell me-2 text-primary"></i>Notifications</span>
+                    <span class="badge bg-danger rounded-pill ms-2">{{ unread_notif_count }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-dark shadow-lg"
+                    style="width: 280px; max-height: 300px; overflow-y: auto; font-size: 0.85rem;">
+                    {% for n in unread_notifs %}
+                    <li>
+                        <div class="dropdown-item py-2 text-wrap" style="white-space: normal;">
+                            <div class="small text-info fw-bold">{{ n.asset.property_number }}</div>
+                            <div class="small text-light">{{ n.message }}</div>
+                            <div class="text-secondary" style="font-size: 0.7rem;">{{ n.created_at|timesince }} ago
+                            </div>
+                        </div>
+                    </li>
+                    {% if not forloop.last %}<li>
+                        <hr class="dropdown-divider">
+                    </li>{% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+
         <ul class="nav flex-column mb-auto">
 
             <li class="nav-item">
