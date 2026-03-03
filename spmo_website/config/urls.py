@@ -35,9 +35,11 @@ urlpatterns = [
 from django.urls import re_path
 from django.views.static import serve
 
-if settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
+# Serve media files (news images, docs, etc.)
+# Note: re_path+serve works regardless of DEBUG setting (unlike static() helper).
+# All environments use runserver, not gunicorn, so this is safe.
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
+]
