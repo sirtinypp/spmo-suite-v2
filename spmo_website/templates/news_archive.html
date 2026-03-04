@@ -102,7 +102,7 @@
                                 class="w-full rounded-lg border-slate-300 text-sm focus:ring-red-900 focus:border-red-900">
                                 <option value="">All Categories</option>
                                 {% for code, name in categories %}
-                                <option value="{{ code }}" {% if current_category==code %}selected{% endif %}>{{ name }}
+                                <option value="{{ code }}" {% if current_category == code %}selected{% endif %}>{{ name }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -113,7 +113,7 @@
                                 class="w-full rounded-lg border-slate-300 text-sm focus:ring-red-900 focus:border-red-900">
                                 <option value="">All Years</option>
                                 {% for dt in years %}
-                                <option value="{{ dt.year }}" {% if current_year==dt.year %}selected{% endif %}>{{
+                                <option value="{{ dt.year }}" {% if current_year == dt.year %}selected{% endif %}>{{
                                     dt.year }}</option>
                                 {% endfor %}
                             </select>
@@ -135,8 +135,13 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {% for news in news_list %}
-                    <article
-                        class="news-card group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl hover:border-red-100 transition-all duration-300 flex flex-col h-full">
+                    <article onclick="openNewsModal(this)" data-title="{{ news.title }}"
+                        data-date="{{ news.date_posted|date:'F d, Y' }}" data-category="{{ news.get_category_display }}"
+                        data-color="{{ news.color_theme }}"
+                        data-image="{% if news.image %}{{ news.image.url }}{% endif %}"
+                        data-content="{{ news.content|default:news.summary|linebreaksbr }}"
+                        data-attachment="{% if news.attachment %}{{ news.attachment.url }}{% endif %}"
+                        class="news-card group bg-white rounded-xl overflow-hidden shadow-sm border border-slate-200 hover:shadow-xl hover:border-red-100 transition-all duration-300 flex flex-col h-full cursor-pointer">
                         <div class="relative h-40 overflow-hidden flex-shrink-0 bg-slate-100">
                             {% if news.image %}
                             <img src="{{ news.image.url }}" class="news-card-img w-full h-full object-cover">
@@ -159,6 +164,15 @@
                                 class="text-base font-bold text-slate-900 mb-2 group-hover:text-red-900 transition-colors line-clamp-2">
                                 {{ news.title }}</h3>
                             <p class="text-xs text-slate-500 line-clamp-3 mb-4 flex-grow">{{ news.summary }}</p>
+                            <div
+                                class="flex items-center gap-1 text-[10px] font-bold text-red-900 uppercase tracking-wider mt-auto pt-3 border-t border-slate-100">
+                                <span>Read Full Story</span>
+                                <svg class="w-3 h-3 transition-transform group-hover:translate-x-1" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </div>
                         </div>
                     </article>
                     {% empty %}
@@ -191,9 +205,125 @@
         <div class="max-w-7xl mx-auto px-4">&copy; {% now "Y" %} System Supply & Property Management Office. All Rights
             Reserved.</div>
     </footer>
+
+    <!-- ===================== NEWS MODAL ===================== -->
+    <div id="newsModal" class="fixed inset-0 z-[9999] hidden" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div id="newsBackdrop"
+            class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+        <!-- Panel -->
+        <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-8">
+            <div id="newsPanel"
+                class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform transition-all duration-300 opacity-0 translate-y-6 scale-[0.97]">
+                <!-- Close Button -->
+                <button onclick="closeNewsModal()"
+                    class="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-900 rounded-full transition-all"
+                    aria-label="Close">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <!-- Image -->
+                <div id="modalImgWrap" class="hidden">
+                    <img id="modalImg" src="" alt="" class="w-full h-64 object-cover rounded-t-2xl">
+                </div>
+                <!-- Content -->
+                <div class="p-6 sm:p-8">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span id="modalCatBadge"
+                            class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded"></span>
+                        <span id="modalDate"
+                            class="text-[10px] font-bold text-slate-400 uppercase tracking-wider"></span>
+                    </div>
+                    <h2 id="modalTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900 mb-4 leading-tight">
+                    </h2>
+                    <div id="modalBody"
+                        class="prose prose-sm prose-slate max-w-none text-slate-600 leading-relaxed text-sm"></div>
+                    <!-- Attachment -->
+                    <div id="modalAttachWrap" class="hidden mt-6 pt-4 border-t border-slate-100">
+                        <a id="modalAttachLink" href="#" target="_blank"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-900 text-xs font-bold rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download Attachment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function updateClock() { const now = new Date(); document.getElementById('clock').textContent = now.toLocaleTimeString('en-US', { hour12: true }); }
         setInterval(updateClock, 1000); updateClock();
+
+        /* --- News Modal Logic --- */
+        const newsModal = document.getElementById('newsModal');
+        const newsBackdrop = document.getElementById('newsBackdrop');
+        const newsPanel = document.getElementById('newsPanel');
+
+        function openNewsModal(card) {
+            // Populate
+            document.getElementById('modalTitle').textContent = card.getAttribute('data-title');
+            document.getElementById('modalDate').textContent = card.getAttribute('data-date');
+            document.getElementById('modalBody').innerHTML = card.getAttribute('data-content');
+
+            const catBadge = document.getElementById('modalCatBadge');
+            catBadge.textContent = card.getAttribute('data-category');
+            catBadge.className = `text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded text-${card.getAttribute('data-color')}-600 bg-${card.getAttribute('data-color')}-50`;
+
+            const imgUrl = card.getAttribute('data-image');
+            const imgWrap = document.getElementById('modalImgWrap');
+            if (imgUrl) {
+                document.getElementById('modalImg').src = imgUrl;
+                imgWrap.classList.remove('hidden');
+            } else {
+                imgWrap.classList.add('hidden');
+                document.getElementById('modalImg').src = '';
+            }
+
+            const attachUrl = card.getAttribute('data-attachment');
+            const attachWrap = document.getElementById('modalAttachWrap');
+            if (attachUrl) {
+                document.getElementById('modalAttachLink').href = attachUrl;
+                attachWrap.classList.remove('hidden');
+            } else {
+                attachWrap.classList.add('hidden');
+            }
+
+            // Show
+            newsModal.classList.remove('hidden');
+            // Animate In
+            setTimeout(() => {
+                newsBackdrop.classList.remove('opacity-0');
+                newsPanel.classList.remove('opacity-0', 'translate-y-6', 'scale-[0.97]');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeNewsModal() {
+            // Animate Out
+            newsBackdrop.classList.add('opacity-0');
+            newsPanel.classList.add('opacity-0', 'translate-y-6', 'scale-[0.97]');
+            setTimeout(() => {
+                newsModal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+
+        // Close on backdrop click
+        newsModal.addEventListener('click', (e) => {
+            if (e.target.closest('#newsPanel')) return;
+            closeNewsModal();
+        });
+
+        // Close on Esc
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !newsModal.classList.contains('hidden')) closeNewsModal();
+        });
     </script>
     <!-- Session Timeout Warning System (Popout Modal) -->
     {% load static %}
