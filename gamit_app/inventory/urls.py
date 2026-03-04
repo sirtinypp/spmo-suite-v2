@@ -22,7 +22,8 @@ urlpatterns = [
     path('service-log/<int:pk>/delete/', views.delete_service_log, name='delete_service_log'), # <--- ADDED THIS LINE
 
     # --- TRANSACTION CREATION (User Actions) ---
-    path('transaction/add/', views.add_asset_transaction, name='add_asset_transaction'), 
+    path('assets/add/', views.add_asset_transaction, name='add_asset'),
+    path('transaction/add/', views.add_asset_transaction, name='add_asset_transaction'),  # Legacy alias
     path('transaction/request/', views.create_inspection_request, name='create_inspection_request'), 
     path('transaction/batch/', views.create_batch_request, name='create_batch_request'), 
     path('transaction/transfer/', views.create_transfer_request, name='create_transfer_request'),

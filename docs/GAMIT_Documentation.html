@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMIT — Feature & Workflow Documentation</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --pri: #2563eb;
+            --dark: #1e293b;
+            --muted: #64748b;
+            --bdr: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark);
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        /* A4 portrait = 210mm x 297mm */
+        @page {
+            size: A4 portrait;
+            margin: 14mm 16mm;
+        }
+
+        .page {
+            width: 178mm;
+            min-height: 269mm;
+            max-height: 269mm;
+            margin: 0 auto;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* On screen: show pages with shadow */
+        @media screen {
+            .page {
+                border: 1px solid #ddd;
+                margin: 20px auto;
+                padding: 14mm 16mm;
+                box-shadow: 0 2px 16px rgba(0, 0, 0, .08);
+                background: white;
+                min-height: auto;
+                max-height: none;
+            }
+
+            body {
+                background: #f1f5f9;
+            }
+        }
+
+        @media print {
+            .page {
+                page-break-after: always;
+                padding: 0;
+                max-height: none;
+            }
+
+            .page:last-child {
+                page-break-after: avoid;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        h1 {
+            font-size: 20pt;
+            font-weight: 700;
+            color: var(--pri);
+            margin-bottom: 2px;
+        }
+
+        .subtitle {
+            font-size: 9pt;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .meta-row {
+            display: flex;
+            gap: 20px;
+            font-size: 8pt;
+            color: var(--muted);
+            border-bottom: 2px solid var(--pri);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+        .meta-row span {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        h2 {
+            font-size: 12pt;
+            font-weight: 700;
+            color: var(--dark);
+            margin-top: 14px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--bdr);
+        }
+
+        h2 .n {
+            color: var(--pri);
+            margin-right: 4px;
+        }
+
+        h3 {
+            font-size: 9.5pt;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 10px;
+        }
+
+        thead th {
+            background: var(--dark);
+            color: white;
+            font-weight: 600;
+            text-align: left;
+            padding: 5px 6px;
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+
+        tbody td {
+            padding: 4px 6px;
+            border-bottom: 1px solid var(--bdr);
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        td code {
+            background: #f1f5f9;
+            padding: 0 3px;
+            border-radius: 2px;
+            font-size: 7pt;
+            font-family: 'Cascadia Code', monospace;
+            color: #be185d;
+        }
+
+        td strong {
+            font-weight: 600;
+        }
+
+        ul {
+            padding-left: 16px;
+            margin-bottom: 6px;
+        }
+
+        li {
+            margin-bottom: 2px;
+            font-size: 8.5pt;
+        }
+
+        .card {
+            background: #f8fafc;
+            border-left: 3px solid var(--pri);
+            padding: 6px 10px;
+            margin: 5px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 8.5pt;
+        }
+
+        .card b {
+            color: var(--pri);
+        }
+
+        .diagram-box {
+            background: #f8fafc;
+            border: 1px solid var(--bdr);
+            border-radius: 6px;
+            padding: 12px 8px;
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 7pt;
+            font-weight: 600;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .footer {
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px solid var(--bdr);
+            font-size: 7pt;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .cols {
+            display: flex;
+            gap: 16px;
+        }
+
+        .cols>div {
+            flex: 1;
+        }
+
+        .legend {
+            display: flex;
+            gap: 10px;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border-radius: 4px;
+            font-size: 7pt;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+
+        .legend-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-right: 2px;
+        }
+
+        .print-btn {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: var(--pri);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 9pt;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, .3);
+            z-index: 1000;
+        }
+
+        .print-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* Schema table special compact style */
+        .schema-tbl {
+            font-size: 7.5pt;
+        }
+
+        .schema-tbl thead th {
+            padding: 3px 5px;
+            font-size: 6.5pt;
+        }
+
+        .schema-tbl tbody td {
+            padding: 3px 5px;
+        }
+
+        .schema-tbl code {
+            font-size: 6.5pt;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="print-btn no-print" onclick="window.print()">&#128424; Print / Save PDF</button>
+
+    <!-- ===================== PAGE 1: Overview ===================== -->
+    <div class="page">
+        <h1>GAMIT &mdash; Feature &amp; Workflow Documentation</h1>
+        <div class="subtitle">Government Asset Management Inventory Tracking System</div>
+        <div class="meta-row">
+            <div>Stack: <span>Django 4.2 &middot; PostgreSQL 15 &middot; Bootstrap 5.3</span></div>
+            <div>Port: <span>:8001 &middot; /gamit/</span></div>
+            <div>Updated: <span>2026-03-04</span></div>
+            <div>Ver: <span>1.3</span></div>
+        </div>
+
+        <h2><span class="n">1.</span> Data Models (12)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Model</th>
+                    <th>Purpose</th>
+                    <th>Key Fields</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td><strong>Department</strong></td>
+                    <td>Organizational units</td>
+                    <td><code>name</code></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td><strong>UserProfile</strong></td>
+                    <td>Extended user + role</td>
+                    <td><code>role</code>, <code>office</code>, <code>department</code></td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td><strong>UserSignature</strong></td>
+                    <td>Digital PAR signature</td>
+                    <td><code>signature_image</code>, <code>position_title</code></td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><strong>Asset</strong></td>
+                    <td>Core record (30+ fields)</td>
+                    <td><code>property_number</code>, <code>name</code>, <code>status</code>, <code>cost</code></td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td><strong>InspectionRequest</strong></td>
+                    <td>Inspect an asset</td>
+                    <td><code>asset</code>, <code>requestor</code>, <code>status</code></td>
+                </tr>
+                <tr>
+                    <td>6</td>
+                    <td><strong>AssetBatch</strong></td>
+                    <td>Batch procurement (PAR)</td>
+                    <td><code>transaction_id</code>, <code>status</code>, <code>documents</code></td>
+                </tr>
+                <tr>
+                    <td>7</td>
+                    <td><strong>BatchItem</strong></td>
+                    <td>Line items in batch</td>
+                    <td><code>description</code>, <code>quantity</code>, <code>amount</code></td>
+                </tr>
+                <tr>
+                    <td>8</td>
+                    <td><strong>ApprovalLog</strong></td>
+                    <td>Workflow audit trail</td>
+                    <td><code>user</code>, <code>action</code>, <code>signature_snapshot</code></td>
+                </tr>
+                <tr>
+                    <td>9</td>
+                    <td><strong>AssetTransferRequest</strong></td>
+                    <td>Transfer accountability</td>
+                    <td><code>asset</code>, <code>new_officer</code>, <code>status</code></td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td><strong>ServiceLog</strong></td>
+                    <td>Maintenance records</td>
+                    <td><code>service_type</code>, <code>provider</code>, <code>cost</code></td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td><strong>AssetChangeLog</strong></td>
+                    <td>Field-level audit</td>
+                    <td><code>field_name</code>, <code>old_value</code>, <code>new_value</code></td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td><strong>AssetNotification</strong></td>
+                    <td>Cross-office alerts</td>
+                    <td><code>recipient_role</code>, <code>message</code>, <code>is_read</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2><span class="n">2.</span> User Roles</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Role</th>
+                    <th>Code</th>
+                    <th>Permissions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Superuser</strong></td>
+                    <td><code>is_superuser</code></td>
+                    <td>Full access to everything</td>
+                </tr>
+                <tr>
+                    <td><strong>SPMO Admin</strong></td>
+                    <td><code>SPMO_ADMIN</code></td>
+                    <td>Property + Lifecycle + COA tabs, approve batches</td>
+                </tr>
+                <tr>
+                    <td><strong>Accounting</strong></td>
+                    <td><code>ACCT_ADMIN</code></td>
+                    <td>Finance tab only</td>
+                </tr>
+                <tr>
+                    <td><strong>Admin Officer</strong></td>
+                    <td><code>USER_AO</code></td>
+                    <td>Create batch requests, sign PARs</td>
+                </tr>
+                <tr>
+                    <td><strong>Inspector</strong></td>
+                    <td><code>INSPECTOR</code></td>
+                    <td>Inspect deliveries</td>
+                </tr>
+                <tr>
+                    <td><strong>Supervisor</strong></td>
+                    <td><code>SUPERVISOR</code></td>
+                    <td>Approve inspections</td>
+                </tr>
+                <tr>
+                    <td><strong>Chief</strong></td>
+                    <td><code>CHIEF</code></td>
+                    <td>Pre-approve and finalize PARs</td>
+                </tr>
+                <tr>
+                    <td><strong>Regular User</strong></td>
+                    <td><code>USER</code></td>
+                    <td>View own office assets, create requests</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2><span class="n">3.</span> Feature Modules</h2>
+        <h3>3.1 Dashboard &nbsp;&middot;&nbsp; 3.2 Asset Inventory &nbsp;&middot;&nbsp; 3.3 Asset Detail</h3>
+        <ul>
+            <li><strong>Dashboard</strong>: Total assets, valuation, class/status breakdowns, recent activity</li>
+            <li><strong>Inventory</strong>: Paginated, searchable list with filters; clickable rows; Add Asset (staff);
+                Import/Export</li>
+            <li><strong>Detail</strong>: 4-tab interface (Property, Finance, Lifecycle, COA) with role-based modal
+                editing, audit trail, cross-office notifications, service history, print buttons</li>
+        </ul>
+
+        <h3>3.4 Transactions</h3>
+        <div class="card"><b>A. Inspection:</b> Select asset &rarr; attach docs &rarr; Pending &rarr; Approved/Rejected
+        </div>
+        <div class="card"><b>B. Batch Procurement:</b> Line items + PO/PR docs &rarr; 9-state PAR Workflow (&sect;4)
+        </div>
+        <div class="card"><b>C. Transfer:</b> Select asset &rarr; new officer + ITR &rarr; Pending &rarr;
+            Approved/Rejected</div>
+
+        <h3>3.5&ndash;3.7 History, Service Logs, Reports</h3>
+        <ul>
+            <li>Unified transaction history with approve/reject actions and pending badge</li>
+            <li>Per-asset service &amp; maintenance logs (add/delete/print)</li>
+            <li>PDF reports: IAR, PAR (per-asset with signatures), Service Record</li>
+        </ul>
+    </div>
+
+    <!-- ===================== PAGE 2: PAR Workflow ===================== -->
+    <div class="page">
+        <h2 style="margin-top:0"><span class="n">4.</span> PAR Workflow Engine (9 States)</h2>
+        <p style="font-size: 8.5pt; margin-bottom: 8px;">Batch procurement lifecycle &mdash; role-based state machine
+            with digital signature enforcement at each gate:</p>
+
+        <div class="diagram-box">
+            <pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'primaryTextColor': '#1e293b', 'primaryBorderColor': '#2563eb', 'lineColor': '#475569', 'fontSize': '10px'}, 'flowchart': {'curve': 'linear', 'padding': 6, 'nodeSpacing': 16, 'rankSpacing': 24, 'useMaxWidth': true}}}%%
+flowchart TD
+    A["1 &bull; ANTICIPATORY"]:::blue -->|"AO Submit"| B["2 &bull; AWAITING DELIVERY"]:::sky
+    B -->|"SPMO Confirm"| C["3 &bull; DELIVERY VALIDATION"]:::sky
+    C -->|"SPMO Validate"| D["4 &bull; FOR INSPECTION"]:::amber
+    D -->|"Inspector Pass"| E["5 &bull; SUPERVISOR APPROVAL"]:::amber
+    E -->|"Supervisor OK"| F["6 &bull; CHIEF PRE-APPROVAL"]:::violet
+    F -->|"Chief Approve"| G["7 &bull; AO SIGNATURE"]:::pink
+    G -->|"AO Sign"| H["8 &bull; CHIEF FINAL"]:::violet
+    H -->|"Release"| I["9 &bull; PAR RELEASED"]:::green
+    B -.->|"Reject"| X["REJECTED"]:::red
+    C -.-> X
+    D -.-> X
+    E -.-> X
+    F -.-> X
+
+    classDef blue fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a5f
+    classDef sky fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#1e3a5f
+    classDef amber fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#1e3a5f
+    classDef violet fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#1e3a5f
+    classDef pink fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#1e3a5f
+    classDef green fill:#dcfce7,stroke:#16a34a,stroke-width:3px,color:#14532d
+    classDef red fill:#fee2e2,stroke:#dc2626,stroke-width:2px,color:#991b1b
+        </pre>
+        </div>
+
+        <div class="legend">
+            <strong>Legend:</strong>
+            <span><span class="legend-dot" style="background:#dbeafe;border:1px solid #2563eb"></span> Submission</span>
+            <span><span class="legend-dot" style="background:#e0f2fe;border:1px solid #0284c7"></span> SPMO
+                Review</span>
+            <span><span class="legend-dot" style="background:#fef3c7;border:1px solid #d97706"></span> Inspection</span>
+            <span><span class="legend-dot" style="background:#ede9fe;border:1px solid #7c3aed"></span> Chief</span>
+            <span><span class="legend-dot" style="background:#fce7f3;border:1px solid #db2777"></span> AO Sign</span>
+            <span><span class="legend-dot" style="background:#dcfce7;border:1px solid #16a34a"></span> Complete</span>
+            <span><span class="legend-dot" style="background:#fee2e2;border:1px solid #dc2626"></span> Rejected</span>
+        </div>
+
+        <div class="cols" style="margin-top: 10px;">
+            <div>
+                <h3 style="margin-top:0">Workflow Rules</h3>
+                <ul>
+                    <li>Each transition requires a <strong>specific role</strong> (Django groups)</li>
+                    <li>Approver must have <strong>digital signature</strong> uploaded</li>
+                    <li>Document validation at gates (PO/PR at submit, DR/SI at delivery)</li>
+                    <li>Every transition &rarr; <strong>ApprovalLog</strong> (signature, timestamp, IP)</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="margin-top:0">PAR PDF Generation</h3>
+                <ul>
+                    <li><strong>Draft</strong>: Inspector + Supervisor sigs, &ldquo;DRAFT&rdquo; watermark</li>
+                    <li><strong>Final</strong>: All signatures, no watermark, SHA-256 hashed</li>
+                    <li>A4 template at <code>static/inventory/pdf/par_template.pdf</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <h2><span class="n">6.</span> Key Integrations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Integration</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Google SSO</strong></td>
+                    <td><span class="badge">Live</span></td>
+                    <td><code>django-allauth</code>, shared across SPMO apps</td>
+                </tr>
+                <tr>
+                    <td><strong>Import/Export</strong></td>
+                    <td><span class="badge">Live</span></td>
+                    <td>CSV/Excel via <code>django-import-export</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Notifications</strong></td>
+                    <td><span class="badge">Live</span></td>
+                    <td>Bell icon, unread count badge</td>
+                </tr>
+                <tr>
+                    <td><strong>Audit Trail</strong></td>
+                    <td><span class="badge">Live</span></td>
+                    <td>Field-level change logging, all 4 tabs</td>
+                </tr>
+                <tr>
+                    <td><strong>PDF Generation</strong></td>
+                    <td><span class="badge">Built</span></td>
+                    <td>PAR signatures via ReportLab + pypdf</td>
+                </tr>
+                <tr>
+                    <td><strong>Django Admin</strong></td>
+                    <td><span class="badge">Live</span></td>
+                    <td><code>/admin/</code> (superuser only)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===================== PAGE 3: URL Routes ===================== -->
+    <div class="page">
+        <h2 style="margin-top:0"><span class="n">5.</span> URL Route Map (24 routes)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>View</th>
+                    <th>Auth</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>/login/</code></td>
+                    <td>LoginView</td>
+                    <td>&mdash;</td>
+                    <td>Login (Google SSO + manual)</td>
+                </tr>
+                <tr>
+                    <td><code>/logout/</code></td>
+                    <td>LogoutView</td>
+                    <td>&mdash;</td>
+                    <td>Session logout</td>
+                </tr>
+                <tr>
+                    <td><code>/dashboard/</code></td>
+                    <td>dashboard</td>
+                    <td>Login</td>
+                    <td>Main dashboard</td>
+                </tr>
+                <tr>
+                    <td><code>/assets/</code></td>
+                    <td>asset_list</td>
+                    <td>Login</td>
+                    <td>Asset inventory list</td>
+                </tr>
+                <tr>
+                    <td><code>/assets/add/</code></td>
+                    <td>add_asset</td>
+                    <td>Staff</td>
+                    <td>Add new asset (frontend)</td>
+                </tr>
+                <tr>
+                    <td><code>/asset/&lt;id&gt;/</code></td>
+                    <td>asset_detail</td>
+                    <td>Login</td>
+                    <td>Asset detail (4 tabs)</td>
+                </tr>
+                <tr>
+                    <td><code>/sitemap/</code></td>
+                    <td>sitemap</td>
+                    <td>Login</td>
+                    <td>Site map</td>
+                </tr>
+                <tr>
+                    <td><code>/asset/&lt;id&gt;/add-log/</code></td>
+                    <td>add_service_log</td>
+                    <td>Login</td>
+                    <td>Add service log</td>
+                </tr>
+                <tr>
+                    <td><code>/asset/&lt;id&gt;/print-log/</code></td>
+                    <td>print_service_log</td>
+                    <td>Login</td>
+                    <td>Print service record</td>
+                </tr>
+                <tr>
+                    <td><code>/service-log/&lt;id&gt;/delete/</code></td>
+                    <td>delete_service_log</td>
+                    <td>Login</td>
+                    <td>Delete service log</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/request/</code></td>
+                    <td>create_inspection_request</td>
+                    <td>Login</td>
+                    <td>Request inspection</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/batch/</code></td>
+                    <td>create_batch_request</td>
+                    <td>Login</td>
+                    <td>Create batch procurement</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/transfer/</code></td>
+                    <td>create_transfer_request</td>
+                    <td>Login</td>
+                    <td>Request asset transfer</td>
+                </tr>
+                <tr>
+                    <td><code>/transactions/history/</code></td>
+                    <td>transaction_history</td>
+                    <td>Login</td>
+                    <td>Unified transaction list</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/&lt;id&gt;/status/&lt;a&gt;/</code></td>
+                    <td>update_request_status</td>
+                    <td>Staff</td>
+                    <td>Approve/reject inspection</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/batch/&lt;id&gt;/status/&lt;a&gt;/</code></td>
+                    <td>update_batch_status</td>
+                    <td>Staff</td>
+                    <td>Approve/reject batch</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/transfer/&lt;id&gt;/status/&lt;a&gt;/</code></td>
+                    <td>update_transfer_status</td>
+                    <td>Staff</td>
+                    <td>Approve/reject transfer</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/batch/&lt;id&gt;/process/</code></td>
+                    <td>process_batch_admin</td>
+                    <td>Staff</td>
+                    <td>Process batch</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/batch/&lt;id&gt;/print/</code></td>
+                    <td>print_acceptance_report</td>
+                    <td>Staff</td>
+                    <td>Print IAR PDF</td>
+                </tr>
+                <tr>
+                    <td><code>/transaction/batch/&lt;id&gt;/print-par/</code></td>
+                    <td>print_par</td>
+                    <td>Staff</td>
+                    <td>Print PAR PDF</td>
+                </tr>
+                <tr>
+                    <td><code>/profile/signature/</code></td>
+                    <td>upload_signature</td>
+                    <td>Login</td>
+                    <td>Upload digital signature</td>
+                </tr>
+                <tr>
+                    <td><code>/batch/&lt;id&gt;/</code></td>
+                    <td>batch_detail</td>
+                    <td>Login</td>
+                    <td>Batch detail + workflow</td>
+                </tr>
+                <tr>
+                    <td><code>/batch/&lt;id&gt;/workflow/&lt;s&gt;/</code></td>
+                    <td>approve_batch_workflow</td>
+                    <td>Login</td>
+                    <td>Advance workflow state</td>
+                </tr>
+                <tr>
+                    <td><code>/api/asset-info/&lt;id&gt;/</code></td>
+                    <td>get_asset_info</td>
+                    <td>Login</td>
+                    <td>JSON asset lookup</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===================== PAGE 4: Database Schema ===================== -->
+    <div class="page">
+        <h2 style="margin-top:0"><span class="n">7.</span> Database Schema</h2>
+        <p style="font-size: 8pt; color: var(--muted); margin-bottom: 8px;">Entity-Relationship diagram with key
+            attributes and all model relationships.</p>
+
+        <!-- Schema Table: compact attribute reference -->
+        <table class="schema-tbl">
+            <thead>
+                <tr>
+                    <th>Entity</th>
+                    <th>PK</th>
+                    <th>FKs</th>
+                    <th>Key Columns</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Department</strong></td>
+                    <td><code>id</code></td>
+                    <td>&mdash;</td>
+                    <td><code>name</code> (unique)</td>
+                </tr>
+                <tr>
+                    <td><strong>User</strong></td>
+                    <td><code>id</code></td>
+                    <td>&mdash;</td>
+                    <td><code>username</code>, <code>email</code>, <code>is_staff</code></td>
+                </tr>
+                <tr>
+                    <td><strong>UserProfile</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>user</code>, <code>department</code></td>
+                    <td><code>role</code>, <code>office</code></td>
+                </tr>
+                <tr>
+                    <td><strong>UserSignature</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>user</code></td>
+                    <td><code>signature_image</code>, <code>position_title</code></td>
+                </tr>
+                <tr>
+                    <td><strong>Asset</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>department</code></td>
+                    <td><code>property_number</code>, <code>name</code>, <code>status</code>, <code>cost</code>,
+                        <code>class</code></td>
+                </tr>
+                <tr>
+                    <td><strong>InspectionRequest</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>asset</code>, <code>requestor</code></td>
+                    <td><code>transaction_id</code>, <code>status</code>, <code>notes</code></td>
+                </tr>
+                <tr>
+                    <td><strong>AssetBatch</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>requestor</code></td>
+                    <td><code>transaction_id</code>, <code>status</code>, <code>supplier</code>, <code>po_number</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>BatchItem</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>batch</code></td>
+                    <td><code>description</code>, <code>quantity</code>, <code>unit</code>, <code>amount</code></td>
+                </tr>
+                <tr>
+                    <td><strong>ApprovalLog</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>batch</code>, <code>user</code></td>
+                    <td><code>role</code>, <code>action</code>, <code>signature_snapshot</code>, <code>timestamp</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>AssetTransfer</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>asset</code>, <code>requestor</code></td>
+                    <td><code>transaction_id</code>, <code>status</code>, <code>new_officer</code></td>
+                </tr>
+                <tr>
+                    <td><strong>ServiceLog</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>asset</code></td>
+                    <td><code>service_date</code>, <code>type</code>, <code>provider</code>, <code>cost</code></td>
+                </tr>
+                <tr>
+                    <td><strong>AssetChangeLog</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>asset</code>, <code>user</code></td>
+                    <td><code>tab</code>, <code>field_name</code>, <code>old_value</code>, <code>new_value</code></td>
+                </tr>
+                <tr>
+                    <td><strong>AssetNotification</strong></td>
+                    <td><code>id</code></td>
+                    <td><code>asset</code></td>
+                    <td><code>recipient_role</code>, <code>message</code>, <code>is_read</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ER Relationship Diagram: clean, entities only, no attributes = compact -->
+        <div class="diagram-box">
+            <pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'primaryTextColor': '#1e293b', 'primaryBorderColor': '#2563eb', 'lineColor': '#475569', 'fontSize': '12px'}, 'er': {'layoutDirection': 'TB', 'entityPadding': 12, 'fontSize': 12, 'useMaxWidth': true}}}%%
+erDiagram
+    Department ||--o{ UserProfile : "has"
+    Department ||--o{ Asset : "owns"
+    User ||--|| UserProfile : "extends"
+    User ||--|| UserSignature : "has"
+    User ||--o{ InspectionRequest : "creates"
+    User ||--o{ AssetBatch : "creates"
+    User ||--o{ AssetTransfer : "creates"
+    Asset ||--o{ ServiceLog : "logs"
+    Asset ||--o{ AssetChangeLog : "audit"
+    Asset ||--o{ AssetNotification : "alerts"
+    Asset ||--o{ InspectionRequest : "inspected"
+    Asset ||--o{ AssetTransfer : "transferred"
+    AssetBatch ||--o{ BatchItem : "contains"
+    AssetBatch ||--o{ ApprovalLog : "approved"
+        </pre>
+        </div>
+
+        <div class="footer">
+            GAMIT System v1.3 &nbsp;&middot;&nbsp; SPMO Suite &nbsp;&middot;&nbsp; Generated 2026-03-04
+            &nbsp;&middot;&nbsp; Confidential &mdash; Internal Use Only
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#dbeafe',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#2563eb',
+                lineColor: '#475569',
+                fontSize: '11px',
+            },
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'linear', padding: 6 },
+            er: { useMaxWidth: true, layoutDirection: 'TB', entityPadding: 12 },
+        });
+    </script>
+
+</body>
+
+</html>

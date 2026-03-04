@@ -13,7 +13,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification
 
 from .forms import (
-    AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
+    AddAssetForm, AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
     AssetTransferRequestForm, AdminBatchProcessForm, BatchItemFormSet,
     ServiceLogForm,
     PropertyTabForm, FinanceTabForm, LifecycleTabForm, GovernmentTabForm,
@@ -391,26 +391,22 @@ def sitemap(request):
 # 5. ADD ASSET
 @login_required
 def add_asset_transaction(request):
+    if not request.user.is_staff:
+        messages.error(request, "You do not have permission to add assets.")
+        return redirect('asset_list')
+    
     if request.method == 'POST':
-        form = AssetTransactionForm(request.POST, request.FILES)
+        form = AddAssetForm(request.POST, request.FILES)
         if form.is_valid():
             asset = form.save(commit=False)
-            if not request.user.is_staff:
-                try:
-                    profile = request.user.userprofile
-                    asset.assigned_office = profile.office
-                    asset.department = profile.department  # <--- NEW: Set Department FK
-                except (UserProfile.DoesNotExist, AttributeError):
-                    messages.error(request, "Error: You do not have an office/department assigned.")
-                    return redirect('dashboard')
-            else:
-                if not asset.assigned_office: asset.assigned_office = "Main (Admin)"
+            if not asset.assigned_office:
+                asset.assigned_office = "Main (Admin)"
             asset.save()
-            messages.success(request, f"Asset {asset.property_number} successfully recorded!")
-            return redirect('asset_list')
+            messages.success(request, f"Asset {asset.property_number} successfully added!")
+            return redirect('asset_detail', pk=asset.pk)
     else:
-        form = AssetTransactionForm()
-    return render(request, 'inventory/transaction_add.html', {'form': form})
+        form = AddAssetForm()
+    return render(request, 'inventory/asset_add.html', {'form': form})
 
 # 6. REQUEST INSPECTION
 @login_required

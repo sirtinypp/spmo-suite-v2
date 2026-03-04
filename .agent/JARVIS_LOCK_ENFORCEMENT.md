@@ -130,12 +130,15 @@ Sir, production lock protection triggered:
 
 ## 📊 SESSION START PROTOCOL
 
-At the beginning of every session:
+See the canonical startup workflow:
+[`.agent/workflows/startup-protocol.md`](file:///c:/Users/Aaron/spmo-suite%20-%20Copy/.agent/workflows/startup-protocol.md)
 
-1. **Greet User**: Acknowledge previous work
-2. **Health Check**: Run production status verification
-3. **Load Context**: Review latest logs from all agents
-4. **Standby**: Wait for user directive
+This protocol defines **5 mandatory phases** executed in sequence:
+1. **Server Status Check** — Local, Dev (staging), Production
+2. **Internalize KB & Protocols** — Load governance rules, personas, KIs
+3. **Daily Log Review** — Read last 5 daily logs for continuity
+4. **Agent Roll Call** — Confirm all 8 agents operational
+5. **Executive Summary** — Git sync, risk flags, prioritized recommendations
 
 ---
 

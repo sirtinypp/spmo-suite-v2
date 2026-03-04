@@ -1,0 +1,200 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+        <h2 class="h4 fw-bold text-body-emphasis mb-3 mb-md-0">
+            <i class="fas fa-plus-circle text-primary me-2"></i>Add New Asset
+        </h2>
+        <a href="{% url 'asset_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Assets
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="addAssetForm">
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger border-0 shadow-sm mb-4">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Please correct the errors below.</strong>
+            <ul class="mb-0 mt-2 small">
+                {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            <!-- LEFT COLUMN: Main Form -->
+            <div class="col-lg-8">
+
+                <!-- Section 1: Property Information -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-body-tertiary border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-body-emphasis">
+                            <i class="fas fa-file-alt text-primary me-2"></i>Property Information
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-body-secondary">Property Number <span
+                                        class="text-danger">*</span></label>
+                                {{ form.property_number }}
+                                {% if form.property_number.help_text %}
+                                <div class="form-text small">{{ form.property_number.help_text }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-body-secondary">Date Acquired <span
+                                        class="text-danger">*</span></label>
+                                {{ form.date_acquired }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-body-secondary">Asset Name <span
+                                        class="text-danger">*</span></label>
+                                {{ form.name }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-body-secondary">Full Description</label>
+                                {{ form.description }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-body-secondary">Acquisition Cost</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-body border-end-0">&#8369;</span>
+                                    {{ form.acquisition_cost }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Classification -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-body-tertiary border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-body-emphasis">
+                            <i class="fas fa-tags text-primary me-2"></i>Classification
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-body-secondary">Asset Class</label>
+                                {{ form.asset_class }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-body-secondary">Nature</label>
+                                {{ form.asset_nature }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-body-secondary">Status</label>
+                                {{ form.status }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Accountability & Location -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-body-tertiary border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-body-emphasis">
+                            <i class="fas fa-user-shield text-primary me-2"></i>Accountability & Location
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-body-secondary">Department</label>
+                                {{ form.department }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-body-secondary">Assigned Office/Unit <span
+                                        class="text-danger">*</span></label>
+                                {{ form.assigned_office }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-body-secondary">Accountable Officer — First
+                                    Name</label>
+                                {{ form.accountable_firstname }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold text-body-secondary">{{ form.accountable_middle_initial.label }}</label>
+                                {{ form.accountable_middle_initial }}
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-body-secondary">Surname</label>
+                                {{ form.accountable_surname }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Images & Actions -->
+            <div class="col-lg-4">
+
+                <!-- Images & Documents -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-body-tertiary border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-body-emphasis">
+                            <i class="fas fa-camera text-primary me-2"></i>Images & Documents
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-body-secondary">Serial Number Photo</label>
+                            {{ form.image_serial }}
+                            <div class="form-text small text-body-secondary">Photo of the serial number plate/sticker
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-body-secondary">Condition Photo</label>
+                            {{ form.image_condition }}
+                            <div class="form-text small text-body-secondary">Photo showing current physical condition
+                            </div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label small fw-bold text-body-secondary">Supporting Document</label>
+                            {{ form.attachment }}
+                            <div class="form-text small text-body-secondary">PDF, image, or document file</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="card border-0 shadow-sm mb-4" style="background: rgba(59,130,246,0.05);">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fas fa-lightbulb me-2"></i>Tips</h6>
+                        <ul class="small text-body-secondary mb-0 ps-3">
+                            <li class="mb-2">Finance, Lifecycle, and COA fields can be edited later on the asset detail
+                                page.</li>
+                            <li class="mb-2">Photos help with audits — serial number and condition photos are
+                                recommended.</li>
+                            <li>Non-staff users' assets are automatically assigned to their department.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm py-3">
+                        <i class="fas fa-save me-2"></i>Save Asset
+                    </button>
+                    <a href="{% url 'asset_list' %}" class="btn btn-outline-secondary">
+                        Cancel
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
