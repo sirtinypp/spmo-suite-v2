@@ -10,7 +10,7 @@
         </h2>
 
         {% if user.is_staff %}
-        <a href="/admin/inventory/asset/add/" class="btn btn-primary shadow-sm">
+        <a href="{% url 'add_asset' %}" class="btn btn-primary shadow-sm">
             <i class="fas fa-plus me-2"></i>Add New Asset
         </a>
         {% endif %}
@@ -107,7 +107,6 @@
                         <th style="width: 12%;" class="py-3">Nature</th>
                         <th style="width: 12%;" class="py-3">Status</th>
                         <th style="width: 12%;" class="py-3">Department</th>
-                        <th style="width: 7%;" class="text-end pe-4 py-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
@@ -174,25 +173,11 @@
                         <td class="small text-body-secondary">{{ asset.department.name|default:asset.assigned_office }}
                         </td>
 
-                        <td class="text-end pe-4">
-                            <div class="btn-group">
-                                {% if user.is_staff %}
-                                <a href="/admin/inventory/asset/{{ asset.id }}/change/"
-                                    class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation();"
-                                    title="Edit in Admin">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                {% endif %}
-                                <a href="{% url 'asset_detail' asset.id %}" class="btn btn-sm btn-outline-secondary"
-                                    onclick="event.stopPropagation();" title="View Details">
-                                    <i class="fas fa-chevron-right"></i>
-                                </a>
-                            </div>
-                        </td>
+
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
+                        <td colspan="7" class="text-center py-5 text-muted">
                             <div class="d-flex flex-column align-items-center">
                                 <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
                                 {% if search_term or selected_class or selected_nature or selected_status %}

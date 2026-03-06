@@ -38,8 +38,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Requestor:</strong> {{
-                                batch.requestor.get_full_name|default:batch.requestor.username }}</p>
+                            <p><strong>Requestor:</strong> {{ batch.requestor.get_full_name|default:batch.requestor.username }}</p>
                             <p><strong>Unit:</strong> {{ batch.requesting_unit }}</p>
                             <p><strong>Date:</strong> {{ batch.created_at|date:"Y-m-d" }}</p>
                         </div>

@@ -5,15 +5,58 @@ from django.forms import inlineformset_factory
 from .models import Asset, InspectionRequest, AssetBatch, AssetTransferRequest, BatchItem, ServiceLog
 
 # ==========================================
-# 1. ASSET FORM (Admin/Staff)
+# 1. ADD ASSET FORM (Frontend — replaces admin link)
 # ==========================================
-class AssetTransactionForm(forms.ModelForm):
+class AddAssetForm(forms.ModelForm):
+    """Focused form for creating new assets from the frontend."""
     class Meta:
         model = Asset
-        fields = '__all__'
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values(): field.widget.attrs.update({'class': 'form-control'})
+        fields = [
+            # Section 1: Property Info
+            'property_number', 'name', 'description',
+            'date_acquired', 'acquisition_cost',
+            # Section 2: Classification
+            'asset_class', 'asset_nature', 'status',
+            # Section 3: Accountability
+            'department', 'assigned_office',
+            'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
+            # Section 4: Images & Docs
+            'image_serial', 'image_condition', 'attachment',
+        ]
+        widgets = {
+            'property_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. PAR-105001'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Short description of the asset'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Full description, specifications, model number...'}),
+            'date_acquired': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'acquisition_cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
+            'asset_class': forms.Select(attrs={'class': 'form-select'}),
+            'asset_nature': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'department': forms.Select(attrs={'class': 'form-select'}),
+            'assigned_office': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Office or Unit name'}),
+            'accountable_firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
+            'accountable_middle_initial': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'M.I.'}),
+            'accountable_surname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Surname'}),
+            'image_serial': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'image_condition': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+            'attachment': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png,.doc,.docx'}),
+        }
+        labels = {
+            'name': 'Asset Name',
+            'image_serial': 'Serial Number Photo',
+            'image_condition': 'Condition Photo',
+            'attachment': 'Supporting Document',
+            'accountable_middle_initial': 'M.I.',
+        }
+        help_texts = {
+            'property_number': 'Unique property number assigned to this asset',
+            'image_serial': 'Photo of the serial number plate/sticker',
+            'image_condition': 'Photo showing current physical condition',
+        }
+
+# Legacy alias for backward compatibility
+AssetTransactionForm = AddAssetForm
+
 
 # ==========================================
 # 2. INSPECTION REQUEST FORM
