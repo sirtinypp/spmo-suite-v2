@@ -214,7 +214,7 @@
             }
         }
     </style>
-    <script>!function () { var s = Date.now(); window.addEventListener('DOMContentLoaded', function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l) setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }) }();</script>
+    <script>!function () { var s = Date.now(), h = function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
 
     <nav class="sidebar">
         <div class="sidebar-brand">

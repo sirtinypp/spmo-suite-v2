@@ -42,7 +42,7 @@
             }
         }
     </style>
-    <script>!function () { var s = Date.now(); window.addEventListener('DOMContentLoaded', function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l) setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }) }();</script>
+    <script>!function () { var s = Date.now(), h = function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
 
     <nav class="bg-white border-b border-slate-200 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
