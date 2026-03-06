@@ -5,7 +5,8 @@ from .models import Asset
 from decimal import Decimal
 from django.db import IntegrityError
 import re
-import math  # For isnan() check instead of pandas 
+import math  # For isnan() check instead of pandas
+import tablib
 
 # --- Custom Widget for Safe Date Conversion ---
 class CustomDateWidget(widgets.DateWidget):
@@ -30,6 +31,36 @@ class AssetResource(resources.ModelResource):
         column_name='date_acquired',
         widget=CustomDateWidget(format='%m/%d/%Y'),
     )
+
+    def create_dataset(self, in_stream, file_format=None, **kwargs):
+        """
+        Override to handle non-UTF-8 CSV files (e.g., Excel exports on Windows).
+        Tries multiple encodings: utf-8 → utf-8-sig (BOM) → cp1252 → latin-1.
+        """
+        # Extract raw bytes from the input stream
+        if hasattr(in_stream, 'read'):
+            raw_bytes = in_stream.read()
+            if hasattr(in_stream, 'seek'):
+                in_stream.seek(0)
+        elif isinstance(in_stream, bytes):
+            raw_bytes = in_stream
+        else:
+            # Not bytes or stream — let the parent handle it
+            return super().create_dataset(in_stream, file_format, **kwargs)
+
+        # Try each encoding in order; latin-1 never fails (1:1 byte mapping)
+        for encoding in ('utf-8', 'utf-8-sig', 'cp1252', 'latin-1'):
+            try:
+                decoded = raw_bytes.decode(encoding)
+                dataset = tablib.Dataset()
+                dataset.csv = decoded
+                return dataset
+            except (UnicodeDecodeError, Exception):
+                continue
+
+        # All fallbacks exhausted — let the parent try its default
+        return super().create_dataset(in_stream, file_format, **kwargs)
+
 
     def clean_value(self, value, field_name):
         """
