@@ -5,13 +5,13 @@ from django.template import Template, Context, Engine
 from django.conf import settings
 
 # Setup Django Environment
-sys.path.append('/app')
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gamit_core.settings')
 django.setup()
 
 def check_file_content():
     print("--- Checking File Content (Lines 160-180) ---")
-    file_path = '/app/inventory/templates/inventory/asset_list.html'
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inventory', 'templates', 'inventory', 'asset_list.html')
     try:
         with open(file_path, 'r') as f:
             lines = f.readlines()
@@ -25,7 +25,7 @@ def test_template_rendering():
     print("\n--- Testing Template Rendering ---")
     try:
         # Load the template file
-        with open('/app/inventory/templates/inventory/asset_list.html', 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'inventory', 'templates', 'inventory', 'asset_list.html'), 'r') as f:
             template_content = f.read()
         
         # Configure a basic engine to parse it. 

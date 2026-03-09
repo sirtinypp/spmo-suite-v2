@@ -21,9 +21,9 @@
 
             <select name="asset_nature" class="form-select form-select-sm shadow-sm border-primary"
                 onchange="this.form.submit()">
-                <option value="">All Natures</option>
+                <option value="">All Asset Types</option>
                 {% for n in all_natures %}
-                <option value="{{ n }}" {% if selected_nature == n %}selected{% endif %}>{{ n }}</option>
+                <option value="{{ n }}" {% if selected_nature == n %}selected{% endif %}>{{ n|title }}</option>
                 {% endfor %}
             </select>
 

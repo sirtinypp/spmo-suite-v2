@@ -50,49 +50,50 @@ class Asset(models.Model):
     # ... choices ...
     # 2. PPE CLASS CHOICES (Standardized to CSV)
     CLASS_CHOICES = [
-        ('FURNITURE', 'Furniture and Fixtures'),
         ('ICT EQUIPMENT', 'ICT Equipment'),
         ('MACHINERY', 'Machinery'),
-        ('MOTOR_VEHICLE', 'Motor Vehicle'),
+        ('MOTOR VEHICLE', 'Motor Vehicle'),
         ('OFFICE EQUIPMENT', 'Office Equipment'),
-        ('TECH_SCIENTIFIC', 'Technical and Scientific Equipment'),
+        ('TECHNICAL AND SCIENTIFIC EQUIPMENT', 'Technical and Scientific Equipment'),
+        ('FURNITURE AND FIXTURES', 'Furniture and Fixures'),
+        ('AIRCONDITIONING', 'Airconditioning'),
+        ('OTHER', 'Other'),
     ]
-    
-    # 3. ASSET TYPE CHOICES (Detailed from CSV)
-    NATURE_CHOICES = [
-        ('AUDIO', 'Audio'),
-        ('AV_BROADCAST', 'Audio/Video & Broadcast'),
+
+    # 3. ASSET TYPE / NATURE CHOICES (Extracted from CSV)
+    ASSET_TYPE_CHOICES = [
+        ('AUDIO_VIDEO_AND_BROADCAST', 'Audio/Video & Broadcast'),
         ('CAMERAS', 'Cameras'),
         ('CARS', 'Cars'),
-        ('COMM_AUDIO', 'Communication and Audio Devices'),
-        ('COMP_PERI_SERV', 'Computer Peripherals and Servers'),
-        ('COPIER_PRINT', 'Copier and Printing Devices'),
-        ('DESK_WORKSTATION', 'Desks & Workstations'),
-        ('DESKTOP_AIO', 'Desktops and All-in-one PCs'),
-        ('DRONES_NAV', 'Drones & Navigation'),
-        ('FITNESS', 'Fitness Equipment'),
-        ('FOOD_EQUIP', 'Food Equipment'),
-        ('HVAC', 'HVAC Systems'),
-        ('IMAGING_PHOTO', 'Imaging & Photography'),
+        ('COMMUNICATION_AND_AUDIO_DEVICES', 'Communication and Audio Devices'),
+        ('COMPUTER_PERIPHERALS_AND_SERVERS', 'Computer Peripherals and Servers'),
+        ('COPIER_AND_PRINTING_DEVICES', 'Copier and Printing Devices'),
+        ('DESKS_AND_WORKSTATIONS', 'Desks & Workstations'),
+        ('DESKTOPS_AND_ALL-IN-ONE_PCS', 'Desktops and All-in-one PCs'),
+        ('DRONES_AND_NAVIGATION', 'Drones & Navigation'),
+        ('FITNESS_EQUIPMENT', 'Fitness Equipment'),
+        ('FOOD_EQUIPMENT', 'Food Equipment'),
+        ('HVAC_SYSTEMS', 'HVAC Systems'),
+        ('IMAGING_AND_PHOTOGRAPHY', 'Imaging & Photography'),
         ('LAPTOPS', 'Laptops'),
-        ('MEASURE_TEST', 'Measurement & Testing'),
-        ('MEDICAL', 'Medical Equipment'),
-        ('MOBILE', 'Mobile Phones'),
-        ('MONITOR_DISPLAY', 'Monitor and Display Devices'),
-        ('NETWORK_SEC', 'Network and Security Devices'),
-        ('OTHER_FURNITURE', 'Other Furnitures and Fixtures'),
-        ('POWER_ELEC', 'Power & Electrical'),
-        ('SCIENTIFIC_LAB', 'Scientific & Laboratory Instruments'),
-        ('SEATING', 'Seating Units'),
-        ('SEWING_IND', 'Sewing/Industrial Machines'),
-        ('SPECIAL_FIX', 'Specialized Fixtures'),
-        ('SPORTS_DISPLAY', 'Sports & Display Systems'),
-        ('SPORTS_EQUIP', 'Sports Equipment'),
-        ('STORAGE_PRES', 'Storage & Preservation'),
+        ('MEASUREMENT_AND_TESTING', 'Measurement & Testing'),
+        ('MEDICAL_EQUIPMENT', 'Medical Equipment'),
+        ('MOBILE_PHONES', 'Mobile Phones'),
+        ('MONITOR_AND_DISPLAY_DEVICES', 'Monitor and Display Devices'),
+        ('NETWORK_AND_SECURITY_DEVICES', 'Network and Security Devices'),
+        ('OTHER_FURNITURES_AND_FIXTURES', 'Other Furnitures & Fixtures'),
+        ('POWER_AND_ELECTRICAL', 'Power & Electrical'),
+        ('SCIENTIFIC_AND_LABORATORY_INSTRUMENTS', 'Scientific & Laboratory Instruments'),
+        ('SEATING_UNITS', 'Seating Units'),
+        ('SEWING_INDUSTRIAL_MACHINES', 'Sewing/Industrial Machines'),
+        ('SPECIALIZED_FIXTURES', 'Specialized Fixtures'),
+        ('SPORTS_AND_DISPLAY_SYSTEMS', 'Sports & Display Systems'),
+        ('SPORTS_EQUIPMENT', 'Sports Equipment'),
+        ('STORAGE_AND_PRESERVATION', 'Storage & Preservation'),
         ('TABLETS', 'Tablets'),
         ('TRICYCLE', 'Tricycle'),
         ('WATER_SYSTEMS', 'Water Systems'),
-        ('OTHER', 'Other'),
+        ('OTHER', 'Other')
     ]
 
     item_id = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Item ID")
@@ -104,8 +105,8 @@ class Asset(models.Model):
     
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
     
-    asset_class = models.CharField(max_length=50, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
-    asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OTHER', verbose_name="Asset Type")
+    asset_class = models.CharField(max_length=150, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
+    asset_nature = models.CharField(max_length=100, choices=ASSET_TYPE_CHOICES, default='OTHER', verbose_name="Asset Type")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SERVICEABLE', verbose_name="Status")
     
     accountable_surname = models.CharField(max_length=50, blank=True, null=True)

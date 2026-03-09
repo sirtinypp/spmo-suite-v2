@@ -65,12 +65,13 @@ class AssetResource(resources.ModelResource):
         attribute='asset_class',
         column_name='ppe_category',
     )
-
+    
     # Map 'asset_type' column to 'asset_nature'
     asset_nature = fields.Field(
         attribute='asset_nature',
         column_name='asset_type',
     )
+
 
     # Map 'date_acquired' with our simple date widget
     date_acquired = fields.Field(
@@ -89,64 +90,28 @@ class AssetResource(resources.ModelResource):
     def before_import_row(self, row, **kwargs):
         # 0. CATEGORY MAPPING & NORMALIZATION
         # PPE CATEGORY MAPPING
+        # PPE CATEGORY MAPPING (1:1 with standard CSV)
         ppe_map = {
-            'FURNITURE AND FIXTURES': 'FURNITURE',
             'ICT EQUIPMENT': 'ICT EQUIPMENT',
             'MACHINERY': 'MACHINERY',
-            'MOTOR VEHICLE': 'MOTOR_VE_HICLE', # Fixing previous typo in key if any, but using model definition
-            'VEHICLE': 'MOTOR_VEHICLE',
+            'MOTOR VEHICLE': 'MOTOR VEHICLE',
+            'VEHICLE': 'MOTOR VEHICLE',
             'OFFICE EQUIPMENT': 'OFFICE EQUIPMENT',
-            'TECHNICAL AND SCIENTIFIC EQUIPMENT': 'TECH_SCIENTIFIC',
-        }
-        # Hard Fix for the key defined in models.py: ('MOTOR_VEHICLE', 'Motor Vehicle')
-        ppe_map['MOTOR VEHICLE'] = 'MOTOR_VEHICLE'
-
-        # ASSET TYPE MAPPING (Normalization for typos)
-        type_map = {
-            'AUDIO': 'AUDIO',
-            'AUDIO/VIDEO & BROADCAST': 'AV_BROADCAST',
-            'CAMERAS': 'CAMERAS',
-            'CARS': 'CARS',
-            'COMMUNICATION AND AUDIO DEVICES': 'COMM_AUDIO',
-            'COMPUTER PERIPHERALS AND SERVERS': 'COMP_PERI_SERV',
-            'COPIER AND PRINTER DEVICES': 'COPIER_PRINT',
-            'COPIER AND PRINTING DEVICES': 'COPIER_PRINT',
-            'COPIERS AND PRINTER DEVICES': 'COPIER_PRINT',
-            'DESKS & WORKSTATIONS': 'DESK_WORKSTATION',
-            'DESKTOPS AND ALL-IN-ONE PCS': 'DESKTOP_AIO',
-            'DRONES & NAVIGATION': 'DRONES_NAV',
-            'FITNESS EQUIPMENT': 'FITNESS',
-            'FOOD EQUIPMENT': 'FOOD_EQUIP',
-            'HVAC SYSTEMS': 'HVAC',
-            'IMAGING & PHOTOGRAPHY': 'IMAGING_PHOTO',
-            'LAPTOPS': 'LAPTOPS',
-            'MEASUREMENT & TESTING': 'MEASURE_TEST',
-            'MEDICAL EQUIPMENT': 'MEDICAL',
-            'MOBILE PHONES': 'MOBILE',
-            'MONITOR AND DISPLAY DEVICES': 'MONITOR_DISPLAY',
-            'NETWORK AND SECURITY DEVICES': 'NETWORK_SEC',
-            'OTHER FURNITURE & FIXTURES': 'OTHER_FURNITURE',
-            'OTHER FURNITURES AND FIXTURES': 'OTHER_FURNITURE',
-            'POWER & ELECTRICAL': 'POWER_ELEC',
-            'SCIENTIFIC & LABORATORY INSTRUMENTS': 'SCIENTIFIC_LAB',
-            'SEATING UNITS': 'SEATING',
-            'SEWING/INDUSTRIAL MACHINES': 'SEWING_IND',
-            'SPECIALIZED FIXTURES': 'SPECIAL_FIX',
-            'SPORTS & DISPLAY SYSTEMS': 'SPORTS_DISPLAY',
-            'SPORTS EQUIPMENT': 'SPORTS_EQUIP',
-            'STORAGE & PRESERVATION': 'STORAGE_PRES',
-            'TABLETS': 'TABLETS',
-            'TRICYCLE': 'TRICYCLE',
-            'WATER SYSTEMS': 'WATER_SYSTEMS',
+            'TECHNICAL AND SCIENTIFIC EQUIPMENT': 'TECHNICAL AND SCIENTIFIC EQUIPMENT',
+            'FURNITURE AND FIXTURES': 'FURNITURE AND FIXTURES',
+            'AIRCONDITIONING': 'AIRCONDITIONING',
         }
 
         # Apply PPE Category Mapping
         raw_ppe = str(row.get('ppe_category', '')).strip().upper()
         row['asset_class'] = ppe_map.get(raw_ppe, 'OTHER')
 
-        # Apply Asset Type Mapping
-        raw_type = str(row.get('asset_type', '')).strip().upper()
-        row['asset_nature'] = type_map.get(raw_type, 'OTHER')
+        # Map Asset Type
+        raw_type = str(row.get('asset_type', '')).strip()
+        if raw_type:
+            row['asset_nature'] = raw_type.replace(' ', '_').replace('&', 'AND').replace('/', '_').upper()
+        else:
+            row['asset_nature'] = 'OTHER'
 
         # 1. Automated PAR prefixing for property numbers
         prop_no = row.get('property_number')
@@ -194,8 +159,8 @@ class AssetResource(resources.ModelResource):
         import_id_fields = ('property_number',)
         fields = (
             'id', 'item_id', 'property_number', 'name', 'date_acquired', 
-            'acquisition_cost', 'department', 'asset_class', 
-            'asset_nature', 'status', 'accountable_firstname', 
+            'acquisition_cost', 'department', 'asset_class', 'asset_nature',
+            'status', 'accountable_firstname', 
             'accountable_surname', 'description'
         )
         skip_diff = True

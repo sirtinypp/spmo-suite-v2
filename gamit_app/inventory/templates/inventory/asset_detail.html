@@ -98,11 +98,19 @@
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="small text-muted">PPE Category</label>
-                                <div>{{ asset.get_asset_class_display }}</div>
+                                <div>
+                                    <span class="badge bg-secondary mb-2 fs-6 px-3 py-2 text-uppercase shadow-sm">
+                                        <i class="fas fa-tag me-1"></i>{{ asset.get_asset_class_display|default:"Unclassified" }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Asset Type</label>
-                                <div>{{ asset.get_asset_nature_display }}</div>
+                                <div>
+                                    <span class="badge bg-info text-dark mb-2 fs-6 px-3 py-2 text-capitalize shadow-sm">
+                                        <i class="fas fa-layer-group me-1"></i>{{ asset.get_asset_nature_display|default:"--"|title }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-md-12">
                                 <label class="small text-muted">Full Description</label>
@@ -432,7 +440,7 @@
                 <strong>PPE Category:</strong>
                 <span class="data-field">{{ asset.get_asset_class_display|default:"ICT EQUIPMENT" }}</span>
             </td>
-            <td colspan="4" class="label-cell" style="border-left: 2px solid #000;">
+            <td colspan="8" class="label-cell" style="border-left: 2px solid #000;">
                 <strong>Property Number:</strong>
                 <span class="data-field">{{ asset.property_number }}</span>
             </td>
