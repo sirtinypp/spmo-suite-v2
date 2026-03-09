@@ -205,8 +205,7 @@
                 tableBody.appendChild(newRow);
                 totalFormsInput.value = parseInt(formIdx) + 1;
                 attachRemoveListeners();
-            }
-        });
+            }});
 
         function attachRemoveListeners() {
             document.querySelectorAll('.btn-remove').forEach(btn => {
@@ -219,8 +218,7 @@
                     } else {
                         // If no delete button (extra form), just remove
                         // But we rely on Django's can_delete.
-                    }
-                };
+                    }};
             });
         }
 

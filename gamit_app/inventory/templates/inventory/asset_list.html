@@ -23,7 +23,7 @@
                 <div class="col-md-3">
                     <select name="asset_class" class="form-select form-select-sm border-0 shadow-sm"
                         onchange="this.form.submit()">
-                        <option value="">All Classes</option>
+                        <option value="">All PPE Categories</option>
                         {% for c in all_classes %}
                         <option value="{{ c }}" {% if selected_class == c %}selected{% endif %}>{{ c }}</option>
                         {% endfor %}
@@ -33,7 +33,7 @@
                 <div class="col-md-3">
                     <select name="asset_nature" class="form-select form-select-sm border-0 shadow-sm"
                         onchange="this.form.submit()">
-                        <option value="">All Natures</option>
+                        <option value="">All Asset Types</option>
                         {% for n in all_natures %}
                         <option value="{{ n }}" {% if selected_nature == n %}selected{% endif %}>{{ n }}</option>
                         {% endfor %}
@@ -103,8 +103,8 @@
                         <th style="width: 5%;" class="ps-4 py-3">Image</th>
                         <th style="width: 15%;" class="py-3">Property No.</th>
                         <th style="width: 25%;" class="py-3">Asset Details</th>
-                        <th style="width: 12%;" class="py-3">Class</th>
-                        <th style="width: 12%;" class="py-3">Nature</th>
+                        <th style="width: 12%;" class="py-3">PPE Category</th>
+                        <th style="width: 12%;" class="py-3">Asset Type</th>
                         <th style="width: 12%;" class="py-3">Status</th>
                         <th style="width: 12%;" class="py-3">Department</th>
                     </tr>
@@ -272,7 +272,6 @@
         if (searchInput.value) {
             const len = searchInput.value.length;
             searchInput.setSelectionRange(len, len);
-        }
-    });
+        }});
 </script>
 {% endblock extra_scripts %}

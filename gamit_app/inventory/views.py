@@ -58,10 +58,10 @@ def dashboard(request):
     highest_name = highest_asset.name if highest_asset else "N/A"
 
     # NEW METRIC 1: Asset Status Breakdown
-    active_count = assets.filter(status='ACTIVE').count()
+    active_count = assets.filter(status='SERVICEABLE').count()
     active_percentage = (active_count / total_count * 100) if total_count > 0 else 0
-    inactive_count = assets.filter(status__in=['INACTIVE', 'DISPOSED']).count()
-    repair_count = assets.filter(status__in=['UNDER REPAIR', 'UNDER_REPAIR']).count()
+    inactive_count = assets.filter(status__in=['INACTIVE', 'DISPOSED', 'UNSERVICEABLE']).count()
+    repair_count = assets.filter(status='UNDER_REPAIR').count()
     
     # NEW METRIC 2: Depreciation Alert (assets >5 years old)
     from datetime import date, timedelta
@@ -106,7 +106,7 @@ def dashboard(request):
         elif recent_count > 0:
             insight_text = f"{recent_count} new assets added in the last 30 days, totaling ₱{format_money(recent_value)}."
         else:
-            insight_text = f"{active_percentage:.0f}% of your inventory is active. Top office: {top_office_name} with {top_office_count} assets."
+            insight_text = f"{active_percentage:.0f}% of your inventory is serviceable. Top office: {top_office_name} with {top_office_count} assets."
     else:
         insight_text = "No inventory data available to generate insights."
 

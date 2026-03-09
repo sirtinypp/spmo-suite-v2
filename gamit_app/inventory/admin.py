@@ -1,5 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
+from import_export.formats import base_formats
 from .models import (
     Asset, 
     UserProfile, 
@@ -12,7 +13,11 @@ from .models import (
     AssetChangeLog,
     AssetNotification,
 )
-from .resources import AssetResource
+from .resources import AssetResource, patch_csv_format
+
+# Apply the global monkeypatch for CSV encoding robustness here too,
+# to ensure it's active even if resources.py was imported differently.
+patch_csv_format()
 
 # --- 0. DEPARTMENT ADMIN (New) ---
 @admin.register(Department)
@@ -34,10 +39,19 @@ class AssetAdmin(ImportExportModelAdmin):
     # Link the AssetResource to the Admin class
     resource_class = AssetResource 
     
+    # Disable automatic Admin decoding; our robust CSV patches handle it.
+    from_encoding = None
+
+    def get_import_formats(self):
+        """
+        Safely returns available import formats.
+        """
+        formats = super().get_import_formats()
+        return [f for f in formats if f().is_available()]    
     # Existing Admin configuration
     list_display = ('property_number', 'name', 'department', 'assigned_office', 'status', 'acquisition_cost')
     search_fields = ('property_number', 'name', 'assigned_office', 'department__name') # Added department lookup
-    list_filter = ('asset_class', 'status', 'department', 'assigned_office')
+    list_filter = ('asset_class', 'asset_nature', 'status', 'department', 'date_acquired')
     
     # ADDED THE INLINE HERE
     inlines = [ServiceLogInline]

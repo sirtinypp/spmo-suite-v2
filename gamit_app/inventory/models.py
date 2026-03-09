@@ -69,8 +69,8 @@ class Asset(models.Model):
     assigned_office = models.CharField(max_length=255, verbose_name="Office/Unit (Legacy)") # Kept for safety
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
     
-    asset_class = models.CharField(max_length=50, choices=CLASS_CHOICES, default='OTHER', verbose_name="Class/Type")
-    asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OFFICE', verbose_name="Nature")
+    asset_class = models.CharField(max_length=50, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
+    asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OFFICE', verbose_name="Asset Type")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SERVICEABLE', verbose_name="Status")
     
     accountable_surname = models.CharField(max_length=50, blank=True, null=True)
@@ -155,6 +155,13 @@ class Asset(models.Model):
         if self.acquisition_cost and self.accumulated_depreciation and self.salvage_value:
             return self.accumulated_depreciation >= (self.acquisition_cost - self.salvage_value)
         return False
+
+    def save(self, *args, **kwargs):
+        if not self.item_id:
+            year = datetime.date.today().year
+            rand = get_random_string(6).upper()
+            self.item_id = f"AST-{year}-{rand}"
+        super().save(*args, **kwargs)
 
     def __str__(self): return f"{self.property_number} - {self.name}"
 

@@ -1,6 +1,16 @@
 ﻿# Changelog - SPMO Hub
 All notable changes to the UP SSPMO project will be documented in this file.
 
+## [Unreleased] - 2026-03-09
+
+### Fixed
+- **GAMIT**: Repaired split Django template tags (`{{`, `{%`) across all inventory templates to resolve rendering crashes on local host.
+- **GAMIT**: Added mandatory spaces around comparison operators in `asset_list.html` to prevent `TemplateSyntaxError`.
+- **GAMIT**: Aligned Dashboard KPI logic to use `SERVICEABLE` instead of `ACTIVE` to match model status choices.
+
+### Added
+- **GAMIT**: Implemented automated `item_id` generation in `Asset.save()` (format: `AST-YYYY-XXXXXX`).
+
 ## [Unreleased] - 2026-03-07
 
 ### Fixed
