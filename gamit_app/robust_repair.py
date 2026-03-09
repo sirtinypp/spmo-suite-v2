@@ -59,6 +59,6 @@ def robust_template_repair(directory):
     print(f"Total files repaired: {repaired_count}")
 
 if __name__ == "__main__":
-    # Target directory on host
-    templates_dir = r"c:\Users\Aaron\spmo-suite - Copy\gamit_app\inventory\templates\inventory"
+    # Target directory (supports both host and container if /app exists)
+    templates_dir = "/app/inventory/templates/inventory" if os.path.exists("/app") else r"c:\Users\Aaron\spmo-suite - Copy\gamit_app\inventory\templates\inventory"
     robust_template_repair(templates_dir)

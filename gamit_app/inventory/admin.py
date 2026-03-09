@@ -49,8 +49,8 @@ class AssetAdmin(ImportExportModelAdmin):
         formats = super().get_import_formats()
         return [f for f in formats if f().is_available()]    
     # Existing Admin configuration
-    list_display = ('property_number', 'name', 'department', 'assigned_office', 'status', 'acquisition_cost')
-    search_fields = ('property_number', 'name', 'assigned_office', 'department__name') # Added department lookup
+    list_display = ('property_number', 'name', 'department', 'status', 'acquisition_cost')
+    search_fields = ('property_number', 'name', 'department__name') # Added department lookup
     list_filter = ('asset_class', 'asset_nature', 'status', 'department', 'date_acquired')
     
     # ADDED THE INLINE HERE
@@ -64,7 +64,7 @@ class AssetAdmin(ImportExportModelAdmin):
             'fields': (('asset_class', 'asset_nature'),)
         }),
         ('Accountability & Location', {
-            'fields': ('department', 'assigned_office', ('accountable_firstname', 'accountable_surname'), ('latitude', 'longitude'))
+            'fields': ('department', ('accountable_firstname', 'accountable_surname'), ('latitude', 'longitude'))
         }),
         ('Documents & Images', {
             'fields': ('image_serial', 'image_condition', 'attachment')

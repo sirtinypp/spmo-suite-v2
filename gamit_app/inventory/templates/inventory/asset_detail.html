@@ -80,7 +80,8 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Department</label>
-                                <div class="fw-semibold text-body-emphasis">{{ asset.department.name|default:asset.assigned_office }}</div>
+                                <div class="fw-semibold text-body-emphasis">{{ asset.department.name|default:"N/A" }}
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Date Acquired</label>
@@ -467,7 +468,7 @@
             <td>{{ asset.property_number }}</td>
             <td>1</td>
             <td>1</td>
-            <td>{{ asset.department.name|default:asset.assigned_office }}</td>
+            <td>{{ asset.department.name|default:"N/A" }}</td>
             <td>1</td>
             <td>₱{{ asset.acquisition_cost|intcomma }}</td>
             <td></td>
@@ -623,7 +624,8 @@
             border-radius: 2px;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
-        }}
+        }
+    }
 </style>
 
 {% if messages %}

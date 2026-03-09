@@ -18,7 +18,7 @@ class AddAssetForm(forms.ModelForm):
             # Section 2: Classification
             'asset_class', 'asset_nature', 'status',
             # Section 3: Accountability
-            'department', 'assigned_office',
+            'department',
             'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
             # Section 4: Images & Docs
             'image_serial', 'image_condition', 'attachment',
@@ -33,7 +33,6 @@ class AddAssetForm(forms.ModelForm):
             'asset_nature': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
             'department': forms.Select(attrs={'class': 'form-select'}),
-            'assigned_office': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Office or Unit name'}),
             'accountable_firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'accountable_middle_initial': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'M.I.'}),
             'accountable_surname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Surname'}),
@@ -68,7 +67,7 @@ class InspectionRequestForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if user and not user.is_staff and hasattr(user, 'userprofile'):
-            try: self.fields['asset'].queryset = Asset.objects.filter(assigned_office__iexact=user.userprofile.office)
+            try: self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
             except: pass
         for field in self.fields.values(): field.widget.attrs.update({'class': 'form-control'})
 
@@ -159,7 +158,7 @@ class AssetTransferRequestForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Filter assets: Users only see assets in their office
         if user and not user.is_staff and hasattr(user, 'userprofile'):
-            self.fields['asset'].queryset = Asset.objects.filter(assigned_office__iexact=user.userprofile.office)
+            self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
 
 # ==========================================
 # 5. ADMIN BATCH PROCESS FORM
@@ -254,7 +253,7 @@ class PropertyTabForm(forms.ModelForm):
             'property_number', 'name', 'description', 'status',
             'date_acquired', 'acquisition_cost',
             'asset_class', 'asset_nature',
-            'assigned_office', 'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
+            'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
         ]
         widgets = {
             'date_acquired': forms.DateInput(attrs={'type': 'date'}),

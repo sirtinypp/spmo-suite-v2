@@ -4,11 +4,13 @@ All notable changes to the UP SSPMO project will be documented in this file.
 ## [Unreleased] - 2026-03-09
 
 ### Fixed
-- **GAMIT**: Repaired split Django template tags (`{{`, `{%`) across all inventory templates to resolve rendering crashes on local host.
-- **GAMIT**: Added mandatory spaces around comparison operators in `asset_list.html` to prevent `TemplateSyntaxError`.
+- **GAMIT**: Resolved persistent `TemplateSyntaxError` by refactoring `query_transform` tag and moving sorting URL logic to `views.py`.
+- **GAMIT**: Rejoined split template tags in `asset_list.html` to ensure single-line compliance for Django parser.
 - **GAMIT**: Aligned Dashboard KPI logic to use `SERVICEABLE` instead of `ACTIVE` to match model status choices.
 
 ### Added
+- **GAMIT**: Implemented dynamic column sorting (ASC/DESC) for Property No., Name, Category, Type, Status, and Department.
+- **GAMIT**: Added "Results per Page" selector (10, 20, 50, 100) to the Asset Inventory.
 - **GAMIT**: Implemented automated `item_id` generation in `Asset.save()` (format: `AST-YYYY-XXXXXX`).
 
 ## [Unreleased] - 2026-03-07

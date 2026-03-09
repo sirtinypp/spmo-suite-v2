@@ -1,5 +1,6 @@
 {% extends 'layout.html' %}
 {% load humanize %}
+{% load inventory_tags %}
 
 {% block content %}
 <div class="container-fluid fade-in">
@@ -65,19 +66,32 @@
             </div>
 
             <div class="row g-2 align-items-center">
-                <div class="col-md-10">
-                    <div class="input-group">
-                        <span class="input-group-text bg-body border-end-0"><i
-                                class="fas fa-search text-muted"></i></span>
-                        <input type="text" name="search" id="searchInput" class="form-control border-start-0 bg-body"
-                            placeholder="Search property #, name, office, description..." value="{{ search_term }}"
-                            autofocus>
+                <div class="col-md-6">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-0 shadow-sm">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" name="search" id="searchInput" class="form-control border-0 shadow-sm"
+                            placeholder="Search by property number, asset name, or officer..."
+                            value="{{ search_term }}">
+                        {% if search_term or selected_class or selected_nature or selected_status or selected_department %}
+                        <a href="{% url 'asset_list' %}" class="btn btn-outline-secondary border-0 shadow-sm bg-white"
+                            title="Clear Filters">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary shadow-sm px-3">Search</button>
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search me-1"></i> Search
-                    </button>
+
+                <div class="col-md-2 ms-auto text-end">
+                    <select name="per_page" class="form-select form-select-sm border-0 shadow-sm"
+                        onchange="this.form.submit()">
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10 per page</option>
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20 per page</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50 per page</option>
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100 per page</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -101,12 +115,84 @@
                 <thead class="bg-body-tertiary text-uppercase small fw-bold text-body-secondary">
                     <tr>
                         <th style="width: 5%;" class="ps-4 py-3">Image</th>
-                        <th style="width: 15%;" class="py-3">Property No.</th>
-                        <th style="width: 25%;" class="py-3">Asset Details</th>
-                        <th style="width: 12%;" class="py-3">PPE Category</th>
-                        <th style="width: 12%;" class="py-3">Asset Type</th>
-                        <th style="width: 12%;" class="py-3">Status</th>
-                        <th style="width: 12%;" class="py-3">Department</th>
+
+                        <th style="width: 15%;" class="py-3">
+                            <a href="{{ sort_urls.prop }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                Property No.
+                                {% if sort_by == 'prop' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 25%;" class="py-3">
+                            <a href="{{ sort_urls.name }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                Asset Details
+                                {% if sort_by == 'name' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 12%;" class="py-3">
+                            <a href="{{ sort_urls.class }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                PPE Category
+                                {% if sort_by == 'class' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 12%;" class="py-3">
+                            <a href="{{ sort_urls.nature }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                Asset Type
+                                {% if sort_by == 'nature' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 12%;" class="py-3">
+                            <a href="{{ sort_urls.status }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                Status
+                                {% if sort_by == 'status' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
+
+                        <th style="width: 12%;" class="py-3">
+                            <a href="{{ sort_urls.dept }}"
+                                class="text-body-secondary text-decoration-none d-flex align-items-center">
+                                Department
+                                {% if sort_by == 'dept' %}
+                                <i
+                                    class="fas fa-sort-{% if direction == 'asc' %}up{% else %}down{% endif %} ms-1 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-sort ms-1 opacity-25"></i>
+                                {% endif %}
+                            </a>
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="border-top-0">
@@ -170,21 +256,14 @@
                             {% endif %}
                         </td>
 
-                        <td class="small text-body-secondary">{{ asset.department.name|default:asset.assigned_office }}
-                        </td>
-
-
+                        <td class="small text-body-secondary">{{ asset.department.name|default:"N/A" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
                         <td colspan="7" class="text-center py-5 text-muted">
                             <div class="d-flex flex-column align-items-center">
                                 <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
-                                {% if search_term or selected_class or selected_nature or selected_status %}
                                 <p class="mb-0">No assets found matching your criteria.</p>
-                                {% else %}
-                                <p class="mb-0">No assets found in the inventory.</p>
-                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -200,16 +279,14 @@
         <ul class="pagination pagination-sm justify-content-center mb-0 bg-body rounded-3 p-1">
             {% if object_list.has_previous %}
             <li class="page-item">
-                <a class="page-link border-0 text-primary fw-bold"
-                    href="?page=1{% if search_term %}&search={{ search_term }}{% endif %}{% if selected_class %}&asset_class={{ selected_class }}{% endif %}{% if selected_nature %}&asset_nature={{ selected_nature }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}"
+                <a class="page-link border-0 text-primary fw-bold" href="?{% query_transform page=1 %}"
                     aria-label="First">
                     <i class="fas fa-angles-left"></i>
                 </a>
             </li>
             <li class="page-item">
                 <a class="page-link border-0 text-primary fw-bold"
-                    href="?page={{ object_list.previous_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if selected_class %}&asset_class={{ selected_class }}{% endif %}{% if selected_nature %}&asset_nature={{ selected_nature }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}"
-                    aria-label="Previous">
+                    href="?{% query_transform page=object_list.previous_page_number %}" aria-label="Previous">
                     <i class="fas fa-chevron-left me-1"></i> Prev
                 </a>
             </li>
@@ -222,14 +299,12 @@
             {% if object_list.has_next %}
             <li class="page-item">
                 <a class="page-link border-0 text-primary fw-bold"
-                    href="?page={{ object_list.next_page_number }}{% if search_term %}&search={{ search_term }}{% endif %}{% if selected_class %}&asset_class={{ selected_class }}{% endif %}{% if selected_nature %}&asset_nature={{ selected_nature }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}"
-                    aria-label="Next">
+                    href="?{% query_transform page=object_list.next_page_number %}" aria-label="Next">
                     Next <i class="fas fa-chevron-right ms-1"></i>
                 </a>
             </li>
             <li class="page-item">
-                <a class="page-link border-0 text-primary fw-bold"
-                    href="?page={{ num_pages }}{% if search_term %}&search={{ search_term }}{% endif %}{% if selected_class %}&asset_class={{ selected_class }}{% endif %}{% if selected_nature %}&asset_nature={{ selected_nature }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_department %}&department={{ selected_department }}{% endif %}"
+                <a class="page-link border-0 text-primary fw-bold" href="?{% query_transform page=num_pages %}"
                     aria-label="Last">
                     <i class="fas fa-angles-right"></i>
                 </a>
@@ -253,25 +328,24 @@
             });
         });
 
-        // Filtering (FAST SERVER-SIDE SEARCH SUBMISSION)
+        // Filtering
         const searchInput = document.getElementById('searchInput');
-        const searchForm = searchInput.closest('form');
+        if (searchInput) {
+            const searchForm = searchInput.closest('form');
+            let debounceTimer;
 
-        let debounceTimer;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    searchForm.submit();
+                }, 500);
+            });
 
-        // Use a debounce timer to prevent submitting a massive number of requests while typing
-        searchInput.addEventListener('input', function () {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                // Submit the form a moment after the user stops typing
-                searchForm.submit();
-            }, 500);
-        });
-
-        // Focus search input at end of text if value exists
-        if (searchInput.value) {
-            const len = searchInput.value.length;
-            searchInput.setSelectionRange(len, len);
-        }});
+            if (searchInput.value) {
+                const len = searchInput.value.length;
+                searchInput.setSelectionRange(len, len);
+            }
+        }
+    });
 </script>
 {% endblock extra_scripts %}

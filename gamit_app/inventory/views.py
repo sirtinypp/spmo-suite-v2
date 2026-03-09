@@ -77,10 +77,10 @@ def dashboard(request):
     maintenance_cost = maintenance_logs.aggregate(sum=Sum('cost'))['sum'] or 0
     maintenance_count = maintenance_logs.count()
     
-    # NEW METRIC 4: Office Utilization (top office by asset count)
-    office_breakdown = assets.values('assigned_office').annotate(count=Count('id')).order_by('-count')
+    # Metrics using Department model
+    office_breakdown = assets.values('department__name').annotate(count=Count('id')).order_by('-count')
     top_office = office_breakdown[0] if office_breakdown else None
-    top_office_name = top_office['assigned_office'] if top_office else "N/A"
+    top_office_name = top_office['department__name'] if top_office else "N/A"
     top_office_count = top_office['count'] if top_office else 0
     top_office_percentage = (top_office_count / total_count * 100) if total_count > 0 else 0
     
@@ -201,14 +201,38 @@ def asset_list(request):
             Q(description__icontains=search_term) |
             Q(accountable_firstname__icontains=search_term) |
             Q(accountable_surname__icontains=search_term) |
-            Q(assigned_office__icontains=search_term) 
+            Q(department__name__icontains=search_term) 
         )
         assets = assets.filter(search_filter)
 
-    assets = assets.order_by('property_number')
+    # 4. Sorting logic
+    sort_by = request.GET.get('sort', 'name')
+    direction = request.GET.get('dir', 'asc')
+    
+    allowed_sort_fields = {
+        'name': 'name',
+        'prop': 'property_number',
+        'date': 'date_acquired',
+        'class': 'asset_class',
+        'nature': 'asset_nature',
+        'status': 'status',
+        'dept': 'department__name'
+    }
+    
+    sort_field = allowed_sort_fields.get(sort_by, 'name')
+    if direction == 'desc':
+        sort_field = '-' + sort_field
+        
+    assets = assets.order_by(sort_field)
 
-    # 4. Pagination
-    paginator = Paginator(assets, 20) # 20 assets per page
+    # 5. Pagination
+    per_page = request.GET.get('per_page', 20)
+    try:
+        per_page = int(per_page)
+    except (ValueError, TypeError):
+        per_page = 20
+        
+    paginator = Paginator(assets, per_page)
     page = request.GET.get('page')
     try:
         assets_paginated = paginator.page(page)
@@ -251,7 +275,32 @@ def asset_list(request):
         'selected_nature': selected_nature,
         'selected_status': selected_status,
         'selected_department': int(selected_department) if selected_department else '',
+        
+        # Sorting
+        'sort_by': sort_by,
+        'direction': direction,
+        'per_page': per_page,
     }
+    
+    # Generate Sorting URLs
+    def get_sort_url(field):
+        curr_params = request.GET.copy()
+        new_dir = 'desc' if (sort_by == field and direction == 'asc') else 'asc'
+        curr_params['sort'] = field
+        curr_params['dir'] = new_dir
+        if 'page' in curr_params:
+            curr_params.pop('page')
+        return f"?{curr_params.urlencode()}"
+
+    context['sort_urls'] = {
+        'prop': get_sort_url('prop'),
+        'name': get_sort_url('name'),
+        'class': get_sort_url('class'),
+        'nature': get_sort_url('nature'),
+        'status': get_sort_url('status'),
+        'dept': get_sort_url('dept'),
+    }
+
     return render(request, 'inventory/asset_list.html', context)
 
 
@@ -329,7 +378,8 @@ def asset_detail(request, pk):
     if not request.user.is_staff:
         try:
             user_office = request.user.userprofile.office
-            if asset.assigned_office.lower() != user_office.lower():
+            # Secure check: Verify user has access to this asset's department
+            if asset.department != user.userprofile.department:
                 raise Http404("You are not authorized to view this asset.")
         except (UserProfile.DoesNotExist, AttributeError):
             raise Http404("User profile not found.")

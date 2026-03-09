@@ -48,15 +48,51 @@ class Asset(models.Model):
         ('PENDING', 'Pending Approval'),
     ]
     # ... choices ...
+    # 2. PPE CLASS CHOICES (Standardized to CSV)
     CLASS_CHOICES = [
-        ('ICT EQUIPMENT', 'ICT Equipment'), ('VEHICLE', 'Vehicle'),
-        ('AIRCONDITIONING', 'Airconditioning'), ('OFFICE EQUIPMENT', 'Office Equipment'),
+        ('FURNITURE', 'Furniture and Fixtures'),
+        ('ICT EQUIPMENT', 'ICT Equipment'),
+        ('MACHINERY', 'Machinery'),
+        ('MOTOR_VEHICLE', 'Motor Vehicle'),
+        ('OFFICE EQUIPMENT', 'Office Equipment'),
         ('TECH_SCIENTIFIC', 'Technical and Scientific Equipment'),
-        ('FURNITURE', 'Furniture and Fixtures'), ('OTHER', 'Other'),
     ]
+    
+    # 3. ASSET TYPE CHOICES (Detailed from CSV)
     NATURE_CHOICES = [
-        ('OFFICE', 'Office'), ('LABORATORY', 'Laboratory'), ('SCHOOL', 'School'),
-        ('ACCOMODATION', 'Accomodation'), ('OTHER', 'Other'),
+        ('AUDIO', 'Audio'),
+        ('AV_BROADCAST', 'Audio/Video & Broadcast'),
+        ('CAMERAS', 'Cameras'),
+        ('CARS', 'Cars'),
+        ('COMM_AUDIO', 'Communication and Audio Devices'),
+        ('COMP_PERI_SERV', 'Computer Peripherals and Servers'),
+        ('COPIER_PRINT', 'Copier and Printing Devices'),
+        ('DESK_WORKSTATION', 'Desks & Workstations'),
+        ('DESKTOP_AIO', 'Desktops and All-in-one PCs'),
+        ('DRONES_NAV', 'Drones & Navigation'),
+        ('FITNESS', 'Fitness Equipment'),
+        ('FOOD_EQUIP', 'Food Equipment'),
+        ('HVAC', 'HVAC Systems'),
+        ('IMAGING_PHOTO', 'Imaging & Photography'),
+        ('LAPTOPS', 'Laptops'),
+        ('MEASURE_TEST', 'Measurement & Testing'),
+        ('MEDICAL', 'Medical Equipment'),
+        ('MOBILE', 'Mobile Phones'),
+        ('MONITOR_DISPLAY', 'Monitor and Display Devices'),
+        ('NETWORK_SEC', 'Network and Security Devices'),
+        ('OTHER_FURNITURE', 'Other Furnitures and Fixtures'),
+        ('POWER_ELEC', 'Power & Electrical'),
+        ('SCIENTIFIC_LAB', 'Scientific & Laboratory Instruments'),
+        ('SEATING', 'Seating Units'),
+        ('SEWING_IND', 'Sewing/Industrial Machines'),
+        ('SPECIAL_FIX', 'Specialized Fixtures'),
+        ('SPORTS_DISPLAY', 'Sports & Display Systems'),
+        ('SPORTS_EQUIP', 'Sports Equipment'),
+        ('STORAGE_PRES', 'Storage & Preservation'),
+        ('TABLETS', 'Tablets'),
+        ('TRICYCLE', 'Tricycle'),
+        ('WATER_SYSTEMS', 'Water Systems'),
+        ('OTHER', 'Other'),
     ]
 
     item_id = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Item ID")
@@ -66,11 +102,10 @@ class Asset(models.Model):
     date_acquired = models.DateField(verbose_name="Date Acquired")
     acquisition_cost = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Acquisition Cost")
     
-    assigned_office = models.CharField(max_length=255, verbose_name="Office/Unit (Legacy)") # Kept for safety
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
     
     asset_class = models.CharField(max_length=50, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
-    asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OFFICE', verbose_name="Asset Type")
+    asset_nature = models.CharField(max_length=50, choices=NATURE_CHOICES, default='OTHER', verbose_name="Asset Type")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SERVICEABLE', verbose_name="Status")
     
     accountable_surname = models.CharField(max_length=50, blank=True, null=True)
