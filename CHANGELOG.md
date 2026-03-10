@@ -1,5 +1,15 @@
-﻿# Changelog - SPMO Hub
-All notable changes to the UP SSPMO project will be documented in this file.
+## [Unreleased] - 2026-03-10
+
+### Added
+- **Infrastructure**: Successfully migrated **32.8 GB** of Docker WSL2 data from `C:` to `D:` drive, reclaiming **~37 GB** of space on the system drive.
+- **GAMIT**: Implemented **Scenario D: CSV-Label Alignment** for asset filtering. Dropdowns now use "Pretty Labels" (e.g., "ICT Equipment") to match database records imported from CSV.
+- **Protocol**: Formalized the **Pre-Deployment Simulation Protocol (PDSP)** to verify template syntax and logic before staging deployment.
+
+### Fixed
+- **GAMIT**: Hidden "Middle Name" from UI, forms, and templates to clean up display (e.g., matching "None" removal). Model field remains for DB stability.
+- **GAMIT**: Resolved `AttributeError: 'Asset' object has no attribute 'assigned_office'` by removing legacy field references in `views.py` and `asset_add.html`.
+- **GAMIT**: Updated PPE Category and Asset Type labels to use "&" instead of "and" (e.g., "Furniture & Fixtures"), including a typo fix.
+- **GAMIT**: Resolved literal template rendering of `{{ total_count_all }}` and other variables by rejoining split tags in `asset_list.html` and `dashboard.html`.
 
 ## [Unreleased] - 2026-03-09
 
