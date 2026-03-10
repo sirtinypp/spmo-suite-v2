@@ -111,6 +111,7 @@ class Asset(models.Model):
     
     accountable_surname = models.CharField(max_length=50, blank=True, null=True)
     accountable_firstname = models.CharField(max_length=50, blank=True, null=True)
+    accountable_middle_initial = models.CharField(max_length=50, blank=True, null=True)
     cu = models.CharField(max_length=50, blank=True, null=True)
     image_serial = models.ImageField(upload_to='assets/serials/', blank=True, null=True)
     image_condition = models.ImageField(upload_to='assets/condition/', blank=True, null=True)

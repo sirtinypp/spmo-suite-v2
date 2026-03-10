@@ -31,8 +31,7 @@
                 <div class="card-header bg-body-tertiary py-3 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold m-0 text-primary">{{ asset.name }}</h5>
                     <span
-                        class="badge {% if asset.status == 'SERVICEABLE' %}bg-success{% elif asset.status == 'UNSERVICEABLE' %}bg-danger{% else %}bg-warning{% endif %}">{{
-                        asset.get_status_display }}</span>
+                        class="badge {% if asset.status == 'SERVICEABLE' %}bg-success{% elif asset.status == 'UNSERVICEABLE' %}bg-danger{% else %}bg-warning{% endif %}">{{ asset.get_status_display }}</span>
                 </div>
 
                 <!-- ====== PILL TABS NAVIGATION ====== -->
@@ -101,8 +100,7 @@
                                 <label class="small text-muted">PPE Category</label>
                                 <div>
                                     <span class="badge bg-secondary mb-2 fs-6 px-3 py-2 text-uppercase shadow-sm">
-                                        <i class="fas fa-tag me-1"></i>{{
-                                        asset.get_asset_class_display|default:"Unclassified" }}
+                                        <i class="fas fa-tag me-1"></i>{{ asset.get_asset_class_display|default:"Unclassified" }}
                                     </span>
                                 </div>
                             </div>
@@ -110,15 +108,13 @@
                                 <label class="small text-muted">Asset Type</label>
                                 <div>
                                     <span class="badge bg-info text-dark mb-2 fs-6 px-3 py-2 text-capitalize shadow-sm">
-                                        <i class="fas fa-layer-group me-1"></i>{{
-                                        asset.get_asset_nature_display|default:"--"|title }}
+                                        <i class="fas fa-layer-group me-1"></i>{{ asset.get_asset_nature_display|default:"--"|title }}
                                     </span>
                                 </div>
                             </div>
                             <div class="col-md-12">
                                 <label class="small text-muted">Full Description</label>
-                                <div class="bg-body-tertiary p-3 rounded text-body-secondary small">{{
-                                    asset.description|default:"No description provided." }}</div>
+                                <div class="bg-body-tertiary p-3 rounded text-body-secondary small">{{ asset.description|default:"No description provided." }}</div>
                             </div>
                         </div>
 
@@ -127,8 +123,7 @@
                         <div class="row g-3">
                             <div class="col-md-12">
                                 <label class="small text-muted">Accountable Officer</label>
-                                <div class="fw-semibold text-body-emphasis">{{ asset.accountable_firstname }} {{
-                                    asset.accountable_surname }}</div>
+                                <div class="fw-semibold text-body-emphasis">{{ asset.accountable_firstname }} {{ asset.accountable_surname }}</div>
                             </div>
                         </div>
                     </div>
@@ -146,29 +141,25 @@
                             <div class="col-md-3">
                                 <div class="card bg-light border-0 text-center p-3">
                                     <div class="small text-muted">Acquisition Cost</div>
-                                    <div class="fw-bold text-primary fs-6">&#8369;{{
-                                        asset.acquisition_cost|intcomma|default:"--" }}</div>
+                                    <div class="fw-bold text-primary fs-6">&#8369;{{ asset.acquisition_cost|intcomma|default:"--" }}</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="card bg-light border-0 text-center p-3">
                                     <div class="small text-muted">Book Value</div>
-                                    <div class="fw-bold text-success fs-6">{% if asset.book_value %}&#8369;{{
-                                        asset.book_value|intcomma }}{% else %}--{% endif %}</div>
+                                    <div class="fw-bold text-success fs-6">{% if asset.book_value %}&#8369;{{ asset.book_value|intcomma }}{% else %}--{% endif %}</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="card bg-light border-0 text-center p-3">
                                     <div class="small text-muted">Annual Depreciation</div>
-                                    <div class="fw-bold text-warning fs-6">{% if asset.annual_depreciation %}&#8369;{{
-                                        asset.annual_depreciation|intcomma }}{% else %}--{% endif %}</div>
+                                    <div class="fw-bold text-warning fs-6">{% if asset.annual_depreciation %}&#8369;{{ asset.annual_depreciation|intcomma }}{% else %}--{% endif %}</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="card bg-light border-0 text-center p-3">
                                     <div class="small text-muted">Salvage Value</div>
-                                    <div class="fw-bold text-secondary fs-6">{% if asset.salvage_value %}&#8369;{{
-                                        asset.salvage_value|intcomma }}{% else %}--{% endif %}</div>
+                                    <div class="fw-bold text-secondary fs-6">{% if asset.salvage_value %}&#8369;{{ asset.salvage_value|intcomma }}{% else %}--{% endif %}</div>
                                 </div>
                             </div>
                         </div>
@@ -191,18 +182,15 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Accumulated Depreciation</label>
-                                <div>{% if asset.accumulated_depreciation %}&#8369;{{
-                                    asset.accumulated_depreciation|intcomma }}{% else %}Not set{% endif %}</div>
+                                <div>{% if asset.accumulated_depreciation %}&#8369;{{ asset.accumulated_depreciation|intcomma }}{% else %}Not set{% endif %}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Fully Depreciated?</label>
-                                <div>{% if asset.is_fully_depreciated %}<span class="badge bg-danger">Yes</span>{% else
-                                    %}<span class="badge bg-success">No</span>{% endif %}</div>
+                                <div>{% if asset.is_fully_depreciated %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-success">No</span>{% endif %}</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Fair Market Value</label>
-                                <div>{% if asset.fair_market_value %}&#8369;{{ asset.fair_market_value|intcomma }}{%
-                                    else %}Not set{% endif %}</div>
+                                <div>{% if asset.fair_market_value %}&#8369;{{ asset.fair_market_value|intcomma }}{% else %}Not set{% endif %}</div>
                             </div>
                         </div>
                     </div>
@@ -224,8 +212,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Insurance Value</label>
-                                <div>{% if asset.insurance_value %}&#8369;{{ asset.insurance_value|intcomma }}{% else
-                                    %}Not set{% endif %}</div>
+                                <div>{% if asset.insurance_value %}&#8369;{{ asset.insurance_value|intcomma }}{% else %}Not set{% endif %}</div>
                             </div>
                         </div>
 
@@ -242,8 +229,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Disposal Proceeds</label>
-                                <div>{% if asset.disposal_proceeds %}&#8369;{{ asset.disposal_proceeds|intcomma }}{%
-                                    else %}N/A{% endif %}</div>
+                                <div>{% if asset.disposal_proceeds %}&#8369;{{ asset.disposal_proceeds|intcomma }}{% else %}N/A{% endif %}</div>
                             </div>
                         </div>
                     </div>
@@ -282,8 +268,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="small text-muted">Appraised Value</label>
-                                <div>{% if asset.appraised_value %}&#8369;{{ asset.appraised_value|intcomma }}{% else
-                                    %}Not appraised{% endif %}</div>
+                                <div>{% if asset.appraised_value %}&#8369;{{ asset.appraised_value|intcomma }}{% else %}Not appraised{% endif %}</div>
                             </div>
                         </div>
                     </div>
@@ -317,8 +302,7 @@
                                 {% for log in service_logs %}
                                 <tr>
                                     <td class="ps-4 fw-bold">{{ log.service_date|date:"M d, Y" }}</td>
-                                    <td><span class="badge bg-secondary text-light rounded-pill">{{
-                                            log.get_service_type_display }}</span></td>
+                                    <td><span class="badge bg-secondary text-light rounded-pill">{{ log.get_service_type_display }}</span></td>
                                     <td>{{ log.description|truncatechars:40 }}</td>
                                     <td>{{ log.service_provider }}</td>
                                     <td>{% if log.cost > 0 %}&#8369;{{ log.cost|intcomma }}{% else %}-{% endif %}</td>
@@ -351,8 +335,7 @@
                 <div class="card-body text-center bg-body-tertiary">
                     {% if asset.image_serial %}<img src="{{ asset.image_serial.url }}"
                         class="img-fluid rounded shadow-sm" alt="Serial">{% else %}<div
-                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{%
-                    endif %}
+                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{% endif %}
                 </div>
             </div>
 
@@ -362,8 +345,7 @@
                 <div class="card-body text-center bg-body-tertiary">
                     {% if asset.image_condition %}<img src="{{ asset.image_condition.url }}"
                         class="img-fluid rounded shadow-sm" alt="Condition">{% else %}<div
-                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{%
-                    endif %}
+                        class="text-muted py-4 opacity-50"><i class="fas fa-camera fa-3x mb-2"></i><br>No Photo</div>{% endif %}
                 </div>
             </div>
 
@@ -696,8 +678,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
                             {{ field }}
-                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif
-                            %}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -729,8 +710,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
                             {{ field }}
-                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif
-                            %}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -762,8 +742,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
                             {{ field }}
-                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif
-                            %}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -796,8 +775,7 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-muted">{{ field.label }}</label>
                             {{ field }}
-                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif
-                            %}
+                            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
                         </div>
                         {% endfor %}
                     </div>
