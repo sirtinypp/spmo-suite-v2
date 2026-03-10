@@ -19,7 +19,7 @@ class AddAssetForm(forms.ModelForm):
             'asset_class', 'asset_nature', 'status',
             # Section 3: Accountability
             'department',
-            'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
+            'accountable_firstname', 'accountable_surname',
             # Section 4: Images & Docs
             'image_serial', 'image_condition', 'attachment',
         ]
@@ -34,7 +34,6 @@ class AddAssetForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'department': forms.Select(attrs={'class': 'form-select'}),
             'accountable_firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
-            'accountable_middle_initial': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'M.I.'}),
             'accountable_surname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Surname'}),
             'image_serial': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'image_condition': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
@@ -45,7 +44,6 @@ class AddAssetForm(forms.ModelForm):
             'image_serial': 'Serial Number Photo',
             'image_condition': 'Condition Photo',
             'attachment': 'Supporting Document',
-            'accountable_middle_initial': 'M.I.',
         }
         help_texts = {
             'property_number': 'Unique property number assigned to this asset',
@@ -253,7 +251,7 @@ class PropertyTabForm(forms.ModelForm):
             'property_number', 'name', 'description', 'status',
             'date_acquired', 'acquisition_cost',
             'asset_class', 'asset_nature',
-            'accountable_firstname', 'accountable_middle_initial', 'accountable_surname',
+            'accountable_firstname', 'accountable_surname',
         ]
         widgets = {
             'date_acquired': forms.DateInput(attrs={'type': 'date'}),
