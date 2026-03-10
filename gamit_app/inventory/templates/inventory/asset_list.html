@@ -102,8 +102,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3 px-1">
         <p class="small text-muted mb-0">
-            Showing <strong>{{ object_list.start_index }}-{{ object_list.end_index }}</strong> of <strong>{{
-                total_count_all }}</strong> asset(s)
+            Showing <strong>{{ object_list.start_index }}-{{ object_list.end_index }}</strong> of <strong>{{ total_count_all }}</strong> asset(s)
             {% if search_term %} matching "<strong>{{ search_term }}</strong>"{% endif %}
         </p>
         {% if search_term or selected_class or selected_status or selected_department %}
@@ -254,8 +253,7 @@
                             {% else %}
                             <div class="d-flex align-items-center text-warning fw-bold small text-uppercase"
                                 style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                                <i class="fas fa-circle me-2" style="font-size: 0.4rem;"></i>{{ asset.get_status_display
-                                }}
+                                <i class="fas fa-circle me-2" style="font-size: 0.4rem;"></i>{{ asset.get_status_display }}
                             </div>
                             {% endif %}
                         </td>
