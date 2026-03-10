@@ -73,7 +73,7 @@ class Asset(models.Model):
         ('DRONES_AND_NAVIGATION', 'Drones & Navigation'),
         ('FITNESS_EQUIPMENT', 'Fitness Equipment'),
         ('FOOD_EQUIPMENT', 'Food Equipment'),
-        ('HVAC_SYSTEMS', 'HVAC Systems'),
+        ('HVAC_SYSTEMS', 'HVAC System'),
         ('IMAGING_AND_PHOTOGRAPHY', 'Imaging & Photography'),
         ('LAPTOPS', 'Laptops'),
         ('MEASUREMENT_AND_TESTING', 'Measurement & Testing'),
@@ -87,12 +87,12 @@ class Asset(models.Model):
         ('SEATING_UNITS', 'Seating Units'),
         ('SEWING_INDUSTRIAL_MACHINES', 'Sewing/Industrial Machines'),
         ('SPECIALIZED_FIXTURES', 'Specialized Fixtures'),
-        ('SPORTS_AND_DISPLAY_SYSTEMS', 'Sports & Display Systems'),
+        ('SPORTS_AND_DISPLAY_SYSTEMS', 'Sports & Display System'),
         ('SPORTS_EQUIPMENT', 'Sports Equipment'),
         ('STORAGE_AND_PRESERVATION', 'Storage & Preservation'),
         ('TABLETS', 'Tablets'),
         ('TRICYCLE', 'Tricycle'),
-        ('WATER_SYSTEMS', 'Water Systems'),
+        ('WATER_SYSTEMS', 'Water System'),
         ('OTHER', 'Other')
     ]
 

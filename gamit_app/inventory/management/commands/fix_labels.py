@@ -17,6 +17,9 @@ class Command(BaseCommand):
             'Desktops and All-in-one PCs': 'Desktops & All-in-one PCs',
             'Monitor and Display Devices': 'Monitor & Display Devices',
             'Network and Security Devices': 'Network & Security Devices',
+            'HVAC Systems': 'HVAC System',
+            'Sports & Display Systems': 'Sports & Display System',
+            'Water Systems': 'Water System',
         }
         
         updated_total = 0
