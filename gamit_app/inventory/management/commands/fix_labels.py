@@ -20,6 +20,8 @@ class Command(BaseCommand):
             'HVAC Systems': 'HVAC System',
             'Sports & Display Systems': 'Sports & Display System',
             'Water Systems': 'Water System',
+            'Cars': 'Four-Wheel Vehicle',
+            'Tricycle': 'Three-Wheel Vehicle',
         }
         
         updated_total = 0

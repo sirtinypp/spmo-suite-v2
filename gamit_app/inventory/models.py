@@ -64,7 +64,7 @@ class Asset(models.Model):
     ASSET_TYPE_CHOICES = [
         ('AUDIO_VIDEO_AND_BROADCAST', 'Audio/Video & Broadcast'),
         ('CAMERAS', 'Cameras'),
-        ('CARS', 'Cars'),
+        ('CARS', 'Four-Wheel Vehicle'),
         ('COMMUNICATION_AND_AUDIO_DEVICES', 'Communication & Audio Devices'),
         ('COMPUTER_PERIPHERALS_AND_SERVERS', 'Computer Peripherals & Servers'),
         ('COPIER_AND_PRINTING_DEVICES', 'Copier & Printing Devices'),
@@ -91,7 +91,7 @@ class Asset(models.Model):
         ('SPORTS_EQUIPMENT', 'Sports Equipment'),
         ('STORAGE_AND_PRESERVATION', 'Storage & Preservation'),
         ('TABLETS', 'Tablets'),
-        ('TRICYCLE', 'Tricycle'),
+        ('TRICYCLE', 'Three-Wheel Vehicle'),
         ('WATER_SYSTEMS', 'Water System'),
         ('OTHER', 'Other')
     ]
