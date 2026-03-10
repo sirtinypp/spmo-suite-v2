@@ -111,8 +111,8 @@ def dashboard(request):
         insight_text = "No inventory data available to generate insights."
 
     # 6. CONTEXT
-    all_classes = [c[0] for c in Asset.CLASS_CHOICES]
-    all_natures = [n[0] for n in Asset.ASSET_TYPE_CHOICES]
+    all_classes = [c[1] for c in Asset.CLASS_CHOICES]
+    all_natures = [n[1] for n in Asset.ASSET_TYPE_CHOICES]
     all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
 
     recent_assets = assets.order_by('-created_at')[:5]
@@ -243,8 +243,8 @@ def asset_list(request):
         assets_paginated = paginator.page(paginator.num_pages)
 
     # 5. Context Data for Dropdowns
-    all_classes = [c[0] for c in Asset.CLASS_CHOICES]
-    all_natures = [n[0] for n in Asset.ASSET_TYPE_CHOICES]
+    all_classes = [c[1] for c in Asset.CLASS_CHOICES]
+    all_natures = [n[1] for n in Asset.ASSET_TYPE_CHOICES]
     all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
     
     # Get Departments for the dropdown
