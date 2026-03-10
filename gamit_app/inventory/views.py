@@ -450,8 +450,6 @@ def add_asset_transaction(request):
         form = AddAssetForm(request.POST, request.FILES)
         if form.is_valid():
             asset = form.save(commit=False)
-            if not asset.assigned_office:
-                asset.assigned_office = "Main (Admin)"
             asset.save()
             messages.success(request, f"Asset {asset.property_number} successfully added!")
             return redirect('asset_detail', pk=asset.pk)

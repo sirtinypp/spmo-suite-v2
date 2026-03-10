@@ -29,7 +29,6 @@ class AssetSecurityTests(TestCase):
             date_acquired=date(2023, 1, 1),
             acquisition_cost=50000,
             department=self.dept_finance,
-            assigned_office='Finance',
             status='SERVICEABLE'
         )
 
@@ -39,16 +38,12 @@ class AssetSecurityTests(TestCase):
             date_acquired=date(2023, 1, 1),
             acquisition_cost=100000,
             department=self.dept_it,
-            assigned_office='IT',
             status='SERVICEABLE'
         )
 
         self.client = Client()
 
-    def test_asset_creation(self):
-        """Test that assets are created correctly in the DB"""
         self.assertEqual(Asset.objects.count(), 2)
-        self.assertEqual(self.asset_finance.assigned_office, 'Finance')
 
     def test_finance_user_sees_only_finance_assets(self):
         """
