@@ -4,27 +4,35 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gamit_core.settings')
 django.setup()
 
-from inventory.models import Asset, InventoryBatch, AssetMedia
+from inventory.models import (
+    Asset, AssetBatch, BatchItem, AssetChangeLog, 
+    AssetNotification, ServiceLog, InspectionRequest, 
+    AssetTransferRequest, ApprovalLog
+)
 from django.db import transaction
 
 def purge_data():
     print("Starting GAMIT data purge...")
     
     with transaction.atomic():
-        # Count records before deletion
-        asset_count = Asset.objects.count()
-        batch_count = InventoryBatch.objects.count()
-        media_count = AssetMedia.objects.count()
+        # Delete dependent items first
+        print("Purging related logs, items, and requests...")
+        AssetChangeLog.objects.all().delete()
+        AssetNotification.objects.all().delete()
+        ServiceLog.objects.all().delete()
+        InspectionRequest.objects.all().delete()
+        AssetTransferRequest.objects.all().delete()
+        ApprovalLog.objects.all().delete()
+        BatchItem.objects.all().delete()
+        AssetBatch.objects.all().delete()
         
-        print(f"Detecting: {asset_count} Assets, {batch_count} Batches, {media_count} Media entries.")
-        
-        # Delete records
+        # Finally delete main assets
+        asset_count_start = Asset.objects.count()
+        print(f"Purging {asset_count_start} Assets...")
         Asset.objects.all().delete()
-        InventoryBatch.objects.all().delete()
-        AssetMedia.objects.all().delete()
         
-        print("Successfully purged all asset-related data.")
-        print(f"Final Count - Assets: {Asset.objects.count()}, Batches: {InventoryBatch.objects.count()}")
+        print("✅ Successfully purged all asset-related data.")
+        print(f"Final Count - Assets: {Asset.objects.count()}")
 
 if __name__ == "__main__":
     purge_data()
