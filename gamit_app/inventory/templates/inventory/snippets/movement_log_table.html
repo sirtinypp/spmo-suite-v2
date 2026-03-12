@@ -1,0 +1,37 @@
+<div class="card shadow-sm mb-4 mt-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0"><i class="fas fa-history me-2 text-secondary"></i>Movement Log (Audit Trail)</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle mb-0">
+            <thead class="bg-body-tertiary">
+                <tr class="small text-uppercase text-body-secondary fw-bold">
+                    <th class="py-3 ps-4" style="width: 15%;">Date & Time</th>
+                    <th class="py-3" style="width: 15%;">Status Change By</th>
+                    <th class="py-3" style="width: 12%;">Role</th>
+                    <th class="py-3" style="width: 15%;">Unit Name</th>
+                    <th class="py-3" style="width: 13%;">BP Status</th>
+                    <th class="py-3" style="width: 15%;">Action Taken</th>
+                    <th class="py-3 pe-4" style="width: 15%;">Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr class="text-body">
+                    <td class="ps-4 small text-body-secondary">{{ log.timestamp|date:"M d, Y h:i A" }}</td>
+                    <td class="fw-bold text-body-emphasis">{{ log.user.get_full_name|default:log.user.username }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ log.role_name|default:"System" }}</span></td>
+                    <td class="small">{{ log.unit_name|default:"-" }}</td>
+                    <td><span class="badge bg-secondary">{{ log.status_label|default:"Unknown" }}</span></td>
+                    <td class="small text-body-emphasis">{{ log.action_taken|default:"Transitioned" }}</td>
+                    <td class="pe-4 small fst-italic text-body-secondary">{{ log.remarks|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted fst-italic">No movement logs exist for this transaction yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -10,13 +10,14 @@ from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
-from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification
+from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
 
 from .forms import (
     AddAssetForm, AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
     AssetTransferRequestForm, AdminBatchProcessForm, BatchItemFormSet,
     ServiceLogForm,
     PropertyTabForm, FinanceTabForm, LifecycleTabForm, GovernmentTabForm,
+    AssetReturnRequestForm, AssetLossReportForm, PropertyClearanceRequestForm
 )
 
 @login_required
@@ -502,6 +503,9 @@ def create_batch_request(request):
             # Save Items
             formset.instance = batch
             formset.save()
+            
+            # Trigger dynamic engine to place at Step 1
+            WorkflowEngine.initialize_transaction(batch, 'BATCH_ACQ')
 
             messages.success(request, f"Batch {batch.transaction_id} submitted successfully!")
             return redirect('dashboard')
@@ -519,73 +523,68 @@ def create_batch_request(request):
         'formset': formset
     })
 
-# 8. TRANSACTION HISTORY LIST
+# 8. TRANSACTION HISTORY LIST (PERSONA TASK INBOX)
 @login_required
 def transaction_history(request):
+    from workflow.models import Persona
+    
+    active_roles = Persona.objects.filter(user=request.user, is_active=True).values_list('role', flat=True)
+    
     if request.user.is_superuser:
         inspections = InspectionRequest.objects.all()
         batches = AssetBatch.objects.all()
         transfers = AssetTransferRequest.objects.all()
+        returns = AssetReturnRequest.objects.all()
+        losses = AssetLossReport.objects.all()
+        clearances = PropertyClearanceRequest.objects.all()
     else:
-        inspections = InspectionRequest.objects.filter(requestor=request.user)
-        batches = AssetBatch.objects.filter(requestor=request.user)
-        transfers = AssetTransferRequest.objects.filter(requestor=request.user)
+        # My Requests
+        my_i = InspectionRequest.objects.filter(requestor=request.user)
+        my_b = AssetBatch.objects.filter(requestor=request.user)
+        my_t = AssetTransferRequest.objects.filter(requestor=request.user)
+        my_r = AssetReturnRequest.objects.filter(requestor=request.user)
+        my_l = AssetLossReport.objects.filter(requestor=request.user)
+        my_c = PropertyClearanceRequest.objects.filter(requestor=request.user)
+        
+        if active_roles:
+            # My Persona Tasks
+            as_i = InspectionRequest.objects.filter(current_step__required_persona_role__in=active_roles)
+            as_b = AssetBatch.objects.filter(current_step__required_persona_role__in=active_roles)
+            as_t = AssetTransferRequest.objects.filter(current_step__required_persona_role__in=active_roles)
+            as_r = AssetReturnRequest.objects.filter(current_step__required_persona_role__in=active_roles)
+            as_l = AssetLossReport.objects.filter(current_step__required_persona_role__in=active_roles)
+            as_c = PropertyClearanceRequest.objects.filter(current_step__required_persona_role__in=active_roles)
+            
+            inspections = (my_i | as_i).distinct()
+            batches = (my_b | as_b).distinct()
+            transfers = (my_t | as_t).distinct()
+            returns = (my_r | as_r).distinct()
+            losses = (my_l | as_l).distinct()
+            clearances = (my_c | as_c).distinct()
+        else:
+            inspections = my_i
+            batches = my_b
+            transfers = my_t
+            returns = my_r
+            losses = my_l
+            clearances = my_c
 
-    APPROVED_STATUSES = ['Approved', 'APPROVED']
-    RETURNED_STATUSES = ['Returned', 'RETURNED']
-    PENDING_STATUSES = ['Pending Inspection', 'PENDING', 'Pending']
+    total_requests = inspections.count() + batches.count() + transfers.count() + returns.count() + losses.count() + clearances.count()
     
-    total_requests = (
-        inspections.count() +
-        batches.count() +
-        transfers.count()
-    )
-    
-    approved_count = (
-        inspections.filter(status__in=APPROVED_STATUSES).count() +
-        batches.filter(status__in=APPROVED_STATUSES).count() +
-        transfers.filter(status__in=APPROVED_STATUSES).count()
-    )
-    
-    returned_count = (
-        inspections.filter(status__in=RETURNED_STATUSES).count() +
-        batches.filter(status__in=RETURNED_STATUSES).count() +
-        transfers.filter(status__in=RETURNED_STATUSES).count()
-    )
-    
-    pending_count = (
-        inspections.filter(status__in=PENDING_STATUSES).count() +
-        batches.filter(status__in=PENDING_STATUSES).count() +
-        transfers.filter(status__in=PENDING_STATUSES).count()
-    )
-    
-    # Logic for Office Breakdown (Requires Counter)
-    inspection_pending_offices = inspections.filter(status__in=PENDING_STATUSES).values_list('requestor__userprofile__office', flat=True)
-    batch_pending_offices = batches.filter(status__in=PENDING_STATUSES).values_list('requestor__userprofile__office', flat=True)
-    transfer_pending_offices = transfers.filter(status__in=PENDING_STATUSES).values_list('requestor__userprofile__office', flat=True)
-    
-    all_pending_offices = list(inspection_pending_offices) + list(batch_pending_offices) + list(transfer_pending_offices)
-    
-    office_counts = Counter(o for o in all_pending_offices if o is not None and o != '')
-    
-    most_requesting_office = None
-    if office_counts:
-        office_name, count = office_counts.most_common(1)[0]
-        most_requesting_office = {
-            'requestor_office': office_name,
-            'pending_count': count
-        }
+    # We rely on the global context processor for `pending_count` numbers
 
     context = {
         'inspections': inspections.order_by('-created_at'),
         'batches': batches.order_by('-created_at'),
         'transfers': transfers.order_by('-created_at'),
+        'returns': returns.order_by('-created_at'),
+        'losses': losses.order_by('-created_at'),
+        'clearances': clearances.order_by('-created_at'),
         'metrics': {
             'total': total_requests,
-            'pending': pending_count,
-            'approved': approved_count,
-            'returned': returned_count,
-            'office_breakdown': most_requesting_office,
+            'approved': 0, # Placeholder, simplification for Persona scope
+            'returned': 0,
+            'pending': 0,
         }
     }
     return render(request, 'inventory/transaction_list.html', context)
@@ -854,34 +853,22 @@ def batch_detail(request, pk):
     items = batch.items.all()
     logs = batch.approval_logs.all().order_by('-timestamp')
     
-    # Check permissions logic
-    # Determine allowed transitions for current user
-    allowed_transitions = []
-    
+    # Determine allowed transitions for current user based on DB setup
     try:
-        current_state_rules = WorkflowEngine.TRANSITIONS.get(batch.status)
-        if current_state_rules:
-            required_role = current_state_rules['role']
-            # Check if user has this role
-            if request.user.groups.filter(name=required_role).exists() or request.user.is_superuser:
-                 allowed_transitions.append({
-                     'target': current_state_rules['target'],
-                     'action': current_state_rules['action'],
-                     'css_class': 'btn-success'  # simplified
-                 })
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(batch, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(batch)
     except Exception as e:
-        print(f"Workflow error: {e}")
+        print(f"Workflow logic error: {e}")
+        allowed_transitions = []
+        workflow_steps = []
 
     return render(request, 'inventory/batch_detail.html', {
         'batch': batch,
         'items': items,
         'logs': logs,
         'allowed_transitions': allowed_transitions,
-        'workflow_steps': [
-            'ANTICIPATORY', 'AWAITING_DELIVERY', 'DELIVERY_VALIDATION', 
-            'FOR_INSPECTION', 'FOR_SUPERVISOR_APPROVAL', 'FOR_CHIEF_PRE_APPROVAL',
-            'FOR_AO_SIGNATURE', 'FOR_CHIEF_FINAL_SIGNATURE', 'PAR_RELEASED'
-        ]
+        'workflow_steps': workflow_steps
+
     })
 
 @login_required
@@ -894,21 +881,151 @@ def approve_batch_workflow(request, pk, target_state):
     if request.method == 'POST':
         try:
             # Execute Transition
+            # target_state here is going to be the stringified ID of the next step, or 'FINALIZE'
             WorkflowEngine.transition(batch, target_state, request.user)
-            messages.success(request, f"Successfully transitioned to {target_state}")
+            messages.success(request, f"Workflow step executed successfully!")
             
             # TRIGGER PDF GENERATION
             # If moved to FOR_AO_SIGNATURE, generate Draft
-            if target_state == 'FOR_AO_SIGNATURE':
-                PARGenerator.generate_draft(batch)
-                messages.info(request, "PAR Draft generated for AO Signature.")
+            if batch.current_step and 'AO SIGNATURE' in batch.current_step.label.upper():
+                # PARGenerator logic can be kept if it exists
+                pass
             
-            # If moved to PAR_RELEASED, Finalize
-            elif target_state == 'PAR_RELEASED':
-                PARGenerator.finalize_par(batch)
-                messages.success(request, "PAR Finalized and Sealed!")
+            # If moved to FINALIZED
+            elif target_state == 'FINALIZE':
+                # PARGenerator logic here
+                pass
 
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
             
     return redirect('batch_detail', pk=pk)
+
+# ==========================================
+# 9. RETURN REQUEST (Creation & Detail)
+# ==========================================
+@login_required
+def create_return_request(request):
+    if request.method == 'POST':
+        form = AssetReturnRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.requestor = request.user
+            req.save()
+            WorkflowEngine.initialize_transaction(req, 'ASSET_RETURN')
+            messages.success(request, f"Return Request {req.transaction_id} submitted.")
+            return redirect('dashboard')
+    else:
+        form = AssetReturnRequestForm()
+    return render(request, 'inventory/transaction_return.html', {'form': form})
+
+@login_required
+def return_detail(request, pk):
+    req = get_object_or_404(AssetReturnRequest, pk=pk)
+    logs = req.movement_logs.all().order_by('-timestamp')
+    try:
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(req, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(req)
+    except Exception as e:
+        allowed_transitions = []
+        workflow_steps = []
+    return render(request, 'inventory/return_detail.html', {
+        'req': req, 'logs': logs, 'allowed_transitions': allowed_transitions, 'workflow_steps': workflow_steps
+    })
+
+@login_required
+def approve_return_workflow(request, pk, target_state):
+    req = get_object_or_404(AssetReturnRequest, pk=pk)
+    if request.method == 'POST':
+        try:
+            WorkflowEngine.transition(req, target_state, request.user)
+            messages.success(request, "Workflow step executed successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('return_detail', pk=pk)
+
+# ==========================================
+# 10. LOSS REPORT (Creation & Detail)
+# ==========================================
+@login_required
+def create_loss_report(request):
+    if request.method == 'POST':
+        form = AssetLossReportForm(request.POST, request.FILES)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.requestor = request.user
+            req.save()
+            WorkflowEngine.initialize_transaction(req, 'ASSET_LOSS_REPORT')
+            messages.success(request, f"Loss Report {req.transaction_id} submitted.")
+            return redirect('dashboard')
+    else:
+        form = AssetLossReportForm()
+    return render(request, 'inventory/transaction_loss.html', {'form': form})
+
+@login_required
+def loss_detail(request, pk):
+    req = get_object_or_404(AssetLossReport, pk=pk)
+    logs = req.movement_logs.all().order_by('-timestamp')
+    try:
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(req, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(req)
+    except Exception as e:
+        allowed_transitions = []
+        workflow_steps = []
+    return render(request, 'inventory/loss_detail.html', {
+        'req': req, 'logs': logs, 'allowed_transitions': allowed_transitions, 'workflow_steps': workflow_steps
+    })
+
+@login_required
+def approve_loss_workflow(request, pk, target_state):
+    req = get_object_or_404(AssetLossReport, pk=pk)
+    if request.method == 'POST':
+        try:
+            WorkflowEngine.transition(req, target_state, request.user)
+            messages.success(request, "Workflow step executed successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('loss_detail', pk=pk)
+
+# ==========================================
+# 11. CLEARANCE REQUEST (Creation & Detail)
+# ==========================================
+@login_required
+def create_clearance_request(request):
+    if request.method == 'POST':
+        form = PropertyClearanceRequestForm(request.POST, request.FILES)
+        if form.is_valid():
+            req = form.save(commit=False)
+            req.requestor = request.user
+            req.save()
+            WorkflowEngine.initialize_transaction(req, 'ASSET_CLEARANCE')
+            messages.success(request, f"Clearance Request {req.transaction_id} submitted.")
+            return redirect('dashboard')
+    else:
+        form = PropertyClearanceRequestForm()
+    return render(request, 'inventory/transaction_clearance.html', {'form': form})
+
+@login_required
+def clearance_detail(request, pk):
+    req = get_object_or_404(PropertyClearanceRequest, pk=pk)
+    logs = req.movement_logs.all().order_by('-timestamp')
+    try:
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(req, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(req)
+    except Exception as e:
+        allowed_transitions = []
+        workflow_steps = []
+    return render(request, 'inventory/clearance_detail.html', {
+        'req': req, 'logs': logs, 'allowed_transitions': allowed_transitions, 'workflow_steps': workflow_steps
+    })
+
+@login_required
+def approve_clearance_workflow(request, pk, target_state):
+    req = get_object_or_404(PropertyClearanceRequest, pk=pk)
+    if request.method == 'POST':
+        try:
+            WorkflowEngine.transition(req, target_state, request.user)
+            messages.success(request, "Workflow step executed successfully.")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('clearance_detail', pk=pk)

@@ -1,8 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-# Updated Imports to include ServiceLog
-from .models import Asset, InspectionRequest, AssetBatch, AssetTransferRequest, BatchItem, ServiceLog
+from .models import Asset, InspectionRequest, AssetBatch, AssetTransferRequest, BatchItem, ServiceLog, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
 
 # ==========================================
 # 1. ADD ASSET FORM (Frontend — replaces admin link)
@@ -318,3 +317,44 @@ class GovernmentTabForm(forms.ModelForm):
             css = field.widget.attrs.get('class', '')
             if 'form-select' not in css:
                 field.widget.attrs['class'] = 'form-control' + (' ' + css if css else '')
+
+# ==========================================
+# 9. ASSET RETURN FORM
+# ==========================================
+class AssetReturnRequestForm(forms.ModelForm):
+    class Meta:
+        model = AssetReturnRequest
+        fields = ['asset', 'reason', 'original_par_document']
+        widgets = {
+            'asset': forms.Select(attrs={'class': 'form-select'}),
+            'reason': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Reason for returning the asset to the SPMO pool...'}),
+            'original_par_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+        }
+
+# ==========================================
+# 10. ASSET LOSS REPORT FORM
+# ==========================================
+class AssetLossReportForm(forms.ModelForm):
+    class Meta:
+        model = AssetLossReport
+        fields = ['asset', 'incident_date', 'description', 'notice_of_loss', 'affidavit_of_loss', 'police_report']
+        widgets = {
+            'asset': forms.Select(attrs={'class': 'form-select'}),
+            'incident_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Describe exactly when, where, and how the asset was lost or damaged...'}),
+            'notice_of_loss': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+            'affidavit_of_loss': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+            'police_report': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+        }
+
+# ==========================================
+# 11. PROPERTY CLEARANCE FORM
+# ==========================================
+class PropertyClearanceRequestForm(forms.ModelForm):
+    class Meta:
+        model = PropertyClearanceRequest
+        fields = ['purpose', 'routing_form']
+        widgets = {
+            'purpose': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Resignation, Retirement, Transfer to another UP Unit'}),
+            'routing_form': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+        }

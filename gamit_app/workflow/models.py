@@ -88,6 +88,9 @@ class WorkflowMovementLog(models.Model):
     batch = models.ForeignKey('inventory.AssetBatch', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
     transfer = models.ForeignKey('inventory.AssetTransferRequest', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
     inspection = models.ForeignKey('inventory.InspectionRequest', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
+    return_request = models.ForeignKey('inventory.AssetReturnRequest', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
+    loss_report = models.ForeignKey('inventory.AssetLossReport', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
+    clearance = models.ForeignKey('inventory.PropertyClearanceRequest', on_delete=models.CASCADE, null=True, blank=True, related_name='movement_logs')
 
     # Actor Context
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

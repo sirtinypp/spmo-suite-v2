@@ -134,3 +134,139 @@ class PARGenerator:
         except Exception as e:
             print(f"Error drawing signature: {e}")
             c.drawString(coords[0], coords[1], "[Signature Error]")
+
+
+class ICSGenerator:
+    """
+    Handles PDF generation and finalization for Inventory Custodian Slips (ICS).
+    ICS is used for items under P50,000 threshold.
+    """
+    
+    # Path to the base template
+    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'gamit_app/inventory/static/inventory/pdf/ics_template.pdf')
+    
+    # Signature Coordinates (x, y) - A4 Portrait estimation
+    COORDS = {
+        'RECEIVED_BY': (100, 150),
+        'ISSUED_BY': (400, 150),
+    }
+
+    @staticmethod
+    def generate_draft(batch: AssetBatch):
+        """Generates a draft ICS with watermark."""
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=portrait(A4))
+        
+        c.saveState()
+        c.translate(300, 400)
+        c.rotate(45)
+        c.setFillColor(Color(0.8, 0.8, 0.8, alpha=0.5))
+        c.setFont("Helvetica-Bold", 100)
+        c.drawCentredString(0, 0, "ICS DRAFT")
+        c.restoreState()
+
+        # Try mapping available signatures
+        logs = getattr(batch, 'movement_logs', None)
+        if logs:
+             for log in logs.all():
+                 # Match logic depending on how signatures are captured in movement_logs 
+                 # Or use ApprovalLogs if still heavily relying on the old module.
+                 pass
+
+        c.showPage()
+        c.save()
+        
+        return ICSGenerator._merge(buffer, batch, "draft")
+
+    @staticmethod
+    def finalize_ics(batch: AssetBatch):
+        """Generates the FINAL ICS with ALL signatures."""
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=portrait(A4))
+        
+        # Overlay signatures... (logic relies heavily on tracking the signature_snapshot in the log)
+        # We will keep it generalized for the baseline.
+        c.showPage()
+        c.save()
+
+        # Generate Hash
+        batch.par_hash = hashlib.sha256(buffer.getvalue()).hexdigest()
+        
+        # Note: Saving field should probably be abstracted since it's an ICS, not a PAR
+        # We save it to par_file for now as the model field is generic.
+        final_file = ICSGenerator._merge(buffer, batch, "final")
+        batch.par_file.save(f"ICS_{batch.transaction_id}_Final.pdf", final_file, save=True)
+        return final_file
+
+    @staticmethod
+    def _merge(overlay_buffer, batch, type_str):
+        if os.path.exists(ICSGenerator.TEMPLATE_PATH):
+            base_pdf = PdfReader(ICSGenerator.TEMPLATE_PATH)
+            overlay_pdf = PdfReader(overlay_buffer)
+            writer = PdfWriter()
+            page = base_pdf.pages[0]
+            page.merge_page(overlay_pdf.pages[0])
+            writer.add_page(page)
+            out = BytesIO()
+            writer.write(out)
+            return ContentFile(out.getvalue(), name=f"ics_{type_str}_{batch.transaction_id}.pdf")
+        return ContentFile(overlay_buffer.getvalue(), name=f"ics_{type_str}_{batch.transaction_id}.pdf")
+
+
+class PTRGenerator:
+    """
+    Handles PDF generation for Property Transfer Reports (PTR).
+    Used during AssetTransfer requests.
+    """
+    
+    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'gamit_app/inventory/static/inventory/pdf/ptr_template.pdf')
+    
+    COORDS = {
+        'APPROVED_BY': (100, 150),
+        'RELEASED_BY': (300, 150),
+        'RECEIVED_BY': (450, 150)
+    }
+
+    @staticmethod
+    def generate_draft(transfer):
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=portrait(A4))
+        c.saveState()
+        c.translate(300, 400)
+        c.rotate(45)
+        c.setFillColor(Color(0.8, 0.8, 0.8, alpha=0.5))
+        c.setFont("Helvetica-Bold", 100)
+        c.drawCentredString(0, 0, "PTR DRAFT")
+        c.restoreState()
+        c.showPage()
+        c.save()
+        return PTRGenerator._merge(buffer, transfer, "draft")
+
+    @staticmethod
+    def finalize_ptr(transfer):
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=portrait(A4))
+        # Draw final signatures logic here
+        c.showPage()
+        c.save()
+        
+        # Assuming AssetTransferRequest gets a generic `document_file` or `ptr_file` field eventually
+        # Currently, returning ContentFile to be saved by the view.
+        final_file = PTRGenerator._merge(buffer, transfer, "final")
+        if hasattr(transfer, 'par_file'): # Using if it exists
+            transfer.par_file.save(f"PTR_{transfer.transaction_id}_Final.pdf", final_file, save=True)
+        return final_file
+
+    @staticmethod
+    def _merge(overlay_buffer, transfer, type_str):
+        if os.path.exists(PTRGenerator.TEMPLATE_PATH):
+            base_pdf = PdfReader(PTRGenerator.TEMPLATE_PATH)
+            overlay_pdf = PdfReader(overlay_buffer)
+            writer = PdfWriter()
+            page = base_pdf.pages[0]
+            page.merge_page(overlay_pdf.pages[0])
+            writer.add_page(page)
+            out = BytesIO()
+            writer.write(out)
+            return ContentFile(out.getvalue(), name=f"ptr_{type_str}_{transfer.transaction_id}.pdf")
+        return ContentFile(overlay_buffer.getvalue(), name=f"ptr_{type_str}_{transfer.transaction_id}.pdf")

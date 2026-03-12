@@ -209,6 +209,7 @@ class InspectionRequest(models.Model):
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE)
     notes = models.TextField()
     status = models.CharField(max_length=50, default='Pending Inspection', choices=STATUS_CHOICES)
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
     document_1 = models.FileField(upload_to='inspection_docs/', blank=True, null=True)
     document_2 = models.FileField(upload_to='inspection_docs/', blank=True, null=True)
     admin_remarks = models.TextField(blank=True, null=True)
@@ -247,6 +248,7 @@ class AssetBatch(models.Model):
     requestor = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=30, choices=WORKFLOW_STATUS, default='ANTICIPATORY')
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
     
     # --- HEADER DETAILS ---
     requesting_unit = models.CharField(max_length=150, blank=True, null=True, verbose_name="Requesting Unit")
@@ -336,6 +338,7 @@ class AssetTransferRequest(models.Model):
     requestor = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
     
     # The Asset being transferred
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, verbose_name="Target Asset")
@@ -437,3 +440,85 @@ class AssetNotification(models.Model):
 
     def __str__(self):
         return f"[{self.recipient_role}] {self.message}"
+
+# ==========================================
+# 10. ASSET RETURN REQUEST
+# ==========================================
+class AssetReturnRequest(models.Model):
+    transaction_id = models.CharField(max_length=20, unique=True, editable=False)
+    requestor = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, default='Pending') # Fallback String
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
+    
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, verbose_name="Returned Asset")
+    reason = models.TextField(verbose_name="Reason for Return")
+    
+    # Required Document
+    original_par_document = models.FileField(upload_to='return_docs/', verbose_name="Signed Copy of Original PAR/ICS")
+    admin_remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            year = datetime.date.today().strftime('%Y')
+            rand = get_random_string(4).upper()
+            self.transaction_id = f"RET-{year}-{rand}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.transaction_id} - {self.asset.property_number}"
+
+# ==========================================
+# 11. ASSET LOSS REPORT
+# ==========================================
+class AssetLossReport(models.Model):
+    transaction_id = models.CharField(max_length=20, unique=True, editable=False)
+    requestor = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, default='Pending')
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
+    
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, verbose_name="Lost/Damaged Asset")
+    incident_date = models.DateField(default=datetime.date.today, verbose_name="Date of Incident")
+    description = models.TextField(verbose_name="Description of Incident")
+    
+    # Required Documents
+    notice_of_loss = models.FileField(upload_to='loss_docs/', verbose_name="Notice of Loss")
+    affidavit_of_loss = models.FileField(upload_to='loss_docs/', verbose_name="Notarized Affidavit of Loss")
+    police_report = models.FileField(upload_to='loss_docs/', blank=True, null=True, verbose_name="Police/Fire Report (Optional)")
+    admin_remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            year = datetime.date.today().strftime('%Y')
+            rand = get_random_string(4).upper()
+            self.transaction_id = f"LOSS-{year}-{rand}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.transaction_id} - {self.asset.property_number}"
+
+# ==========================================
+# 12. PROPERTY CLEARANCE REQUEST
+# ==========================================
+class PropertyClearanceRequest(models.Model):
+    transaction_id = models.CharField(max_length=20, unique=True, editable=False)
+    requestor = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50, default='Pending')
+    current_step = models.ForeignKey('workflow.WorkflowStep', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Current Workflow Step")
+    
+    # Required Document
+    routing_form = models.FileField(upload_to='clearance_docs/', verbose_name="Employee Routing / Clearance Form")
+    purpose = models.CharField(max_length=150, verbose_name="Purpose of Clearance (e.g., Retirement, Transfer)")
+    admin_remarks = models.TextField(blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            year = datetime.date.today().strftime('%Y')
+            rand = get_random_string(4).upper()
+            self.transaction_id = f"CLR-{year}-{rand}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.transaction_id} - {self.requestor.get_full_name()}"

@@ -1,0 +1,218 @@
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <div class="d-flex align-items-center mb-1">
+            <i class="fas fa-layer-group text-primary me-2 fs-4"></i>
+            <h4 class="fw-bold mb-0 tracking-tight">GAMIT</h4>
+        </div>
+        <div class="small text-secondary ps-4 ms-1" style="font-size: 0.8rem;">Gov. Asset Mgmt.</div>
+    </div>
+
+    <!-- User Profile & Theme Toggle -->
+    <div class="d-flex align-items-center px-3 py-3 mb-4 rounded-3 justify-content-between" style="background: rgba(255,255,255,0.03);">
+        <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold me-3"
+                style="width: 32px; height: 32px;">
+                {{ user.username|make_list|first|upper }}
+            </div>
+            <div class="overflow-hidden" style="max-width: 90px;">
+                <div class="text-white small fw-bold text-truncate">{{ user.username }}</div>
+                <div class="text-secondary small" style="font-size: 0.75rem;">Online</div>
+            </div>
+        </div>
+        {% if show_theme_toggle %}
+        <button class="theme-toggle-btn" id="themeToggle" title="Toggle Light/Dark Mode">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </button>
+        {% endif %}
+    </div>
+
+    {% if unread_notif_count > 0 %}
+    <div class="px-3 mb-3">
+        <div class="dropdown">
+            <button
+                class="btn btn-sm w-100 d-flex align-items-center justify-content-between text-white rounded-3 px-3 py-2 dropdown-toggle"
+                type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+                style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);">
+                <span><i class="fas fa-bell me-2 text-primary"></i>Notifications</span>
+                <span class="badge bg-danger rounded-pill ms-2">{{ unread_notif_count }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark shadow-lg"
+                style="width: 280px; max-height: 300px; overflow-y: auto; font-size: 0.85rem;">
+                {% for n in unread_notifs %}
+                <li>
+                    <div class="dropdown-item py-2 text-wrap" style="white-space: normal;">
+                        <div class="small text-info fw-bold">{{ n.asset.property_number }}</div>
+                        <div class="small text-light">{{ n.message }}</div>
+                        <div class="text-secondary" style="font-size: 0.7rem;">{{ n.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </li>
+                {% if not forloop.last %}<li>
+                    <hr class="dropdown-divider">
+                </li>{% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    <ul class="nav flex-column mb-auto">
+        <li class="nav-item">
+            <a href="{% url 'dashboard' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-gauge me-2"></i> Dashboard
+            </a>
+        </li>
+
+        <div class="accordion sidebar-accordion mt-2" id="gamitSidebarAccordion">
+
+            <!-- Folder 1: Asset Registry -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingRegistry">
+                    <button class="accordion-button {% if request.resolver_match.url_name != 'asset_list' and request.resolver_match.url_name != 'add_asset' and request.resolver_match.url_name != 'create_batch_request' %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseRegistry" aria-expanded="{% if request.resolver_match.url_name == 'asset_list' or request.resolver_match.url_name == 'add_asset' or request.resolver_match.url_name == 'create_batch_request' %}true{% else %}false{% endif %}" 
+                        aria-controls="collapseRegistry">
+                        <i class="fas fa-box-archive me-3"></i> Asset Registry
+                    </button>
+                </h2>
+                <div id="collapseRegistry" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'asset_list' or request.resolver_match.url_name == 'add_asset' or request.resolver_match.url_name == 'create_batch_request' %}show{% endif %}" 
+                    aria-labelledby="headingRegistry" data-bs-parent="#gamitSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="sub-menu">
+                            <li><a href="{% url 'asset_list' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'asset_list' %}active{% endif %}">View
+                                    Master Ledger</a></li>
+                            {% if user.is_staff or user.is_superuser %}
+                            <li><a href="{% url 'add_asset' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'add_asset' %}active{% endif %}">Direct
+                                    Entry Form</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'create_batch_request' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_batch_request' %}active{% endif %}">Batch Register (Acq.)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Folder 2: Asset Movements -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingMovement">
+                    <button class="accordion-button {% if request.resolver_match.url_name != 'create_transfer_request' and request.resolver_match.url_name != 'create_return_request' %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseMovement" aria-expanded="{% if request.resolver_match.url_name == 'create_transfer_request' or request.resolver_match.url_name == 'create_return_request' %}true{% else %}false{% endif %}" 
+                        aria-controls="collapseMovement">
+                        <i class="fas fa-exchange-alt me-3"></i> Asset Movements
+                    </button>
+                </h2>
+                <div id="collapseMovement" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'create_transfer_request' or request.resolver_match.url_name == 'create_return_request' %}show{% endif %}" 
+                    aria-labelledby="headingMovement" data-bs-parent="#gamitSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="sub-menu">
+                            <li><a href="{% url 'create_transfer_request' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_transfer_request' %}active{% endif %}">Transfer
+                                    / Reassign</a></li>
+                            <li><a href="{% url 'create_return_request' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_return_request' %}active{% endif %}">Return
+                                    to Pool</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Folder 3: Maintenance & Disposal -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingMaintenance">
+                    <button class="accordion-button {% if request.resolver_match.url_name != 'create_inspection_request' %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseMaintenance" aria-expanded="{% if request.resolver_match.url_name == 'create_inspection_request' %}true{% else %}false{% endif %}"
+                        aria-controls="collapseMaintenance">
+                        <i class="fas fa-tools me-3"></i> Maint. & Disposal
+                    </button>
+                </h2>
+                <div id="collapseMaintenance" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'create_inspection_request' %}show{% endif %}"
+                    aria-labelledby="headingMaintenance" data-bs-parent="#gamitSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="sub-menu">
+                            <li><a href="{% url 'create_inspection_request' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_inspection_request' %}active{% endif %}">Inspect
+                                    & Repair</a></li>
+                            <li><a href="#" class="sub-link text-muted"><i class="fas fa-lock small me-1"></i>
+                                    Condemnation (R&D)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Folder 4: Accountability -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingAccountability">
+                    <button class="accordion-button {% if request.resolver_match.url_name != 'create_loss_report' and request.resolver_match.url_name != 'create_clearance_request' %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseAccountability" aria-expanded="{% if request.resolver_match.url_name == 'create_loss_report' or request.resolver_match.url_name == 'create_clearance_request' %}true{% else %}false{% endif %}"
+                        aria-controls="collapseAccountability">
+                        <i class="fas fa-balance-scale me-3"></i> Accountability
+                    </button>
+                </h2>
+                <div id="collapseAccountability" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'create_loss_report' or request.resolver_match.url_name == 'create_clearance_request' %}show{% endif %}"
+                    aria-labelledby="headingAccountability" data-bs-parent="#gamitSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="sub-menu">
+                            <li><a href="{% url 'create_loss_report' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_loss_report' %}active{% endif %}">Report
+                                    Loss/Damage</a></li>
+                            <li><a href="{% url 'create_clearance_request' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'create_clearance_request' %}active{% endif %}">Property
+                                    Clearance</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- End Accordion -->
+
+        <li class="section-label mt-4">Workspace</li>
+
+        <li class="nav-item">
+            <a href="{% url 'transaction_history' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %} d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-inbox me-2"></i> My Task Inbox
+                </div>
+                {% if pending_count > 0 %}
+                <span class="badge bg-danger rounded-pill shadow-sm" style="font-size: 0.7em;">
+                    {{ pending_count }}
+                </span>
+                {% endif %}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{% url 'sitemap' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'sitemap' %}active{% endif %}">
+                <i class="fas fa-compass me-2"></i> System Map
+            </a>
+        </li>
+
+        {% if user.is_staff and user.is_superuser %}
+        <li class="section-label">Administration</li>
+        <li class="nav-item">
+            <a href="/admin/" target="_blank" class="nav-link">
+                <i class="fas fa-sliders me-2"></i> Admin Panel
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="nav-link w-100 text-start text-danger hover-danger" style="background:none; border:none;">
+                <i class="fas fa-arrow-right-from-bracket me-2"></i> Logout
+            </button>
+        </form>
+        <div class="text-center text-secondary mt-3" style="font-size: 0.7rem; opacity: 0.5;">
+            &copy; 2025 GAMIT System v1.5
+        </div>
+    </div>
+</nav>

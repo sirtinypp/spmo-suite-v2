@@ -1,0 +1,99 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Loss Report #{{ req.transaction_id }}</h4>
+            <span class="badge bg-danger fs-6">{{ req.current_step.label|default:req.status }}</span>
+        </div>
+        <div>
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Report Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Requestor:</strong> {{ req.requestor.get_full_name|default:req.requestor.username }}</p>
+                            <p><strong>Date Filed:</strong> {{ req.created_at|date:"Y-m-d" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Asset:</strong> {{ req.asset.property_number }} - {{ req.asset.name }}</p>
+                            <p><strong>Incident Date:</strong> {{ req.incident_date }}</p>
+                        </div>
+                    </div>
+                    <p class="mt-2"><strong>Description:</strong> {{ req.description }}</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Attached Documents</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% if req.notice_of_loss %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-pdf text-danger me-2"></i><strong>Notice of Loss</strong></div>
+                        <a href="{{ req.notice_of_loss.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                    {% if req.affidavit_of_loss %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-pdf text-danger me-2"></i><strong>Notarized Affidavit of Loss</strong></div>
+                        <a href="{{ req.affidavit_of_loss.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                    {% if req.police_report %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-pdf text-danger me-2"></i><strong>Police/Fire Report</strong></div>
+                        <a href="{{ req.police_report.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Vertical Timeline -->
+            {% include 'inventory/snippets/vertical_timeline.html' %}
+            
+            <div class="card shadow mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if allowed_transitions %}
+                        <form method="post" action="{% url 'approve_loss_workflow' req.pk allowed_transitions.0.target %}">
+                            {% csrf_token %}
+                            <p class="small text-muted mb-2">You are authorized to execute the next step in this workflow.</p>
+                            {% for trans in allowed_transitions %}
+                            <button type="submit" formaction="{% url 'approve_loss_workflow' req.pk trans.target %}" class="btn {{ trans.css_class }} w-100 mb-2 py-2 fw-bold shadow-sm">
+                                <i class="fas fa-check-circle me-1"></i> {{ trans.action }}
+                            </button>
+                            {% endfor %}
+                        </form>
+                    {% else %}
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-lock fs-4 mb-2 d-block"></i>
+                            <p class="mb-0 small">No actions available. You lack the required Persona role for the current step.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- Movement Log (Audit Trail) -->
+    {% include 'inventory/snippets/movement_log_table.html' %}
+</div>
+{% endblock %}

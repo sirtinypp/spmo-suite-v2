@@ -1,0 +1,82 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Clearance Request #{{ req.transaction_id }}</h4>
+            <span class="badge bg-success fs-6">{{ req.current_step.label|default:req.status }}</span>
+        </div>
+        <div>
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Clearance Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Employee:</strong> {{ req.requestor.get_full_name|default:req.requestor.username }}</p>
+                            <p><strong>Date Filed:</strong> {{ req.created_at|date:"Y-m-d" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Purpose:</strong> {{ req.purpose }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Attached Documents</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% if req.routing_form %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-pdf text-danger me-2"></i><strong>Routing / Clearance Form</strong></div>
+                        <a href="{{ req.routing_form.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Vertical Timeline -->
+            {% include 'inventory/snippets/vertical_timeline.html' %}
+            
+            <div class="card shadow mb-4 border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if allowed_transitions %}
+                        <form method="post" action="{% url 'approve_clearance_workflow' req.pk allowed_transitions.0.target %}">
+                            {% csrf_token %}
+                            <p class="small text-muted mb-2">You are authorized to execute the next step in this workflow.</p>
+                            {% for trans in allowed_transitions %}
+                            <button type="submit" formaction="{% url 'approve_clearance_workflow' req.pk trans.target %}" class="btn {{ trans.css_class }} w-100 mb-2 py-2 fw-bold shadow-sm">
+                                <i class="fas fa-check-circle me-1"></i> {{ trans.action }}
+                            </button>
+                            {% endfor %}
+                        </form>
+                    {% else %}
+                        <div class="text-center text-muted p-3">
+                            <i class="fas fa-lock fs-4 mb-2 d-block"></i>
+                            <p class="mb-0 small">No actions available. You lack the required Persona role for the current step.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+{% endblock %}

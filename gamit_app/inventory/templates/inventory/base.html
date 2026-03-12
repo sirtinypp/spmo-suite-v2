@@ -31,6 +31,98 @@
             color: #334155;
         }
 
+        .sub-link.active::before {
+            background-color: var(--primary-accent);
+            opacity: 1;
+            box-shadow: 0 0 6px var(--primary-accent);
+        }
+
+        /* --- Collapsible Submenu Styling (Restored) --- */
+        .sidebar-accordion {
+            background: transparent;
+            border: none;
+        }
+
+        .sidebar-accordion .accordion-item {
+            background: transparent;
+            border: none;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-accordion .accordion-button {
+            background: transparent;
+            color: var(--sidebar-text);
+            padding: 10px 16px;
+            box-shadow: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-accordion .accordion-button:not(.collapsed) {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-accordion .accordion-button:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-accordion .accordion-button::after {
+            filter: invert(0.8) sepia(0) saturate(1) hue-rotate(0deg) brightness(1.2);
+            transform: scale(0.8);
+        }
+
+        .sub-menu {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+
+        .sub-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px 8px 46px;
+            /* indent past the icon */
+            color: var(--sidebar-text);
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .sub-link::before {
+            content: '';
+            position: absolute;
+            left: 26px;
+            top: 50%;
+            width: 4px;
+            height: 4px;
+            background-color: var(--sidebar-text);
+            border-radius: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .sub-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .sub-link:hover::before {
+            background-color: var(--primary-accent);
+            opacity: 1;
+        }
+
+        .sub-link.active {
+            color: var(--primary-accent);
+            font-weight: 600;
+        }
+
         /* --- Sidebar Styling --- */
         .sidebar {
             position: fixed;
@@ -133,89 +225,14 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }}
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <nav class="sidebar">
-        <div class="sidebar-brand">
-            <div class="d-flex align-items-center mb-1">
-                <i class="fas fa-layer-group text-primary me-2 fs-4"></i>
-                <h4 class="fw-bold mb-0 tracking-tight">GAMIT</h4>
-            </div>
-            <div class="small text-secondary ps-4 ms-1" style="font-size: 0.8rem;">Gov. Asset Mgmt.</div>
-        </div>
-
-        <div class="d-flex align-items-center px-3 py-3 mb-4 rounded-3" style="background: rgba(255,255,255,0.03);">
-            <div class="rounded-circle bg-secondary d-flex justify-content-center align-items-center text-white fw-bold me-3"
-                style="width: 32px; height: 32px;">
-                {{ user.username|make_list|first|upper }}
-            </div>
-            <div class="overflow-hidden">
-                <div class="text-white small fw-bold text-truncate">{{ user.username }}</div>
-                <div class="text-secondary small" style="font-size: 0.75rem;">Online</div>
-            </div>
-        </div>
-
-        <ul class="nav flex-column mb-auto">
-
-            <li class="nav-item">
-                <a href="{% url 'dashboard' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="fas fa-gauge me-2"></i> Dashboard
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{% url 'asset_list' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'asset_list' %}active{% endif %}">
-                    <i class="fas fa-box-archive me-2"></i> All Assets
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{% url 'transaction_history' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'transaction_history' %}active{% endif %}">
-                    <i class="fas fa-history me-2"></i> My Transactions
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="{% url 'sitemap' %}"
-                    class="nav-link {% if request.resolver_match.url_name == 'sitemap' %}active{% endif %}">
-                    <i class="fas fa-sitemap me-2"></i> Site Map
-                </a>
-            </li>
-
-            {% if user.is_staff %}
-            <li class="section-label">Administration</li>
-            <li class="nav-item">
-                <a href="/admin/inventory/asset/add/" class="nav-link">
-                    <i class="fas fa-plus me-2"></i> Add Asset
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/admin/" class="nav-link">
-                    <i class="fas fa-sliders me-2"></i> Admin Panel
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-
-        <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-            <form action="{% url 'logout' %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="nav-link w-100 text-start text-danger hover-danger">
-                    <i class="fas fa-arrow-right-from-bracket me-2"></i> Logout
-                </button>
-            </form>
-            <div class="text-center text-secondary mt-3" style="font-size: 0.7rem; opacity: 0.5;">
-                &copy; 2025 GAMIT System v1.0
-            </div>
-        </div>
-    </nav>
+    {% include 'inventory/snippets/sidebar_nav.html' with show_theme_toggle=False %}
 
     <main class="main-content">
         {% block content %}
