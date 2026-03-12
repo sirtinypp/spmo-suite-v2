@@ -77,3 +77,13 @@ The SysOps Sentinel orchestrated the containerization and remote deployment of t
     - `curl -I http://172.20.3.91` → **200 OK**
     - Subdomain routing (vhosts) → **200 OK** (Localhost tests)
   - **Status**: 🟢 PRODUCTION STABLE. (Cloudflare domains may require cache purge).
+
+- **Incident Recovery: Container Database Migration Drift (Mar 12, 2026)**: ✅ **RESOLVED**
+  - **Issue**: Django migrations for the new GAMIT `workflow` app were bleeding into the local SQLite database instead of the shared Docker PostgreSQL `spmo_shared_db`, causing `ProgrammingError` (table not found) inside the Docker containers.
+  - **Actions Taken**:
+    1. Established a **SysOps Sentinel & Asset Warden Dual-Agent Protocol** to isolate logic changes.
+    2. Routed `manage.py migrate workflow` directly into the `app_gamit` Docker container instead of the local dev environment (`docker exec app_gamit python manage.py migrate workflow`).
+    3. Routed the baseline workflow seeding script into the container (`docker exec app_gamit python /app/seed_workflow.py`).
+  - **Verification**:
+    - `http://localhost:8001/admin/workflow/actionprocess/` → **200 OK** (Tables populated)
+  - **Status**: 🟢 ISOLATED ARCHITECTURE STABLE. Phase 1 Workflow Models deployed.

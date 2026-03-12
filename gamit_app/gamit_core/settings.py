@@ -64,8 +64,10 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'django.contrib.sites',
     'import_export',
-    # Our new app
+    # Our core app
     'inventory',
+    # Workflow engine app (added per Phase 1 spec)
+    'workflow',
     # --- Google SSO (django-allauth) ---
     'allauth',
     'allauth.account',

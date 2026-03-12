@@ -80,6 +80,7 @@ ssh -o ConnectTimeout=5 -p 9913 ajbasa@172.20.3.91 "docker ps --format 'table {{
 - [`.agent/JARVIS_LOCK_ENFORCEMENT.md`](file:///c:/Users/Aaron/spmo-suite%20-%20Copy/.agent/JARVIS_LOCK_ENFORCEMENT.md) — Production lock, violation detection
 - [`.agent/JARVIS_KNOWLEDGE_BASE_PROTOCOL.md`](file:///c:/Users/Aaron/spmo-suite%20-%20Copy/.agent/JARVIS_KNOWLEDGE_BASE_PROTOCOL.md) — KB management rules
 - [`.agent/TEMPLATE_TAG_PREVENTION.md`](file:///c:/Users/Aaron/spmo-suite%20-%20Copy/.agent/TEMPLATE_TAG_PREVENTION.md) — Django template rendering safeguards
+- [`.PERSONA_PROTOCOL.md`](file:///C:/Users/Aaron/.gemini/antigravity/brain/ced3c0e6-db52-4c9c-a142-419bcb84fc7e/PERSONA_PROTOCOL.md) — **CRITICAL**: SPMO Suite Context Isolation
 
 ### 2.2 Agent Personas (MUST READ)
 - [`.agent/workflows/role-manager.md`](file:///c:/Users/Aaron/spmo-suite%20-%20Copy/.agent/workflows/role-manager.md) — JARVIS
@@ -103,6 +104,7 @@ After reading, silently confirm these rules are active:
 - ✅ No Rabbit Holes (stay on task)
 - ✅ Verification First (check before fixing)
 - ✅ Double-Entry Logging (agent log + CHANGELOG)
+- ✅ **Persona Lock** (Strict focus: GAMIT, LIPAD, SUPLAY)
 
 ---
 
