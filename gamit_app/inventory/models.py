@@ -31,29 +31,44 @@ class UserProfile(models.Model):
     
     def __str__(self): return f"{self.user.username} - {self.role}"
     
-def get_next_sequence(prefix, model, field_name="property_number"):
+def get_next_sequence(prefix, model, field_name="property_number", use_year=True):
     """
-    Helper to get the next sequential number: PREFIX-YYYY-NNNNN
+    Helper to get the next sequential number.
+    By default: PREFIX-YYYY-NNNNN
+    If use_year=False: PREFIX-NNNNNN (Legacy/Continuous)
     """
     import datetime
-    year = datetime.date.today().year
-    year_prefix = f"{prefix}-{year}-"
     
-    # Filter for items starting with our year prefix
-    last_item = model.objects.filter(**{f"{field_name}__startswith": year_prefix}).order_by(f"-{field_name}").first()
+    if use_year:
+        year = datetime.date.today().year
+        search_prefix = f"{prefix}-{year}-"
+    else:
+        search_prefix = f"{prefix}-"
+    
+    # Filter for items starting with our prefix
+    last_item = model.objects.filter(**{f"{field_name}__startswith": search_prefix}).order_by(f"-{field_name}").first()
     
     if last_item:
         last_val = getattr(last_item, field_name)
         try:
-            # Extract the last 5 digits
-            last_seq = int(last_val.split('-')[-1])
+            # Extract the last digits after the last hyphen
+            last_seq_str = last_val.split('-')[-1]
+            last_seq = int(last_seq_str)
             new_seq = last_seq + 1
+            # Maintain the length of the number if possible, or default to 5-6
+            zfill_len = len(last_seq_str)
         except (ValueError, IndexError):
             new_seq = 1
+            zfill_len = 5
     else:
         new_seq = 1
+        zfill_len = 5
         
-    return f"{year_prefix}{str(new_seq).zfill(5)}"
+    if use_year:
+        return f"{search_prefix}{str(new_seq).zfill(5)}"
+    else:
+        # For legacy PAR, we typically use 6 digits or match existing
+        return f"{search_prefix}{str(new_seq).zfill(zfill_len if zfill_len > 0 else 5)}"
 
 # 1.1 USER SIGNATURE (New for Workflow)
 class UserSignature(models.Model):
@@ -121,7 +136,7 @@ class Asset(models.Model):
     ]
 
     item_id = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Item ID")
-    property_number = models.CharField(max_length=50, unique=True, verbose_name="Property Number")
+    property_number = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Property Number")
     
     # SOP: Linkage to Transaction (Phase 7)
     acquisition_batch = models.ForeignKey('AssetBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_assets')
@@ -222,9 +237,11 @@ class Asset(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.property_number:
-            self.property_number = get_next_sequence("UP", Asset, "property_number")
+            # Match legacy format: PAR-XXXXXX (Continuous sequence)
+            self.property_number = get_next_sequence("PAR", Asset, "property_number", use_year=False)
         if not self.item_id:
-            self.item_id = get_next_sequence("AST", Asset, "item_id")
+            # Keep item_id internal sequence (UP-YYYY-NNNNN or similar)
+            self.item_id = get_next_sequence("AST", Asset, "item_id", use_year=True)
         super().save(*args, **kwargs)
 
     def __str__(self): return f"{self.property_number} - {self.name}"
