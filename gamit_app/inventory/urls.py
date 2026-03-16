@@ -44,6 +44,9 @@ urlpatterns = [
     path('transaction/batch/<int:pk>/print/', views.print_acceptance_report, name='print_acceptance_report'),
     path('transaction/batch/<int:pk>/print-par/', views.print_par, name='print_par'),
 
+    # --- ADMINISTRATION ---
+    path('administration/activity-log/', views.activity_log, name='activity_log'),
+
     # --- WORKFLOW ---
     path('profile/signature/', views.upload_signature, name='upload_signature'),
     path('batch/<int:pk>/', views.batch_detail, name='batch_detail'),

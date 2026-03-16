@@ -101,6 +101,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'inventory.context_processors.pending_count',
                 'inventory.context_processors.unread_notifications',
+                'inventory.context_processors.suite_wide_perms',
             ],
         },
     },

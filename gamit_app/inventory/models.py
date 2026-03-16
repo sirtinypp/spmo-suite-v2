@@ -30,6 +30,30 @@ class UserProfile(models.Model):
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default='USER', verbose_name="User Role")
     
     def __str__(self): return f"{self.user.username} - {self.role}"
+    
+def get_next_sequence(prefix, model, field_name="property_number"):
+    """
+    Helper to get the next sequential number: PREFIX-YYYY-NNNNN
+    """
+    import datetime
+    year = datetime.date.today().year
+    year_prefix = f"{prefix}-{year}-"
+    
+    # Filter for items starting with our year prefix
+    last_item = model.objects.filter(**{f"{field_name}__startswith": year_prefix}).order_by(f"-{field_name}").first()
+    
+    if last_item:
+        last_val = getattr(last_item, field_name)
+        try:
+            # Extract the last 5 digits
+            last_seq = int(last_val.split('-')[-1])
+            new_seq = last_seq + 1
+        except (ValueError, IndexError):
+            new_seq = 1
+    else:
+        new_seq = 1
+        
+    return f"{year_prefix}{str(new_seq).zfill(5)}"
 
 # 1.1 USER SIGNATURE (New for Workflow)
 class UserSignature(models.Model):
@@ -98,6 +122,10 @@ class Asset(models.Model):
 
     item_id = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Item ID")
     property_number = models.CharField(max_length=50, unique=True, verbose_name="Property Number")
+    
+    # SOP: Linkage to Transaction (Phase 7)
+    acquisition_batch = models.ForeignKey('AssetBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_assets')
+    
     name = models.CharField(max_length=255, verbose_name="Description (Short)")
     description = models.TextField(blank=True, null=True, verbose_name="Description (Full)")
     date_acquired = models.DateField(verbose_name="Date Acquired")
@@ -193,10 +221,10 @@ class Asset(models.Model):
         return False
 
     def save(self, *args, **kwargs):
+        if not self.property_number:
+            self.property_number = get_next_sequence("UP", Asset, "property_number")
         if not self.item_id:
-            year = datetime.date.today().year
-            rand = get_random_string(6).upper()
-            self.item_id = f"AST-{year}-{rand}"
+            self.item_id = get_next_sequence("AST", Asset, "item_id")
         super().save(*args, **kwargs)
 
     def __str__(self): return f"{self.property_number} - {self.name}"
@@ -218,9 +246,7 @@ class InspectionRequest(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            today = datetime.date.today().strftime('%Y')
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"REQ-{today}-{rand}"
+            self.transaction_id = get_next_sequence("REQ", InspectionRequest, "transaction_id")
         super().save(*args, **kwargs)
 
     def __str__(self): return f"{self.transaction_id} - {self.asset.name}"
@@ -284,9 +310,7 @@ class AssetBatch(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            year = datetime.date.today().year
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"BATCH-{year}-{rand}"
+            self.transaction_id = get_next_sequence("BATCH", AssetBatch, "transaction_id")
         super().save(*args, **kwargs)
     
     def __str__(self): return self.transaction_id
@@ -359,9 +383,7 @@ class AssetTransferRequest(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            year = datetime.date.today().strftime('%Y')
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"TRF-{year}-{rand}"
+            self.transaction_id = get_next_sequence("TRF", AssetTransferRequest, "transaction_id")
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -460,9 +482,7 @@ class AssetReturnRequest(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            year = datetime.date.today().strftime('%Y')
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"RET-{year}-{rand}"
+            self.transaction_id = get_next_sequence("RET", AssetReturnRequest, "transaction_id")
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -490,9 +510,7 @@ class AssetLossReport(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            year = datetime.date.today().strftime('%Y')
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"LOSS-{year}-{rand}"
+            self.transaction_id = get_next_sequence("LOSS", AssetLossReport, "transaction_id")
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -515,9 +533,7 @@ class PropertyClearanceRequest(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
-            year = datetime.date.today().strftime('%Y')
-            rand = get_random_string(4).upper()
-            self.transaction_id = f"CLR-{year}-{rand}"
+            self.transaction_id = get_next_sequence("CLR", PropertyClearanceRequest, "transaction_id")
         super().save(*args, **kwargs)
 
     def __str__(self):

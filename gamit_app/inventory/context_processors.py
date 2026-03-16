@@ -23,6 +23,28 @@ def pending_count(request):
         count += PropertyClearanceRequest.objects.filter(current_step__required_persona_role__in=active_roles).count()
 
     return {'pending_count': count}
+
+def suite_wide_perms(request):
+    """
+    Globally available permission flags for Suite-wide navigation.
+    """
+    if not request.user.is_authenticated:
+        return {'can_view_activity_log': False}
+        
+    if request.user.is_superuser:
+        return {'can_view_activity_log': True}
+        
+    # Check for Chief/Supervisor active personas
+    viewer_roles = ['SPMO_CHIEF', 'SPMO_SUPERVISOR', 'SPMO_ADMIN_SUPERVISOR']
+    has_role = Persona.objects.filter(
+        user=request.user, 
+        is_active=True, 
+        role__code__in=viewer_roles
+    ).exists()
+    
+    return {'can_view_activity_log': has_role}
+
+
 def unread_notifications(request):
     """Temporary disable until AssetNotification is restored."""
     return {

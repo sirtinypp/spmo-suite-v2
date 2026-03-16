@@ -334,17 +334,26 @@ def get_user_tab_permissions(user):
 def _detect_changes(asset, form, tab_name, user, request):
     """Detect field changes and create AssetChangeLog entries. Returns list of changed field names."""
     changed = []
+    if not form.changed_data:
+        return changed
+
+    # IMPORTANT: form.is_valid() has already mutated the 'asset' instance.
+    # We must fetch the original state from the database to compare.
+    old_instance = Asset.objects.get(pk=asset.pk)
+
     for field_name in form.changed_data:
-        old_val = getattr(asset, field_name, None)
+        old_val = getattr(old_instance, field_name, None)
         new_val = form.cleaned_data.get(field_name)
+        
         # Stringify for storage
         old_str = str(old_val) if old_val is not None else ''
         new_str = str(new_val) if new_val is not None else ''
+        
         if old_str != new_str:
             AssetChangeLog.objects.create(
                 asset=asset,
                 user=user,
-                tab=tab_name,
+                tab=tab_name.upper(), # Standardize to match TAB_CHOICES
                 field_name=field_name,
                 old_value=old_str[:500],
                 new_value=new_str[:500],
@@ -569,9 +578,39 @@ def transaction_history(request):
             losses = my_l
             clearances = my_c
 
-    total_requests = inspections.count() + batches.count() + transfers.count() + returns.count() + losses.count() + clearances.count()
+    # Calculate real-time metrics for the Smart Dashboard
+    total_count = inspections.count() + batches.count() + transfers.count() + returns.count() + losses.count() + clearances.count()
     
-    # We rely on the global context processor for `pending_count` numbers
+    approved_count = (
+        inspections.filter(status__iexact='Approved').count() +
+        batches.filter(status__iexact='APPROVED').count() +
+        transfers.filter(status__iexact='APPROVED').count() +
+        returns.filter(status__iexact='FINALIZED').count() +
+        losses.filter(status__iexact='FINALIZED').count() +
+        clearances.filter(status__iexact='FINALIZED').count()
+    )
+    
+    returned_count = (
+        inspections.filter(Q(status__iexact='Returned') | Q(status__iexact='Rejected')).count() +
+        batches.filter(Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED')).count() +
+        transfers.filter(Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED')).count() +
+        returns.filter(Q(status__icontains='RETURN') | Q(status__icontains='REJECT')).count() +
+        losses.filter(Q(status__icontains='RETURN') | Q(status__icontains='REJECT')).count() +
+        clearances.filter(Q(status__icontains='RETURN') | Q(status__icontains='REJECT')).count()
+    )
+    
+    pending_count = total_count - (approved_count + returned_count)
+
+    # Smart Insight: Office with most requests in current view
+    all_requestors = (
+        list(inspections.values_list('requestor__userprofile__office', flat=True)) +
+        list(batches.values_list('requestor__userprofile__office', flat=True)) +
+        list(transfers.values_list('requestor__userprofile__office', flat=True))
+    )
+    from collections import Counter
+    counts = Counter(o for o in all_requestors if o)
+    top_office = counts.most_common(1)
+    office_insight = {'requestor_office': top_office[0][0], 'pending_count': top_office[0][1]} if top_office else None
 
     context = {
         'inspections': inspections.order_by('-created_at'),
@@ -581,10 +620,11 @@ def transaction_history(request):
         'losses': losses.order_by('-created_at'),
         'clearances': clearances.order_by('-created_at'),
         'metrics': {
-            'total': total_requests,
-            'approved': 0, # Placeholder, simplification for Persona scope
-            'returned': 0,
-            'pending': 0,
+            'total': total_count,
+            'approved': approved_count,
+            'returned': returned_count,
+            'pending': max(0, pending_count),
+            'office_breakdown': office_insight,
         }
     }
     return render(request, 'inventory/transaction_list.html', context)
@@ -851,7 +891,7 @@ def batch_detail(request, pk):
     """
     batch = get_object_or_404(AssetBatch, pk=pk)
     items = batch.items.all()
-    logs = batch.approval_logs.all().order_by('-timestamp')
+    logs = batch.movement_logs.all().order_by('-timestamp')
     
     # Determine allowed transitions for current user based on DB setup
     try:
@@ -1029,3 +1069,151 @@ def approve_clearance_workflow(request, pk, target_state):
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
     return redirect('clearance_detail', pk=pk)
+
+# ==========================================
+# 21. ADMINISTRATION: ACTIVITY LOG (NEW)
+# ==========================================
+@login_required
+def activity_log(request):
+    """
+    Centralized Audit Trail for SPMO Administration.
+    Visible to Superusers, Chief, and Supervisors.
+    """
+    from workflow.models import WorkflowMovementLog, Persona
+
+    # 1. PERMISSION CHECK
+    is_admin_viewer = False
+    if request.user.is_superuser:
+        is_admin_viewer = True
+    else:
+        # Check for Chief/Supervisor active personas
+        viewer_roles = ['SPMO_CHIEF', 'SPMO_SUPERVISOR', 'SPMO_ADMIN_SUPERVISOR']
+        if Persona.objects.filter(user=request.user, is_active=True, role__code__in=viewer_roles).exists():
+            is_admin_viewer = True
+
+    if not is_admin_viewer:
+        messages.error(request, "Access denied. Only SPMO Administration can view global activity logs.")
+        return redirect('dashboard')    # 2. QUERY LOGS
+    all_logs = WorkflowMovementLog.objects.all().select_related(
+        'user', 'persona', 'batch', 'transfer', 'inspection', 
+        'return_request', 'loss_report', 'clearance'
+    ).order_by('-timestamp')
+
+    # 3. FILTERS (Apply to the base query before grouping)
+    from .models import Department
+    all_departments = Department.objects.all().order_by('name')
+    
+    dept_id = request.GET.get('department')
+    selected_department = None
+    if dept_id:
+        try:
+            selected_department = int(dept_id)
+            all_logs = all_logs.filter(persona__department_id=selected_department)
+        except (ValueError, TypeError):
+            pass
+
+    # 4. DATA GROUPING (Process Monitor Logic)
+    # We want to group logs by their parent transaction
+    from collections import OrderedDict
+    # --- UNIFIED LIVE ACTIVITY PULSE (ROBUST) ---
+    # Fetch 50 latest of each type to ensure a deep enough pool for sorting
+    workflow_moves = all_logs[:50]
+    
+    from .models import AssetChangeLog, Asset, ServiceLog
+    asset_revisions = AssetChangeLog.objects.all().select_related('user', 'asset').order_by('-timestamp')[:50]
+    new_assets = Asset.objects.all().order_by('-created_at')[:50]
+    recent_services = ServiceLog.objects.all().select_related('asset').order_by('-created_at')[:50]
+    
+    # Normalize and Combine
+    unified_pulse = []
+    
+    # 1. Workflow Moves (Standardized IDs)
+    for log in workflow_moves:
+        t_id = 'SYS'
+        if log.batch: t_id = log.batch.transaction_id
+        elif log.transfer: t_id = log.transfer.transaction_id
+        elif log.inspection: t_id = log.inspection.transaction_id
+        elif log.return_request: t_id = log.return_request.transaction_id
+        elif log.loss_report: t_id = log.loss_report.transaction_id
+        elif log.clearance: t_id = log.clearance.transaction_id
+
+        unified_pulse.append({
+            'user': log.user,
+            'timestamp': log.timestamp,
+            'action': log.action_taken,
+            'type': 'WORKFLOW',
+            'category': 'BATCH' if log.batch else 'TRANSFER' if log.transfer else 'INSPECT' if log.inspection else 'MOVE',
+            'target_id': t_id
+        })
+        
+    # 2. Asset Revisions (Edits)
+    for rev in asset_revisions:
+        unified_pulse.append({
+            'user': rev.user,
+            'timestamp': rev.timestamp,
+            'action': f"Updated {rev.get_tab_display()}: {rev.field_name}",
+            'type': 'REVISION',
+            'category': 'EDIT',
+            'target_id': rev.asset.property_number
+        })
+
+    # 3. New Asset Registrations
+    for asset in new_assets:
+        unified_pulse.append({
+            'user': None,
+            'timestamp': asset.created_at,
+            'action': f"Newly Registered: {asset.name[:50]}",
+            'type': 'CREATION',
+            'category': 'NEW',
+            'target_id': asset.property_number
+        })
+
+    # 4. Service / Maintenance Logs
+    for service in recent_services:
+        unified_pulse.append({
+            'user': None,
+            'timestamp': service.created_at,
+            'action': f"{service.get_service_type_display()}: {service.description[:50]}",
+            'type': 'SERVICE',
+            'category': 'MAINT',
+            'target_id': service.asset.property_number
+        })
+        
+    # Final Sort and Slice (Top 25 for UI)
+    live_feed = sorted(unified_pulse, key=lambda x: x['timestamp'], reverse=True)[:25]
+
+    # Process Monitor Groups (Paginate groups, not individual moves)
+    grouped_data = OrderedDict()
+    
+    for log in all_logs:
+        # Determine unique key for transaction
+        t_key = None
+        if log.batch: t_key = f"batch_{log.batch.id}"
+        elif log.transfer: t_key = f"transfer_{log.transfer.id}"
+        elif log.inspection: t_key = f"inspect_{log.inspection.id}"
+        elif log.return_request: t_key = f"return_{log.return_request.id}"
+        elif log.loss_report: t_key = f"loss_{log.loss_report.id}"
+        elif log.clearance: t_key = f"clear_{log.clearance.id}"
+        else: t_key = f"sys_{log.id}" # Fallback for system logs
+
+        if t_key not in grouped_data:
+            grouped_data[t_key] = {
+                'latest': log,
+                'history': [],
+                'type': t_key.split('_')[0]
+            }
+        else:
+            grouped_data[t_key]['history'].append(log)
+
+    # 5. PAGINATION (Paginate the groups)
+    group_items = list(grouped_data.values())
+    paginator = Paginator(group_items, 15) # 15 processes per page is better for vertical space
+    page = request.GET.get('page')
+    groups_paginated = paginator.get_page(page)
+
+    return render(request, 'inventory/activity_log.html', {
+        'grouped_transactions': groups_paginated,
+        'live_feed': live_feed,
+        'all_departments': all_departments,
+        'selected_department': selected_department
+    })

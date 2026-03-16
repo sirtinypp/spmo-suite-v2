@@ -1,0 +1,277 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+{% load inventory_tags %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="h4 fw-bold text-body-emphasis mb-0">
+                <i class="fas fa-tower-observation text-primary me-2"></i>Administration Command Center
+            </h2>
+            <div class="text-secondary small mt-1">
+                Unified process monitoring and real-time activity pulse
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2">
+                <i class="fas fa-shield-halved me-2"></i>Suite-wide Oversight
+            </span>
+        </div>
+    </div>
+
+    <!-- Filters Row -->
+    <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">
+        <div class="card-body py-3">
+            <form method="GET" class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Filter by Office</label>
+                    <select name="department" class="form-select form-select-sm mt-1" style="min-width: 200px;">
+                        <option value="">All Departments</option>
+                        {% for dept in all_departments %}
+                        <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto align-self-end">
+                    <button type="submit" class="btn btn-sm btn-primary px-3">
+                        <i class="fas fa-filter me-1"></i> Apply
+                    </button>
+                    <a href="{% url 'activity_log' %}" class="btn btn-sm btn-link text-secondary text-decoration-none">
+                        <i class="fas fa-undo me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN 70:30 LAYOUT -->
+    <div class="row g-4">
+        
+        <!-- LEFT: PROCESS MONITOR (70%) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden bg-white">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list-check me-2 text-primary"></i>Active Process Monitor</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-body">
+                        <thead class="bg-light text-uppercase small fw-bold text-body-secondary" style="font-size: 0.7rem;">
+                            <tr>
+                                <th class="ps-4">Transaction</th>
+                                <th>Latest Status</th>
+                                <th>Last Actor / Office</th>
+                                <th class="text-center">History</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody style="font-size: 0.85rem;">
+                            {% for group in grouped_transactions %}
+                            {% with log=group.latest %}
+                            <tr class="text-body-emphasis border-bottom bg-white">
+                                <td class="ps-4">
+                                    <div class="badge bg-light text-dark border shadow-xs px-2 py-1 mb-1">
+                                        {% if log.batch %}
+                                            <i class="fas fa-boxes-packing text-success me-1"></i>{{ log.batch.transaction_id }}
+                                        {% elif log.transfer %}
+                                            <i class="fas fa-exchange-alt text-warning me-1"></i>{{ log.transfer.transaction_id }}
+                                        {% elif log.inspection %}
+                                            <i class="fas fa-search text-info me-1"></i>{{ log.inspection.transaction_id }}
+                                        {% elif log.return_request %}
+                                            <i class="fas fa-undo text-primary me-1"></i>{{ log.return_request.transaction_id }}
+                                        {% elif log.loss_report %}
+                                            <i class="fas fa-triangle-exclamation text-danger me-1"></i>{{ log.loss_report.transaction_id }}
+                                        {% elif log.clearance %}
+                                            <i class="fas fa-file-signature text-info me-1"></i>{{ log.clearance.transaction_id }}
+                                        {% else %}
+                                            <i class="fas fa-cog text-secondary me-1"></i>System
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-secondary" style="font-size: 0.7rem;">Updated {{ log.timestamp|timesince }} ago</div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-2" style="font-size: 0.7rem;">
+                                        {{ log.status_label }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{ log.user.get_full_name|default:log.user.username }}</div>
+                                    <div class="text-secondary small" style="font-size: 0.75rem;">{{ log.unit_name }}</div>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#history-{{ forloop.counter }}" 
+                                            aria-expanded="false" title="View Audit Trail">
+                                        <i class="fas fa-history small"></i> {{ group.history|length|add:1 }}
+                                    </button>
+                                </td>
+                                <td class="text-center">
+                                    {% if log.batch %}
+                                        <a href="{% url 'batch_detail' pk=log.batch.id %}" class="btn btn-sm btn-light border py-0"><i class="fas fa-arrow-right"></i></a>
+                                    {% elif log.return_request %}
+                                        <a href="{% url 'return_detail' pk=log.return_request.id %}" class="btn btn-sm btn-light border py-0"><i class="fas fa-arrow-right"></i></a>
+                                    {% elif log.loss_report %}
+                                        <a href="{% url 'loss_detail' pk=log.loss_report.id %}" class="btn btn-sm btn-light border py-0"><i class="fas fa-arrow-right"></i></a>
+                                    {% elif log.clearance %}
+                                        <a href="{% url 'clearance_detail' pk=log.clearance.id %}" class="btn btn-sm btn-light border py-0"><i class="fas fa-arrow-right"></i></a>
+                                    {% else %}
+                                        <a href="{% url 'transaction_history' %}" class="btn btn-sm btn-light border py-0"><i class="fas fa-inbox"></i></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <!-- COLLAPSIBLE HISTORY -->
+                            <tr class="collapse" id="history-{{ forloop.counter }}">
+                                <td colspan="5" class="bg-light p-0">
+                                    <div class="p-3 border-start border-primary border-4 ms-4">
+                                        <h6 class="small fw-bold text-uppercase text-secondary mb-3" style="font-size: 0.65rem;">Transaction Timeline (Audit Trail)</h6>
+                                        <div class="timeline-compact">
+                                            <!-- The Latest one -->
+                                            <div class="d-flex mb-3 position-relative">
+                                                <div class="bg-primary rounded-circle mt-1 shadow-sm" style="width: 10px; height: 10px; z-index: 2;"></div>
+                                                <div class="ms-3">
+                                                    <div class="fw-bold text-dark d-flex align-items-center">
+                                                        {{ log.action_taken }}
+                                                        <span class="ms-2 badge bg-success p-1" style="font-size: 0.6rem;">LATEST</span>
+                                                    </div>
+                                                    <div class="small text-secondary">{{ log.timestamp|date:"M d, H:i" }} — <strong>{{ log.user.username }}</strong> ({{ log.role_name }})</div>
+                                                    {% if log.remarks %}<div class="bg-white p-2 border rounded mt-1 small fst-italic">"{{ log.remarks }}"</div>{% endif %}
+                                                </div>
+                                            </div>
+                                            <!-- Historical ones -->
+                                            {% for hlog in group.history %}
+                                            <div class="d-flex mb-3">
+                                                <div class="bg-secondary opacity-50 rounded-circle mt-1" style="width: 10px; height: 10px;"></div>
+                                                <div class="ms-3">
+                                                    <div class="fw-semibold text-body-secondary">{{ hlog.action_taken }}</div>
+                                                    <div class="small text-muted" style="font-size: 0.75rem;">{{ hlog.timestamp|date:"M d, H:i" }} — {{ hlog.user.username }}</div>
+                                                    {% if hlog.remarks %}<div class="text-secondary small px-2 border-start ms-1 fst-italic">"{{ hlog.remarks }}"</div>{% endif %}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-folder-open text-secondary opacity-25 fs-1 mb-3 d-block"></i>
+                                    <span class="text-secondary fst-italic">No active processes found.</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if grouped_transactions.has_other_pages %}
+                <div class="card-footer bg-white py-3 border-top">
+                    <nav aria-label="Activity log pagination">
+                        <ul class="pagination pagination-sm justify-content-center mb-0">
+                            {% if grouped_transactions.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link shadow-none border-0" href="?{% query_transform page=1 %}"><i class="fas fa-angles-left"></i></a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link shadow-none border-0" href="?{% query_transform page=grouped_transactions.previous_page_number %}"><i class="fas fa-chevron-left"></i></a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold">Process {{ grouped_transactions.number }} of {{ grouped_transactions.paginator.num_pages }}</span></li>
+
+                            {% if grouped_transactions.has_next %}
+                            <li class="page-item">
+                                <a class="page-link shadow-none border-0" href="?{% query_transform page=grouped_transactions.next_page_number %}"><i class="fas fa-chevron-right"></i></a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link shadow-none border-0" href="?{% query_transform page=grouped_transactions.paginator.num_pages %}"><i class="fas fa-angles-right"></i></a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT: LIVE FEED PULSE (30%) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-white h-100">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-bolt-lightning me-2 text-warning"></i>Live Activity Pulse</h6>
+                    <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1" style="font-size: 0.6rem;">REAL-TIME</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for log in live_feed %}
+                        <div class="list-group-item border-0 py-3 ps-4 position-relative hover-pulse">
+                            <div class="position-absolute start-0 top-0 bottom-0 
+                                {% if log.type == 'REVISION' %}bg-warning
+                                {% elif log.type == 'CREATION' %}bg-success
+                                {% elif log.type == 'SERVICE' %}bg-info
+                                {% else %}bg-primary{% endif %} opacity-10" style="width: 4px;"></div>
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <div class="fw-bold text-truncate" style="max-width: 180px; font-size: 0.8rem;">
+                                    {% if log.user %}
+                                        {{ log.user.get_full_name|default:log.user.username }}
+                                    {% else %}
+                                        <span class="text-secondary italic">System / Auto</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-secondary" style="font-size: 0.65rem;">{{ log.timestamp|timesince }} ago</small>
+                            </div>
+                            <div class="text-dark mb-1" style="font-size: 0.75rem;">
+                                {{ log.action }}
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge 
+                                    {% if log.type == 'REVISION' %}bg-warning
+                                    {% elif log.type == 'CREATION' %}bg-success
+                                    {% elif log.type == 'SERVICE' %}bg-info
+                                    {% else %}bg-light text-secondary{% endif %} bg-opacity-10 border px-1 py-0" style="font-size: 0.65rem;">
+                                    {{ log.category }}
+                                </span>
+                                <small class="{% if log.type == 'REVISION' %}text-warning{% elif log.type == 'CREATION' %}text-success{% elif log.type == 'SERVICE' %}text-info{% else %}text-primary{% endif %} ms-2 fw-bold" style="font-size: 0.65rem;">
+                                    {{ log.target_id }}
+                                </small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5 text-secondary small">No recent activity detected.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-2 text-center">
+                    <small class="text-secondary" style="font-size: 0.65rem;">Auto-refreshes on page reload</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-pulse:hover {
+        background-color: rgba(59, 130, 246, 0.02);
+    }
+    .shadow-xs {
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .timeline-compact {
+        position: relative;
+    }
+    .timeline-compact::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 5px;
+        bottom: 5px;
+        width: 2px;
+        background-color: #e2e8f0;
+        z-index: 1;
+    }
+</style>
+{% endblock %}

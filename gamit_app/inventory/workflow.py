@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import AssetBatch, InspectionRequest, AssetTransferRequest
+from .models import AssetBatch, InspectionRequest, AssetTransferRequest, Asset
 from workflow.models import Workflow, WorkflowStep, Persona, WorkflowMovementLog
 from .services import PARGenerator, ICSGenerator, PTRGenerator
 
@@ -108,6 +108,36 @@ class WorkflowEngine:
         return allowed_transitions
 
     @staticmethod
+    def _realize_assets(batch):
+        """
+        SOP Implementation: Converts BatchItems into individual Asset records.
+        Executed upon Batch Finalization.
+        """
+        # 1. Prevent double realization
+        if batch.generated_assets.exists():
+            return
+            
+        items = batch.items.all()
+        assets_created = []
+        
+        for item in items:
+            # Create 'quantity' number of individual assets
+            for i in range(item.quantity):
+                asset = Asset.objects.create(
+                    acquisition_batch=batch,
+                    name=item.description[:255],
+                    acquisition_cost=item.amount,
+                    date_acquired=batch.created_at.date(),
+                    # Default class/nature if not specified in batch (SOP refinement)
+                    asset_class='OTHER',
+                    asset_nature='OTHER',
+                    status='SERVICEABLE'
+                )
+                assets_created.append(asset)
+        
+        return assets_created
+
+    @staticmethod
     def transition(transaction, target_step_id_or_action, user, remarks=''):
         """Executes a specific workflow transition, strictly enforcing DB rules."""
         current_step = transaction.current_step
@@ -165,12 +195,24 @@ class WorkflowEngine:
                     ICSGenerator.finalize_ics(transaction)
             elif isinstance(transaction, AssetTransferRequest):
                 PTRGenerator.finalize_ptr(transaction)
+            
+            # PHASE 7: SOP Asset Realization
+            if isinstance(transaction, AssetBatch):
+                WorkflowEngine._realize_assets(transaction)
 
         transaction.save()
         
         # 4. Generate the Comprehensive Audit Log
         role_label = active_persona.role.name if active_persona else 'Superuser'
         unit_label = active_persona.department.name if active_persona and active_persona.department else 'System/Admin'
+        
+        # Capture Signature Snapshot (Signature-Lock)
+        sig_snapshot = None
+        if hasattr(user, 'signature') and user.signature.signature_image:
+             from django.core.files.base import ContentFile
+             # Create a clone of the image file to prevent retrospective changes
+             sig_file = user.signature.signature_image
+             sig_snapshot = ContentFile(sig_file.read(), name=f"sig_{user.username}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.png")
         
         log_kwargs = {
             'user': user,
@@ -179,7 +221,8 @@ class WorkflowEngine:
             'unit_name': unit_label,
             'status_label': target_label,
             'action_taken': f"Advanced to {target_label}",
-            'remarks': remarks
+            'remarks': remarks,
+            'signature_snapshot': sig_snapshot
         }
         
         if isinstance(transaction, AssetBatch):

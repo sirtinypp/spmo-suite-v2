@@ -194,11 +194,19 @@
             </a>
         </li>
 
-        {% if user.is_staff and user.is_superuser %}
+        {% if user.is_superuser or can_view_activity_log %}
         <li class="section-label">Administration</li>
+        {% if user.is_superuser %}
         <li class="nav-item">
             <a href="/admin/" target="_blank" class="nav-link">
                 <i class="fas fa-sliders me-2"></i> Admin Panel
+            </a>
+        </li>
+        {% endif %}
+        <li class="nav-item">
+            <a href="{% url 'activity_log' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+                <i class="fas fa-tower-observation me-2"></i> Activity Log
             </a>
         </li>
         {% endif %}

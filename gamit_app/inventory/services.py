@@ -46,16 +46,14 @@ class PARGenerator:
         c.restoreState()
 
         # 2. Draw Inspector/Supervisor Signatures
-        # Fetch logs for these actions
-        # This is a bit complex, we need the logs.
-        logs = batch.approval_logs.filter(action__in=['Inspect and Approve', 'Supervisor Approval'])
+        # This now pulls from the Official Movement Logs (Signature-Lock)
+        logs = batch.movement_logs.filter(persona__role__code__in=['INSPECTION_OFFICER', 'SPMO_SUPERVISOR'])
         
         for log in logs:
-            if log.role == 'INSPECTOR' and log.signature_snapshot:
+            if log.persona.role.code == 'INSPECTION_OFFICER' and log.signature_snapshot:
                  PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS['INSPECTOR'])
-            elif log.role == 'SUPERVISOR' and log.signature_snapshot:
+            elif log.persona.role.code == 'SPMO_SUPERVISOR' and log.signature_snapshot:
                  PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS['SUPERVISOR'])
-
         c.showPage()
         c.save()
         
@@ -87,18 +85,19 @@ class PARGenerator:
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=portrait(A4))
         
-        # 1. Draw ALL Signatures
-        logs = batch.approval_logs.all()
+        # 1. Draw ALL Signatures from the Official Workflow Movement Logs
+        logs = batch.movement_logs.all()
         for log in logs:
              role_key = None
-             if log.role == 'INSPECTOR': role_key = 'INSPECTOR'
-             elif log.role == 'SUPERVISOR': role_key = 'SUPERVISOR'
-             elif log.role == 'USER_AO': role_key = 'AO'
-             elif log.role == 'CHIEF' and log.action == 'Finalize and Release': role_key = 'CHIEF_FINAL'
+             role_code = log.persona.role.code if log.persona and log.persona.role else ''
+             
+             if role_code == 'INSPECTION_OFFICER': role_key = 'INSPECTOR'
+             elif role_code == 'SPMO_SUPERVISOR': role_key = 'SUPERVISOR'
+             elif role_code == 'UNIT_AO': role_key = 'AO'
+             elif role_code == 'SPMO_CHIEF' and log.status_label == 'FINALIZED': role_key = 'CHIEF_FINAL'
              
              if role_key and log.signature_snapshot:
                   PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS[role_key])
-        
         c.showPage()
         c.save()
         

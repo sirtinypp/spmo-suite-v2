@@ -1,4 +1,5 @@
 {% extends 'inventory/base.html' %}
+{% load humanize %}
 
 {% block content %}
 <div class="container-fluid">
@@ -41,8 +42,13 @@
                     </div>
                     {% if batch.par_hash %}
                     <div class="alert alert-success py-2 mt-3">
-                        <small class="d-block text-uppercase fw-bold">Immutable SHA256 Hash</small>
-                        <code class="text-dark">{{ batch.par_hash }}</code>
+                        <div class="d-flex align-items-center mb-1">
+                            <small class="text-uppercase fw-bold"><i class="fas fa-fingerprint me-2"></i>Digital Integrity Seal (SHA256 Hash)</small>
+                        </div>
+                        <p class="small text-muted mb-2 card-text" style="font-size: 0.75rem;">
+                            This unique identifier serves as the transaction's digital fingerprint. It certifies that the record and generated documents are authentic, immutable, and have not been tampered with.
+                        </p>
+                        <code class="text-dark bg-white px-2 py-1 rounded border small d-block" style="word-break: break-all;">{{ batch.par_hash }}</code>
                     </div>
                     {% endif %}
                 </div>
@@ -68,16 +74,43 @@
                             {% for item in items %}
                             <tr>
                                 <td>{{ item.quantity }}</td>
-                                <td>{{ item.unit }}</td>
+                                <td>{{ item.unit|default:"-" }}</td>
                                 <td>{{ item.description }}</td>
-                                <td class="text-end">{{ item.amount }}</td>
-                                <td class="text-end fw-bold">{{ item.total_price }}</td>
+                                <td class="text-end">₱{{ item.amount|floatformat:2|intcomma }}</td>
+                                <td class="text-end fw-bold">₱{{ item.total_price|floatformat:2|intcomma }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {% if batch.generated_assets.all %}
+            <!-- Individual Property Tags (SOP Phase 7) -->
+            <div class="card shadow-sm border-success mb-4">
+                <div class="card-header bg-success text-white py-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-tags me-2"></i>Individual Property Tags (Finalized)</h6>
+                        <span class="badge bg-white text-success">{{ batch.generated_assets.count }} Assets</span>
+                    </div>
+                </div>
+                <div class="card-body bg-light">
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-2">
+                        {% for asset in batch.generated_assets.all %}
+                        <div class="col">
+                            <div class="p-2 border rounded bg-white text-center shadow-xs h-100 d-flex flex-column justify-content-center">
+                                <div class="small text-secondary fw-bold" style="font-size: 0.65rem;">PROPERTY NO.</div>
+                                <div class="fw-bold text-dark mb-1">{{ asset.property_number }}</div>
+                                <a href="{% url 'asset_detail' asset.id %}" class="btn btn-sm btn-link p-0 text-primary" style="font-size: 0.7rem;">
+                                    View Ledger <i class="fas fa-arrow-right fs-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- RIGHT: Actions & History -->

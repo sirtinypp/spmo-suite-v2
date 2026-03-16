@@ -103,6 +103,9 @@ class WorkflowMovementLog(models.Model):
     action_taken = models.CharField(max_length=255)
     remarks = models.TextField(blank=True, null=True)
     
+    # Signature Snapshot
+    signature_snapshot = models.ImageField(upload_to='signatures/snapshots/', null=True, blank=True)
+    
     timestamp = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
 
