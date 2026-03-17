@@ -135,7 +135,7 @@ class Asset(models.Model):
         ('OTHER', 'Other')
     ]
 
-    item_id = models.CharField(max_length=50, blank=True, null=True, unique=True, verbose_name="Item ID")
+    item_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="Item ID")
     property_number = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Property Number")
     
     # SOP: Linkage to Transaction (Phase 7)
@@ -147,6 +147,10 @@ class Asset(models.Model):
     acquisition_cost = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, verbose_name="Acquisition Cost")
     
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Department")
+    
+    # --- NEW: Accountability Enhancements ---
+    assigned_custodian = models.CharField(max_length=255, blank=True, null=True, verbose_name="Assigned Custodian")
+    custodian_signature = models.ImageField(upload_to='signatures/custodians/', blank=True, null=True, verbose_name="Custodian Signature")
     
     asset_class = models.CharField(max_length=150, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
     asset_nature = models.CharField(max_length=100, choices=ASSET_TYPE_CHOICES, default='OTHER', verbose_name="Asset Type")
@@ -295,6 +299,7 @@ class AssetBatch(models.Model):
     
     # --- HEADER DETAILS ---
     requesting_unit = models.CharField(max_length=150, blank=True, null=True, verbose_name="Requesting Unit")
+    requesting_unit_obj = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Requesting Unit (Object)")
     supplier_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Supplier Name")
     po_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Purchase Order No.")
     sales_invoice_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sales Invoice No.")
@@ -324,6 +329,11 @@ class AssetBatch(models.Model):
     doc_5_file = models.FileField(upload_to='batch_docs/', blank=True, null=True)
 
     is_posted = models.BooleanField(default=False, editable=False)
+
+    @property
+    def total_value(self):
+        """Calculates total value of all items in batch."""
+        return sum(item.amount * item.quantity for item in self.items.all())
 
     def save(self, *args, **kwargs):
         if not self.transaction_id:
@@ -357,6 +367,7 @@ class BatchItem(models.Model):
 
     nature_of_expense = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nature of Expense")
     reference_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Reference No.")
+    assigned_custodian = models.CharField(max_length=255, blank=True, null=True, verbose_name="Assigned Custodian")
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount")
 
     def __str__(self):

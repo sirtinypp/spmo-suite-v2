@@ -128,6 +128,8 @@ class WorkflowEngine:
                     name=item.description[:255],
                     acquisition_cost=item.amount,
                     date_acquired=batch.created_at.date(),
+                    department=batch.requesting_unit_obj, # Assuming there's a link or logic to set this
+                    assigned_custodian=item.assigned_custodian,
                     # Default class/nature if not specified in batch (SOP refinement)
                     asset_class='OTHER',
                     asset_nature='OTHER',
@@ -138,7 +140,7 @@ class WorkflowEngine:
         return assets_created
 
     @staticmethod
-    def transition(transaction, target_step_id_or_action, user, remarks=''):
+    def transition(transaction, target_step_id_or_action, user, remarks='', **kwargs):
         """Executes a specific workflow transition, strictly enforcing DB rules."""
         current_step = transaction.current_step
         if not current_step:
@@ -183,21 +185,8 @@ class WorkflowEngine:
             # Keep string field synced for fallback UI views
             transaction.status = target_label if target_label != 'FINALIZED' else 'PAR_RELEASED'
             
-        # 3.5 Check for Document Generation if Finalized
-        if target_step_id_or_action == 'FINALIZE':
-            if isinstance(transaction, AssetBatch):
-                # Simple logic for now: We assume all items in a batch belong to one type of document.
-                # In robust versions, this checks individual asset total values.
-                # But typically a batch represents a single acquisition request and generates ONE document representing all items.
-                if getattr(transaction, 'total_value', 0) >= 50000:
-                    PARGenerator.finalize_par(transaction)
-                else:
-                    ICSGenerator.finalize_ics(transaction)
-            elif isinstance(transaction, AssetTransferRequest):
-                PTRGenerator.finalize_ptr(transaction)
-            
             # PHASE 7: SOP Asset Realization
-            if isinstance(transaction, AssetBatch):
+            if isinstance(transaction, AssetBatch) and target_label == 'FINALIZED':
                 WorkflowEngine._realize_assets(transaction)
 
         transaction.save()
@@ -208,9 +197,20 @@ class WorkflowEngine:
         
         # Capture Signature Snapshot (Signature-Lock)
         sig_snapshot = None
-        if hasattr(user, 'signature') and user.signature.signature_image:
+        
+        # HYBRID LOGIC:
+        # 1. Check if a manual signature was provided in the request (Unit Admins / Custodians)
+        manual_sig = kwargs.get('manual_signature')
+        if manual_sig:
+            sig_snapshot = manual_sig
+        # 2. Fallback to Persona/Role-based reusable signature if the user has one (SSPMO)
+        elif active_persona and active_persona.signature_image:
              from django.core.files.base import ContentFile
-             # Create a clone of the image file to prevent retrospective changes
+             sig_file = active_persona.signature_image
+             sig_snapshot = ContentFile(sig_file.read(), name=f"sig_{user.username}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.png")
+        # 3. Last fallback: User profile legacy signature (if any)
+        elif hasattr(user, 'signature') and user.signature.signature_image:
+             from django.core.files.base import ContentFile
              sig_file = user.signature.signature_image
              sig_snapshot = ContentFile(sig_file.read(), name=f"sig_{user.username}_{timezone.now().strftime('%Y%m%d_%H%M%S')}.png")
         
@@ -239,6 +239,17 @@ class WorkflowEngine:
             log_kwargs['clearance'] = transaction
             
         WorkflowMovementLog.objects.create(**log_kwargs)
+
+        # 5. NEW: Trigger document generation AFTER the log entry is created
+        # This ensures the final signature snapshot is available to the Generator
+        if target_step_id_or_action == 'FINALIZE':
+             if isinstance(transaction, AssetBatch):
+                 if transaction.total_value >= 50000:
+                     PARGenerator.finalize_par(transaction)
+                 else:
+                     ICSGenerator.finalize_ics(transaction)
+             elif isinstance(transaction, AssetTransferRequest):
+                 PTRGenerator.finalize_ptr(transaction)
         
         # Trigger Email Notification to the next role
         if next_step:
