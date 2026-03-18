@@ -222,20 +222,17 @@ class ServiceLogForm(forms.ModelForm):
         }
 
 # ==========================================
-# 8. USER SIGNATURE FORM (NEW)
+# 8. PERSONA SIGNATURE FORM
 # ==========================================
-from .models import UserSignature
+from workflow.models import Persona
 
-class UserSignatureForm(forms.ModelForm):
+class PersonaSignatureForm(forms.ModelForm):
     class Meta:
-        model = UserSignature
+        model = Persona
         fields = ['position_title', 'signature_image']
         widgets = {
             'position_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Administrative Officer V'}),
             'signature_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/png'}),
-        }
-        help_texts = {
-            'signature_image': 'Upload a clear PNG image of your signature on a transparent background.'
         }
 
 # ==========================================

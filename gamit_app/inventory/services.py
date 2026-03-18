@@ -15,43 +15,44 @@ class PARGenerator:
     """
     
     # Path to the base template (must be a PDF)
-    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'gamit_app/static/templates/par_template_official.pdf')
+    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'static/templates/par_template_official.pdf')
     
     # Signature & Text Coordinates (x, y) - A4 (595 x 842 points)
-    # Coordinates are estimated based on Appendix 71 layout
     COORDS = {
-        'ENTITY_NAME': (140, 725),
-        'PAR_NO': (420, 725),
-        'FUND_CLUSTER': (140, 712),
-        'UPS_DV_NO': (420, 712),
+        'ENTITY_NAME': (200, 718),
+        'PAR_NO': (450, 718),
+        'FUND_CLUSTER': (200, 703),
+        'UPS_DV_NO': (450, 703),
         
         # Table Start (Iterate items)
         'TABLE_START_Y': 620,
-        'COL_QTY': (60, 0),
-        'COL_UOM': (105, 0),
-        'COL_DESC': (160, 0),
-        'COL_PROP_NO': (350, 0),
-        'COL_DATE': (420, 0),
-        'COL_COST': (500, 0),
+        'COL_QTY': (75, 0),
+        'COL_UOM': (122, 0),
+        'COL_DESC': (150, 0),
+        'COL_PROP_NO': (405, 0),
+        'COL_DATE': (470, 0),
+        'COL_COST': (585, 0),
         
-        'TOTAL_COST': (500, 485),
+        'TOTAL_COST': (585, 492),
         
-        'SUPPLIER': (130, 460),
-        'INVOICE': (130, 448),
-        'PO_NO': (130, 436),
+        'SUPPLIER': (130, 465),
+        'INVOICE': (130, 452),
+        'PO_NO': (130, 439),
 
-        'SIG_RECEIVED': (150, 310),
-        'SIG_ISSUED': (420, 310),
+        'SIG_RECEIVED': (110, 365),
+        'SIG_ISSUED': (420, 365),
         
         # signatories (names)
-        'NAME_RECEIVED': (150, 260),
-        'NAME_ISSUED': (420, 260),
+        'NAME_RECEIVED': (150, 338),
+        'NAME_ISSUED': (450, 338),
         
-        # footer
-        'FOOTER_PREPARED': (170, 74),
-        'FOOTER_INSPECTED': (170, 42),
-        'FOOTER_REVIEWED': (170, 10),
-        'FOOTER_POSTED': (170, -22), # This template seems crowded at the bottom
+        # footer (Appendix 71 Table)
+        'FOOTER_PREPARED': (130, 192),
+        'FOOTER_INSPECTED': (130, 174),
+        'FOOTER_REVIEWED': (130, 156),
+        'FOOTER_POSTED': (130, 138),
+        
+        'FOOTER_DATE_X': 300, # X-offset for dates in footer
     }
 
     @staticmethod
@@ -136,29 +137,27 @@ class PARGenerator:
                  if role_code == 'UNIT_AO': 
                      role_key = 'SIG_RECEIVED'
                      c.setFont("Helvetica-Bold", 10)
-                     c.drawCentredString(PARGenerator.COORDS['NAME_RECEIVED'][0] + 40, PARGenerator.COORDS['NAME_RECEIVED'][1], f"{log.user.first_name} {log.user.last_name}".upper())
+                     c.drawCentredString(PARGenerator.COORDS['NAME_RECEIVED'][0], PARGenerator.COORDS['NAME_RECEIVED'][1], f"{log.user.first_name} {log.user.last_name}".upper())
                      
-                 # ISSUED BY (SSPMO Chief)
-                 elif role_code == 'SPMO_CHIEF' and log.status_label == 'PAR_RELEASED': 
+                 elif role_code == 'SPMO_CHIEF': 
                      role_key = 'SIG_ISSUED'
-                     c.setFont("Helvetica-Bold", 10)
-                     c.drawCentredString(PARGenerator.COORDS['NAME_ISSUED'][0] + 40, PARGenerator.COORDS['NAME_ISSUED'][1], "ISAGANI L. BAGUS")
+                     # Template already has name static. Overlaying sig only. 
                      
                  # Footer signatories (Appendix 71)
                  elif role_code == 'SPMO_CLERK': 
                      c.setFont("Helvetica", 8)
                      c.drawString(PARGenerator.COORDS['FOOTER_PREPARED'][0], PARGenerator.COORDS['FOOTER_PREPARED'][1], f"{log.user.first_name} {log.user.last_name}")
-                     c.drawString(PARGenerator.COORDS['FOOTER_PREPARED'][0] + 150, PARGenerator.COORDS['FOOTER_PREPARED'][1], log.timestamp.strftime("%Y-%m-%d"))
+                     c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_PREPARED'][1], log.timestamp.strftime("%Y-%m-%d"))
                  
                  elif role_code == 'INSPECTION_OFFICER': 
                      c.setFont("Helvetica", 8)
                      c.drawString(PARGenerator.COORDS['FOOTER_INSPECTED'][0], PARGenerator.COORDS['FOOTER_INSPECTED'][1], f"{log.user.first_name} {log.user.last_name}")
-                     c.drawString(PARGenerator.COORDS['FOOTER_INSPECTED'][0] + 150, PARGenerator.COORDS['FOOTER_INSPECTED'][1], log.timestamp.strftime("%Y-%m-%d"))
+                     c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_INSPECTED'][1], log.timestamp.strftime("%Y-%m-%d"))
 
                  elif role_code == 'SPMO_SUPERVISOR': 
                      c.setFont("Helvetica", 8)
                      c.drawString(PARGenerator.COORDS['FOOTER_REVIEWED'][0], PARGenerator.COORDS['FOOTER_REVIEWED'][1], f"{log.user.first_name} {log.user.last_name}")
-                     c.drawString(PARGenerator.COORDS['FOOTER_REVIEWED'][0] + 150, PARGenerator.COORDS['FOOTER_REVIEWED'][1], log.timestamp.strftime("%Y-%m-%d"))
+                     c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_REVIEWED'][1], log.timestamp.strftime("%Y-%m-%d"))
 
                  if role_key and log.signature_snapshot:
                       PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS[role_key])
@@ -170,10 +169,8 @@ class PARGenerator:
                 if asset.custodian_signature:
                     PARGenerator._draw_signature(c, asset.custodian_signature.path, (PARGenerator.COORDS['SIG_RECEIVED'][0], PARGenerator.COORDS['SIG_RECEIVED'][1] - 50))
 
-            # Draw "Posted by"
-            c.setFont("Helvetica", 8)
-            c.drawString(PARGenerator.COORDS['FOOTER_POSTED'][0], PARGenerator.COORDS['FOOTER_POSTED'][1], "Aaron Basa - thru GAMIT")
-            c.drawString(PARGenerator.COORDS['FOOTER_POSTED'][0] + 150, PARGenerator.COORDS['FOOTER_POSTED'][1], batch.created_at.strftime("%Y-%m-%d"))
+            # Footer static signatories names are in template. Only drawing individual dates.
+            # Names should only be drawn if they differ from template defaults (SOP: rely on signatures).
 
             c.showPage()
             c.save()
@@ -236,11 +233,11 @@ class PARGenerator:
         c.drawString(PARGenerator.COORDS['COL_DATE'][0], y, asset.date_acquired.strftime("%m/%d/%Y"))
         
         cost = asset.acquisition_cost or 0
-        c.drawRightString(PARGenerator.COORDS['COL_COST'][0] + 50, y, f"{cost:,.2f}")
+        c.drawRightString(PARGenerator.COORDS['COL_COST'][0], y, f"{cost:,.2f}")
         
         # Total line
         c.setFont("Helvetica-Bold", 10)
-        c.drawRightString(PARGenerator.COORDS['TOTAL_COST'][0] + 50, PARGenerator.COORDS['TOTAL_COST'][1], f"{cost:,.2f}")
+        c.drawRightString(PARGenerator.COORDS['TOTAL_COST'][0], PARGenerator.COORDS['TOTAL_COST'][1], f"{cost:,.2f}")
 
     @staticmethod
     def _draw_signature(c, image_path, coords):
@@ -259,7 +256,7 @@ class ICSGenerator:
     """
     
     # Path to the base template
-    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'gamit_app/inventory/static/inventory/pdf/ics_template.pdf')
+    TEMPLATE_PATH = os.path.join(settings.BASE_DIR, 'static/templates/ics_template.pdf')
     
     # Signature Coordinates (x, y) - A4 Portrait estimation
     COORDS = {

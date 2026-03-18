@@ -17,6 +17,10 @@ class Persona(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     department = models.ForeignKey('inventory.Department', on_delete=models.SET_NULL, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    
+    # Reusable Signature (for SSPMO Staff)
+    signature_image = models.ImageField(upload_to='signatures/personas/', blank=True, null=True, verbose_name="Digital Signature")
+    position_title = models.CharField(max_length=150, blank=True, null=True, verbose_name="Official Position Title")
 
     class Meta:
         unique_together = ('user', 'role', 'department')

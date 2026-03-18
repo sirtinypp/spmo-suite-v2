@@ -838,6 +838,14 @@ def print_service_log(request, pk):
         'total_cost': total_cost
     })
 
+# 18.5 PRINT PROPERTY CARD (Single Asset)
+@login_required
+def print_property_card(request, pk):
+    asset = get_object_or_404(Asset, pk=pk)
+    return render(request, 'inventory/print_property_card.html', {
+        'asset': asset
+    })
+
 # 19. DELETE SERVICE LOG (NEW)
 @login_required
 def delete_service_log(request, pk):
@@ -856,33 +864,35 @@ def delete_service_log(request, pk):
 # ==========================================
 # 20. WORKFLOW VIEWS (NEW)
 # ==========================================
-from .models import UserSignature
-from .forms import UserSignatureForm
+from .forms import PersonaSignatureForm
+from workflow.models import Persona
 from .workflow import WorkflowEngine
 from .services import PARGenerator
 
 @login_required
 def upload_signature(request):
     """
-    Allows users to upload their digital signature for PAR signing.
+    Allows users to manage digital signatures for their active Personas.
     """
-    try:
-        signature = request.user.signature
-    except UserSignature.DoesNotExist:
-        signature = None
-
+    personas = Persona.objects.filter(user=request.user, is_active=True)
+    
     if request.method == 'POST':
-        form = UserSignatureForm(request.POST, request.FILES, instance=signature)
+        persona_id = request.POST.get('persona_id')
+        persona = get_object_or_404(Persona, id=persona_id, user=request.user)
+        form = PersonaSignatureForm(request.POST, request.FILES, instance=persona)
         if form.is_valid():
-            sig = form.save(commit=False)
-            sig.user = request.user
-            sig.save()
-            messages.success(request, "Signature updated successfully.")
-            return redirect('dashboard')
-    else:
-        form = UserSignatureForm(instance=signature)
+            form.save()
+            messages.success(request, f"Signature for {persona.role.name} updated.")
+            return redirect('upload_signature')
+    
+    # Check completeness
+    for p in personas:
+        p.has_sig = bool(p.signature_image)
+        p.form = PersonaSignatureForm(instance=p)
 
-    return render(request, 'inventory/upload_signature.html', {'form': form})
+    return render(request, 'inventory/upload_signature.html', {
+        'personas': personas
+    })
 
 @login_required
 def batch_detail(request, pk):
@@ -920,9 +930,15 @@ def approve_batch_workflow(request, pk, target_state):
     
     if request.method == 'POST':
         try:
+            # 1. Capture Feedback / Remarks
+            remarks = request.POST.get('remarks', '')
+            
+            # 2. Capture Manual Signature (if provided)
+            manual_sig = request.FILES.get('manual_signature')
+            
             # Execute Transition
-            # target_state here is going to be the stringified ID of the next step, or 'FINALIZE'
-            WorkflowEngine.transition(batch, target_state, request.user)
+            WorkflowEngine.transition(batch, target_state, request.user, remarks=remarks, manual_signature=manual_sig)
+            
             messages.success(request, f"Workflow step executed successfully!")
             
             # TRIGGER PDF GENERATION

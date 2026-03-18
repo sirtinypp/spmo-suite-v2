@@ -86,7 +86,7 @@ class WorkflowEngine:
              has_permission = Persona.objects.filter(user=user, role__id__in=signatory_roles, is_active=True).exists()
 
         if has_permission or user.is_superuser:
-                # Calculate what the next sequential step is
+                # 1. Forward Move (Next Step)
                 next_step = WorkflowStep.objects.filter(
                     phase__workflow=current_step.phase.workflow,
                     order__gt=current_step.order
@@ -96,14 +96,42 @@ class WorkflowEngine:
                     allowed_transitions.append({
                         'target': str(next_step.id),
                         'action': f"Advance to: {next_step.label}",
-                        'css_class': 'btn-success'
+                        'css_class': 'btn-success',
+                        'icon': 'fas fa-arrow-right'
                     })
                 else: 
                     # If there's no next step, we are finalizing the workflow
                     allowed_transitions.append({
                         'target': 'FINALIZE',
                         'action': 'Finalize & Close Transaction',
-                        'css_class': 'btn-primary'
+                        'css_class': 'btn-primary',
+                        'icon': 'fas fa-check-double'
+                    })
+
+                # 2. Backward Move (Return) - Only if not at Step 1
+                prev_step = WorkflowStep.objects.filter(
+                    phase__workflow=current_step.phase.workflow,
+                    order__lt=current_step.order
+                ).order_by('-order').first()
+
+                if prev_step:
+                    allowed_transitions.append({
+                        'target': str(prev_step.id),
+                        'action': f"Return to: {prev_step.label}",
+                        'css_class': 'btn-warning',
+                        'icon': 'fas fa-undo',
+                        'is_reverse': True
+                    })
+
+                # 3. Terminal Rejection (Only for certain roles/steps)
+                # Typically SPMO Officers can reject End-User requests
+                if required_role and required_role.code in ['SPMO_AO', 'SPMO_SUPERVISOR', 'SPMO_CHIEF']:
+                    allowed_transitions.append({
+                        'target': 'REJECT',
+                        'action': 'Reject Transaction',
+                        'css_class': 'btn-danger',
+                        'icon': 'fas fa-times-circle',
+                        'is_reverse': True
                     })
         return allowed_transitions
 
@@ -172,10 +200,20 @@ class WorkflowEngine:
         if target_step_id_or_action == 'FINALIZE':
             next_step = None
             target_label = "FINALIZED"
+            action_verb = "Finalized"
+        elif target_step_id_or_action == 'REJECT':
+            next_step = None
+            target_label = "REJECTED"
+            action_verb = "Rejected"
         else:
             try:
                 next_step = WorkflowStep.objects.get(id=int(target_step_id_or_action))
                 target_label = next_step.label
+                # Determine if it was a return or advance
+                if next_step.order < current_step.order:
+                    action_verb = "Returned to"
+                else:
+                    action_verb = "Advanced to"
             except (ValueError, TypeError, WorkflowStep.DoesNotExist):
                 raise ValidationError("Invalid transition target ID.")
                 
@@ -183,7 +221,12 @@ class WorkflowEngine:
         transaction.current_step = next_step
         if hasattr(transaction, 'status'):
             # Keep string field synced for fallback UI views
-            transaction.status = target_label if target_label != 'FINALIZED' else 'PAR_RELEASED'
+            if target_label == 'FINALIZED':
+                transaction.status = 'PAR_RELEASED'
+            elif target_label == 'REJECTED':
+                transaction.status = 'REJECTED'
+            else:
+                 transaction.status = target_label
             
             # PHASE 7: SOP Asset Realization
             if isinstance(transaction, AssetBatch) and target_label == 'FINALIZED':
@@ -220,7 +263,7 @@ class WorkflowEngine:
             'role_name': role_label,
             'unit_name': unit_label,
             'status_label': target_label,
-            'action_taken': f"Advanced to {target_label}",
+            'action_taken': f"{action_verb} {target_label}",
             'remarks': remarks,
             'signature_snapshot': sig_snapshot
         }

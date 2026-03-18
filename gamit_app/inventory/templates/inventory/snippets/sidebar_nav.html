@@ -16,7 +16,11 @@
             </div>
             <div class="overflow-hidden" style="max-width: 90px;">
                 <div class="text-white small fw-bold text-truncate">{{ user.username }}</div>
-                <div class="text-secondary small" style="font-size: 0.75rem;">Online</div>
+                <div class="text-secondary small" style="font-size: 0.75rem;">
+                    <a href="{% url 'upload_signature' %}" class="text-secondary text-decoration-none hover-light">
+                        <i class="fas fa-pen-nib me-1"></i> Signatures
+                    </a>
+                </div>
             </div>
         </div>
         {% if show_theme_toggle %}

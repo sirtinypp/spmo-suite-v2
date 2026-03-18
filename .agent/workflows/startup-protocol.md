@@ -38,7 +38,7 @@ docker compose ps -a --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
 | `app_gfa` | LIPAD | `:8002` |
 | `app_store` | SUPLAY | `:8003` |
 
-- If any container is DOWN → flag it with 🔴 and recommend `docker compose up -d`
+- If any container is DOWN → **ACTION**: Immediately run `docker compose up -d` to restore services.
 - If all 6 are UP → report 🟢 6/6
 
 ### 1.2 Dev / Staging Server (`172.20.3.92`)

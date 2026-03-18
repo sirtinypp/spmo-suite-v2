@@ -19,6 +19,7 @@ urlpatterns = [
     # --- SERVICE LOGS ---
     path('asset/<int:pk>/add-log/', views.add_service_log, name='add_service_log'),
     path('asset/<int:pk>/print-log/', views.print_service_log, name='print_service_log'),
+    path('asset/<int:pk>/print-card/', views.print_property_card, name='print_property_card'),
     path('service-log/<int:pk>/delete/', views.delete_service_log, name='delete_service_log'), # <--- ADDED THIS LINE
 
     # --- TRANSACTION CREATION (User Actions) ---

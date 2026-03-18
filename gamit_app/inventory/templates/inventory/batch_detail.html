@@ -66,6 +66,7 @@
                                 <th>Qty</th>
                                 <th>Unit</th>
                                 <th>Description</th>
+                                <th>Custodian</th>
                                 <th class="text-end">Cost</th>
                                 <th class="text-end">Total</th>
                             </tr>
@@ -76,6 +77,7 @@
                                 <td>{{ item.quantity }}</td>
                                 <td>{{ item.unit|default:"-" }}</td>
                                 <td>{{ item.description }}</td>
+                                <td>{{ item.assigned_custodian|default:"-" }}</td>
                                 <td class="text-end">₱{{ item.amount|floatformat:2|intcomma }}</td>
                                 <td class="text-end fw-bold">₱{{ item.total_price|floatformat:2|intcomma }}</td>
                             </tr>
@@ -125,17 +127,22 @@
                 </div>
                 <div class="card-body">
                     {% if allowed_transitions %}
-                    <p class="text-muted small">You are authorized to perform the following actions:</p>
-                    <div class="d-grid gap-2">
-                        {% for transition in allowed_transitions %}
-                        <form method="post" action="{% url 'approve_batch_workflow' batch.id transition.target %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn {{ transition.css_class|default:'btn-primary' }} w-100">
+                    <form method="post" id="workflowForm">
+                        {% csrf_token %}
+                        <p class="text-muted small mb-2">Provide feedback or remarks (optional for advance, mandatory for return/reject):</p>
+                        <textarea name="remarks" class="form-control form-control-sm mb-3" rows="2" placeholder="Enter remarks here..."></textarea>
+
+                        <div class="d-grid gap-2">
+                            {% for transition in allowed_transitions %}
+                            <button type="submit" 
+                                    formaction="{% url 'approve_batch_workflow' batch.id transition.target %}"
+                                    class="btn {{ transition.css_class|default:'btn-primary' }} w-100 d-flex align-items-center justify-content-center">
+                                <i class="{{ transition.icon|default:'fas fa-check' }} me-2"></i>
                                 {{ transition.action }}
                             </button>
-                        </form>
-                        {% endfor %}
-                    </div>
+                            {% endfor %}
+                        </div>
+                    </form>
                     {% else %}
                     <p class="text-muted text-center my-3">
                         <em>No actions available for your role in this state.</em>
