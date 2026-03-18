@@ -308,6 +308,7 @@ class AssetBatch(models.Model):
     # --- NEW FIELDS FOR PAR ONLY ---
     fund_cluster = models.CharField(max_length=100, blank=True, null=True, verbose_name="Fund Cluster")
     ups_dv_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="UPS DV Number")
+    location = models.CharField(max_length=255, blank=True, null=True, verbose_name="Physical Location (Room/Bldg)")
     
     remarks = models.TextField(blank=True, null=True)
     admin_remarks = models.TextField(blank=True, null=True)
@@ -368,6 +369,7 @@ class BatchItem(models.Model):
     nature_of_expense = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nature of Expense")
     reference_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Reference No.")
     assigned_custodian = models.CharField(max_length=255, blank=True, null=True, verbose_name="Assigned Custodian")
+    custodian_position = models.CharField(max_length=150, blank=True, null=True, verbose_name="Custodian Position Title")
     amount = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Amount")
 
     def __str__(self):

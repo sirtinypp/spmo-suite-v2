@@ -19,40 +19,47 @@ class PARGenerator:
     
     # Signature & Text Coordinates (x, y) - A4 (595 x 842 points)
     COORDS = {
-        'ENTITY_NAME': (200, 718),
-        'PAR_NO': (450, 718),
-        'FUND_CLUSTER': (200, 703),
-        'UPS_DV_NO': (450, 703),
+        'ENTITY_NAME': (180, 708),
+        'PAR_NO': (450, 708),
+        'FUND_CLUSTER': (180, 693),
+        'UPS_DV_NO': (450, 693),
         
         # Table Start (Iterate items)
-        'TABLE_START_Y': 620,
-        'COL_QTY': (75, 0),
-        'COL_UOM': (122, 0),
-        'COL_DESC': (150, 0),
-        'COL_PROP_NO': (405, 0),
-        'COL_DATE': (470, 0),
-        'COL_COST': (585, 0),
+        'TABLE_START_Y': 608,
+        'COL_QTY': (60, 0),
+        'COL_UOM': (102, 0),
+        'COL_DESC': (130, 0),
+        'COL_PROP_NO': (370, 0),
+        'COL_DATE': (450, 0),
+        'COL_COST': (575, 0),
         
-        'TOTAL_COST': (585, 492),
+        'TOTAL_COST': (575, 492),
         
-        'SUPPLIER': (130, 465),
-        'INVOICE': (130, 452),
-        'PO_NO': (130, 439),
+        'SUPPLIER': (130, 466),
+        'INVOICE': (130, 453),
+        'PO_NO': (130, 440),
 
-        'SIG_RECEIVED': (110, 365),
-        'SIG_ISSUED': (420, 365),
+        'SIG_RECEIVED': (172, 385),
+        'SIG_ISSUED': (447, 385),
         
         # signatories (names)
-        'NAME_RECEIVED': (150, 338),
-        'NAME_ISSUED': (450, 338),
+        'NAME_RECEIVED': (172, 357),
+        'NAME_ISSUED': (447, 357),
+
+        'POS_RECEIVED': (172, 327),
+        'OFFICE_RECEIVED': (172, 297),
+        'DATE_RECEIVED': (172, 267),
         
+        # Location / Remarks box
+        'LOCATION': (95, 240),
+
         # footer (Appendix 71 Table)
-        'FOOTER_PREPARED': (130, 192),
-        'FOOTER_INSPECTED': (130, 174),
-        'FOOTER_REVIEWED': (130, 156),
-        'FOOTER_POSTED': (130, 138),
+        'FOOTER_PREPARED': (135, 182),
+        'FOOTER_INSPECTED': (135, 165),
+        'FOOTER_REVIEWED': (135, 148),
+        'FOOTER_POSTED': (135, 131),
         
-        'FOOTER_DATE_X': 300, # X-offset for dates in footer
+        'FOOTER_DATE_X': 295, # X-offset for dates in footer
     }
 
     @staticmethod
@@ -137,7 +144,14 @@ class PARGenerator:
                  if role_code == 'UNIT_AO': 
                      role_key = 'SIG_RECEIVED'
                      c.setFont("Helvetica-Bold", 10)
-                     c.drawCentredString(PARGenerator.COORDS['NAME_RECEIVED'][0], PARGenerator.COORDS['NAME_RECEIVED'][1], f"{log.user.first_name} {log.user.last_name}".upper())
+                     c.drawCentredString(PARGenerator.COORDS['NAME_RECEIVED'][0], PARGenerator.COORDS['NAME_RECEIVED'][1], f"{log.user.get_full_name()}".upper())
+                     
+                     # Draw Position, Office, Date
+                     pos = log.persona.position_title if log.persona and log.persona.position_title else "Accountable Officer"
+                     c.setFont("Helvetica", 9)
+                     c.drawCentredString(PARGenerator.COORDS['POS_RECEIVED'][0], PARGenerator.COORDS['POS_RECEIVED'][1], pos)
+                     c.drawCentredString(PARGenerator.COORDS['OFFICE_RECEIVED'][0], PARGenerator.COORDS['OFFICE_RECEIVED'][1], str(batch.requesting_unit or ""))
+                     c.drawCentredString(PARGenerator.COORDS['DATE_RECEIVED'][0], PARGenerator.COORDS['DATE_RECEIVED'][1], log.timestamp.strftime("%m/%d/%Y"))
                      
                  elif role_code == 'SPMO_CHIEF': 
                      role_key = 'SIG_ISSUED'
@@ -146,17 +160,17 @@ class PARGenerator:
                  # Footer signatories (Appendix 71)
                  elif role_code == 'SPMO_CLERK': 
                      c.setFont("Helvetica", 8)
-                     c.drawString(PARGenerator.COORDS['FOOTER_PREPARED'][0], PARGenerator.COORDS['FOOTER_PREPARED'][1], f"{log.user.first_name} {log.user.last_name}")
+                     c.drawString(PARGenerator.COORDS['FOOTER_PREPARED'][0], PARGenerator.COORDS['FOOTER_PREPARED'][1], f"{log.user.get_full_name()}")
                      c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_PREPARED'][1], log.timestamp.strftime("%Y-%m-%d"))
                  
                  elif role_code == 'INSPECTION_OFFICER': 
                      c.setFont("Helvetica", 8)
-                     c.drawString(PARGenerator.COORDS['FOOTER_INSPECTED'][0], PARGenerator.COORDS['FOOTER_INSPECTED'][1], f"{log.user.first_name} {log.user.last_name}")
+                     c.drawString(PARGenerator.COORDS['FOOTER_INSPECTED'][0], PARGenerator.COORDS['FOOTER_INSPECTED'][1], f"{log.user.get_full_name()}")
                      c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_INSPECTED'][1], log.timestamp.strftime("%Y-%m-%d"))
 
                  elif role_code == 'SPMO_SUPERVISOR': 
                      c.setFont("Helvetica", 8)
-                     c.drawString(PARGenerator.COORDS['FOOTER_REVIEWED'][0], PARGenerator.COORDS['FOOTER_REVIEWED'][1], f"{log.user.first_name} {log.user.last_name}")
+                     c.drawString(PARGenerator.COORDS['FOOTER_REVIEWED'][0], PARGenerator.COORDS['FOOTER_REVIEWED'][1], f"{log.user.get_full_name()}")
                      c.drawString(PARGenerator.COORDS['FOOTER_DATE_X'], PARGenerator.COORDS['FOOTER_REVIEWED'][1], log.timestamp.strftime("%Y-%m-%d"))
 
                  if role_key and log.signature_snapshot:
@@ -164,10 +178,12 @@ class PARGenerator:
             
             # 3. Draw Custodian Signature and Name (If present)
             if asset.assigned_custodian:
-                c.setFont("Helvetica-Oblique", 8)
-                c.drawString(PARGenerator.COORDS['SIG_RECEIVED'][0] - 20, PARGenerator.COORDS['SIG_RECEIVED'][1] - 60, f"Actual User (Custodian): {asset.assigned_custodian}")
+                c.setFont("Helvetica-Oblique", 7)
+                # Bottom left near the Location box, below the AO Note
+                c.drawString(40, 238, f"Actual User (Custodian): {asset.assigned_custodian}")
                 if asset.custodian_signature:
-                    PARGenerator._draw_signature(c, asset.custodian_signature.path, (PARGenerator.COORDS['SIG_RECEIVED'][0], PARGenerator.COORDS['SIG_RECEIVED'][1] - 50))
+                    # Signature above the text
+                    PARGenerator._draw_signature(c, asset.custodian_signature.path, (40, 245))
 
             # Footer static signatories names are in template. Only drawing individual dates.
             # Names should only be drawn if they differ from template defaults (SOP: rely on signatures).
@@ -218,6 +234,11 @@ class PARGenerator:
         c.drawString(*PARGenerator.COORDS['INVOICE'], str(batch.sales_invoice_number or ""))
         c.drawString(*PARGenerator.COORDS['PO_NO'], str(batch.po_number or ""))
 
+        # Physical Location Box
+        if batch.location:
+             c.setFont("Helvetica-Bold", 8)
+             c.drawString(PARGenerator.COORDS['LOCATION'][0], PARGenerator.COORDS['LOCATION'][1], f"LOCATION: {batch.location}")
+
     @staticmethod
     def _draw_asset_details(c, asset):
         """Draws details for a single asset (Appendix 71 per page)."""
@@ -227,7 +248,11 @@ class PARGenerator:
         # In a single-asset PAR, we show Qty=1
         c.drawCentredString(PARGenerator.COORDS['COL_QTY'][0], y, "1")
         c.drawCentredString(PARGenerator.COORDS['COL_UOM'][0], y, "pc")
-        c.drawString(PARGenerator.COORDS['COL_DESC'][0], y, asset.name[:45])
+        # Description + Custodian Role
+        desc = asset.name[:45]
+        if hasattr(asset, 'item') and asset.item and asset.item.custodian_position:
+             desc += f" (Role: {asset.item.custodian_position})"
+        c.drawString(PARGenerator.COORDS['COL_DESC'][0], y, desc)
         
         c.drawString(PARGenerator.COORDS['COL_PROP_NO'][0], y, str(asset.property_number or "N/A"))
         c.drawString(PARGenerator.COORDS['COL_DATE'][0], y, asset.date_acquired.strftime("%m/%d/%Y"))

@@ -86,6 +86,7 @@ class AssetBatchForm(forms.ModelForm):
             'po_number', 
             'sales_invoice_number', 
             'acceptance_report_number',
+            'location',
             'remarks', 
             # Doc 1 & 2 are REQUIRED for AO
             'doc_1_file', 
@@ -106,7 +107,7 @@ class AssetBatchForm(forms.ModelForm):
             'po_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PO Number'}),
             'sales_invoice_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Invoice No.'}),
             'acceptance_report_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IAR No.'}),
-
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Physical Location (Bldg/Room)'}),
             'remarks': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Justification / Purpose of acquisition...'}),
             
             # 3. DOCUMENTS
@@ -166,6 +167,7 @@ class AdminBatchProcessForm(forms.ModelForm):
         fields = [
             'supplier_name', 'po_number', 'sales_invoice_number', 
             'requesting_unit', 'acceptance_report_number', 
+            'location',
             'fund_cluster', 'ups_dv_number', 
             'remarks'
         ]
@@ -175,7 +177,7 @@ class AdminBatchProcessForm(forms.ModelForm):
             'sales_invoice_number': forms.TextInput(attrs={'class': 'form-control'}),
             'requesting_unit': forms.TextInput(attrs={'class': 'form-control'}),
             'acceptance_report_number': forms.TextInput(attrs={'class': 'form-control fw-bold border-success'}),
-            
+            'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location/Office'}),
             'fund_cluster': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Fund Cluster'}),
             'ups_dv_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'UPS DV No.'}),
             
@@ -188,12 +190,13 @@ class AdminBatchProcessForm(forms.ModelForm):
 class BatchItemForm(forms.ModelForm):
     class Meta:
         model = BatchItem
-        fields = ['unit', 'quantity', 'image', 'description', 'nature_of_expense', 'reference_number', 'amount']
+        fields = ['unit', 'quantity', 'image', 'description', 'custodian_position', 'nature_of_expense', 'reference_number', 'amount']
         widgets = {
             'unit': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Unit'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Qty'}),
             'image': forms.FileInput(attrs={'class': 'form-control form-control-sm', 'accept': 'image/*'}),
             'description': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Item Description'}),
+            'custodian_position': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Custodian Position (e.g. AO V)'}),
             'nature_of_expense': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Expense Nature'}),
             'reference_number': forms.TextInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Ref No.'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control form-control-sm', 'placeholder': 'Amount'}),

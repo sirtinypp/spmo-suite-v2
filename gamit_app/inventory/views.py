@@ -804,8 +804,9 @@ def print_par(request, pk):
         'par_pages': par_pages, 
         'issued_by_name': "ISAGANI L. BAGUS",
         'issued_by_position': "Acting Chief, UP System SPMO",
-        'received_by_name': requestor_name,
-        'received_by_position': "End-User"
+        'received_name': requestor_name,
+        'received_by_position': batch.items.first().custodian_position if batch.items.exists() else "End-User",
+        'total_value': sum(item.amount for item in batch.items.all())
     }
     return render(request, 'inventory/print_par.html', context)
 

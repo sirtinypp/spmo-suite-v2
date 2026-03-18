@@ -5,66 +5,253 @@
     <meta charset="UTF-8">
     <title>PAR - {{ batch.transaction_id }}</title>
     <style>
-        @page { size: A4 portrait; margin: 10mm; }
-        body { font-family: Arial, sans-serif; font-size: 10pt; color: #333; margin: 0; padding: 0; background: #525659; }
-        
-        .no-print { position: fixed; top: 20px; right: 20px; z-index: 999; }
-        .btn-print { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        :root {
+            --primary-gray: #333;
+            --light-gray: #f8f9fa;
+            --border-color: #000;
+            --font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        }
 
-        .report-wrapper { background: white; width: 210mm; min-height: 297mm; margin: 20px auto; padding: 15mm; box-sizing: border-box; }
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
 
-        .header { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .logo { width: 60px; height: 60px; margin-right: 20px; }
-        .header-text { text-align: center; flex: 1; }
-        .header-text h4 { margin: 0; font-size: 11pt; text-transform: uppercase; }
-        .header-text h3 { margin: 5px 0; font-size: 14pt; }
-        .header-text h5 { margin: 0; font-size: 9pt; }
+        body {
+            font-family: var(--font-family);
+            font-size: 10pt;
+            color: var(--primary-gray);
+            margin: 0;
+            padding: 0;
+            background: #e0e0e0;
+        }
 
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .meta-item { display: flex; align-items: flex-end; }
-        .label { font-weight: bold; font-size: 9pt; margin-right: 5px; white-space: nowrap; }
-        .value { border-bottom: 1px solid #000; flex: 1; min-height: 1.2em; }
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-        table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; font-size: 9pt; }
-        th, td { border: 1px solid #000; padding: 6px; }
-    .bold-headers th { background: #f2f2f2 !important; font-weight: bold; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .btn-print {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2c3e50, #000);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s;
+        }
 
-    .total-row td { background: #f2f2f2 !important; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .btn-print:hover { transform: translateY(-2px); }
 
-        .supplier-info { margin-top: 15px; font-size: 9pt; }
-        .supplier-info p { margin: 2px 0; }
+        .report-wrapper {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 30px auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
 
-        .sig-section { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #000; margin-top: 10px; }
-        .sig-box { border-right: 1.5px solid #000; }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2.5px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            margin-right: 20px;
+            filter: grayscale(1);
+        }
+
+        .header-text {
+            text-align: center;
+            flex: 1;
+        }
+
+        .header-text h4 { margin: 0; font-size: 11pt; letter-spacing: 1px; font-weight: 400; }
+        .header-text h3 { margin: 5px 0; font-size: 16pt; font-weight: 700; }
+        .header-text h5 { margin: 0; font-size: 9pt; color: #666; font-weight: 500; }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            column-gap: 40px;
+            row-gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: flex-end;
+            font-size: 9.5pt;
+        }
+
+        .label {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .value {
+            border-bottom: 1px solid #777;
+            flex: 1;
+            min-height: 1.2em;
+            padding-left: 5px;
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        th {
+            background: var(--light-gray) !important;
+            border: 1.5px solid var(--border-color);
+            padding: 10px 8px;
+            font-size: 8.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        td {
+            border: 1px solid var(--border-color);
+            padding: 10px 8px;
+            font-size: 9.5pt;
+            vertical-align: top;
+        }
+
+        .total-row td {
+            background: var(--light-gray) !important;
+            font-weight: 700;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .extra-meta {
+            margin-top: 20px;
+            font-size: 9.5pt;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sig-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 2px solid var(--border-color);
+            margin-top: 20px;
+        }
+
+        .sig-box {
+            border-right: 2px solid var(--border-color);
+        }
+
         .sig-box:last-child { border-right: none; }
-        .sig-header { background: #f2f2f2 !important; font-weight: bold; padding: 5px; border-bottom: 1px solid #000; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .sig-row { border-bottom: 1px solid #000; padding: 4px 8px; display: flex; align-items: center; }
-        .sig-row:last-child { border-bottom: none; }
-        .sig-row .label { width: 120px; font-size: 8pt; }
-        .signature-placeholder { height: 40px; }
 
-        .note { font-size: 8pt; font-style: italic; margin-top: 10px; }
-        .location { border: 1px solid #000; padding: 5px; margin-top: 10px; font-size: 9pt; }
+        .sig-header {
+            background: var(--light-gray) !important;
+            font-weight: 700;
+            padding: 8px;
+            border-bottom: 1.5px solid var(--border-color);
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 9pt;
+        }
 
-        .footer-grid { display: grid; grid-template-columns: 100px 1fr 50px 1fr; gap: 10px; margin-top: 20px; font-size: 9pt; }
-        .underline { border-bottom: 1px solid #000; }
+        .sig-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sig-field {
+            display: flex;
+            align-items: flex-end;
+            font-size: 9pt;
+        }
+
+        .sig-field .label { width: 100px; }
+
+        .signature-space {
+            height: 60px;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 5px;
+            background: repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #ffffff 10px, #ffffff 20px);
+        }
+
+        .location-section {
+            border: 2px solid var(--border-color);
+            padding: 12px;
+            margin-top: 20px;
+            background: #fff;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr 0.3fr 0.7fr;
+            gap: 12px;
+            margin-top: 30px;
+            font-size: 9pt;
+        }
+
+        .underline {
+            border-bottom: 1px solid var(--border-color);
+            padding-left: 5px;
+            font-weight: 500;
+        }
+
+        .note {
+            font-size: 8pt;
+            font-style: italic;
+            margin-top: 15px;
+            color: #555;
+        }
 
         @media print {
             body { background: none; }
             .no-print { display: none !important; }
-            .report-wrapper { margin: 0; box-shadow: none; width: 100%; }
+            .report-wrapper {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                width: 100%;
+            }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
 
 <div class="no-print">
-    <button class="btn-print" onclick="window.print()">PRINT REPORT</button>
+    <button class="btn-print" onclick="window.print()">PRINT OFFICIAL PAR</button>
 </div>
 
 <div class="report-wrapper">
     <div class="header">
-        <img src="/static/assets/img/up_logo.png" class="logo" alt="Logo">
+        <img src="/static/assets/img/up_logo.png" class="logo" alt="UP Logo">
         <div class="header-text">
             <h4>University of the Philippines System</h4>
             <h3>PROPERTY ACKNOWLEDGEMENT RECEIPT (PAR)</h3>
@@ -85,9 +272,9 @@
                 <th width="8%">QTY</th>
                 <th width="8%">UOM</th>
                 <th>PARTICULARS / DESCRIPTION</th>
-                <th width="15%">PROPERTY NO.</th>
+                <th width="18%">PROPERTY NO.</th>
                 <th width="12%">DATE ACQ</th>
-                <th width="12%">UNIT COST</th>
+                <th width="15%">UNIT COST</th>
             </tr>
         </thead>
         <tbody>
@@ -95,58 +282,74 @@
             <tr>
                 <td class="text-center">{{ item.quantity }}</td>
                 <td class="text-center">{{ item.unit|default:"pc" }}</td>
-                <td>{{ item.description }}</td>
                 <td>
+                    <strong>{{ item.description }}</strong><br>
+                    <small style="color: #666;">Custodian Role: {{ item.custodian_position|default:"Not Specified" }}</small>
+                </td>
+                <td class="text-center">
                     {% for asset in item.generated_assets.all %}
-                        {{ asset.property_number }}<br>
+                        <code style="font-size: 8.5pt;">{{ asset.property_number }}</code><br>
                     {% endfor %}
                 </td>
-                <td class="text-center">{{ batch.created_at|date:"m/d/Y" }}</td>
+                <td class="text-center">{{ item.batch.created_at|date:"m/d/Y" }}</td>
                 <td class="text-right">₱{{ item.amount|intcomma }}</td>
             </tr>
             {% endfor %}
             <tr class="total-row">
-                <td colspan="5" style="text-align: right; padding-right: 15px;">TOTAL COST:</td>
+                <td colspan="5" class="text-right" style="padding-right: 20px;">TOTAL ACQUISITION COST:</td>
                 <td class="text-right">₱{{ total_value|intcomma }}</td>
             </tr>
         </tbody>
     </table>
 
-    <div class="supplier-info">
-        <p><strong>Supplier Name:</strong> {{ batch.supplier_name|default:"" }}</p>
-        <p><strong>Sales Invoice #:</strong> {{ batch.sales_invoice_number|default:"" }}</p>
-        <p><strong>Purchase Order No.:</strong> {{ batch.po_number|default:"" }}</p>
+    <div class="extra-meta">
+        <div class="meta-item"><span class="label">Supplier Name:</span><span class="value">{{ batch.supplier_name|default:"N/A" }}</span></div>
+        <div class="meta-item"><span class="label">Sales Invoice #:</span><span class="value">{{ batch.sales_invoice_number|default:"N/A" }}</span></div>
+        <div class="meta-item"><span class="label">Purchase Order No.:</span><span class="value">{{ batch.po_number|default:"N/A" }}</span></div>
     </div>
 
     <div class="sig-section">
+        <!-- RECEIVED BY SECTION -->
         <div class="sig-box">
             <div class="sig-header">RECEIVED BY:</div>
-            <div class="sig-row"><span class="label">SIGNATURE:</span><div class="signature-placeholder"></div></div>
-            <div class="sig-row"><span class="label">PRINTED NAME:</span><div class="value">{{ received_name|upper }}</div></div>
-            <div class="sig-row"><span class="label">POSITION:</span><div class="value">{{ received_position }}</div></div>
-            <div class="sig-row"><span class="label">OFFICE:</span><div class="value">{{ batch.requesting_unit }}</div></div>
-            <div class="sig-row"><span class="label">DATE:</span><div class="value"></div></div>
+            <div class="sig-content">
+                <div class="signature-space"></div>
+                <div class="sig-field"><span class="label">SIGNATURE:</span><div class="value"></div></div>
+                <div class="sig-field"><span class="label">PRINTED NAME:</span><div class="value">{{ received_name|upper }}</div></div>
+                <div class="sig-field"><span class="label">POSITION:</span><div class="value">{{ batch.items.first.custodian_position|default:received_by_position }}</div></div>
+                <div class="sig-field"><span class="label">OFFICE:</span><div class="value">{{ batch.requesting_unit }}</div></div>
+                <div class="sig-field"><span class="label">DATE:</span><div class="value"></div></div>
+            </div>
         </div>
+        <!-- ISSUED BY SECTION -->
         <div class="sig-box">
             <div class="sig-header">ISSUED BY:</div>
-            <div class="sig-row"><span class="label">SIGNATURE:</span><div class="signature-placeholder"></div></div>
-            <div class="sig-row"><span class="label">PRINTED NAME:</span><div class="value">ISAGANI L. BAGUS</div></div>
-            <div class="sig-row"><span class="label">POSITION:</span><div class="value">Acting Chief, UP System SPMO</div></div>
-            <div class="sig-row"><span class="label">OFFICE:</span><div class="value">UPS SPMO</div></div>
-            <div class="sig-row"><span class="label">DATE:</span><div class="value"></div></div>
+            <div class="sig-content">
+                <div class="signature-space"></div>
+                <div class="sig-field"><span class="label">SIGNATURE:</span><div class="value"></div></div>
+                <div class="sig-field"><span class="label">PRINTED NAME:</span><div class="value">{{ issued_by_name|upper }}</div></div>
+                <div class="sig-field"><span class="label">POSITION:</span><div class="value">{{ issued_by_position }}</div></div>
+                <div class="sig-field"><span class="label">OFFICE:</span><div class="value">UPS SPMO</div></div>
+                <div class="sig-field"><span class="label">DATE:</span><div class="value"></div></div>
+            </div>
         </div>
     </div>
 
+    <div class="location-section">
+        <span class="label" style="display: block; margin-bottom: 5px;">Physical Location / Remarks:</span>
+        <div style="min-height: 1.5em; border-bottom: 1px dashed #999;">{{ batch.location|default:"__________________________________________________" }}</div>
+    </div>
+
     <p class="note">Note: Person receiving must be a PERMANENT EMPLOYEE.</p>
-    <div class="location"><strong>Location:</strong></div>
 
     <div class="footer-grid">
-        <div class="fw-bold">Prepared by:</div><div class="underline">Eldefonso T. Sardual Jr</div><div class="ps-3">Date:</div><div class="underline">{{ batch.created_at|date:"Y-m-d" }}</div>
-        <div class="fw-bold">Inspected by:</div><div class="underline">Mark Joshua Pedrosa</div><div class="ps-3">Date:</div><div class="underline"></div>
-        <div class="fw-bold">Reviewed by:</div><div class="underline">Julius Mar Dela Cruz</div><div class="ps-3">Date:</div><div class="underline"></div>
-        <div class="fw-bold">Posted by:</div><div class="underline">Aaron Basa - thru GAMIT</div><div class="ps-3">Date:</div><div class="underline">{{ batch.created_at|date:"Y-m-d" }}</div>
+        <div class="label">Prepared by:</div><div class="underline">Eldefonso T. Sardual Jr</div><div class="text-right">Date:</div><div class="underline">{{ batch.created_at|date:"Y-m-d" }}</div>
+        <div class="label">Inspected by:</div><div class="underline">Mark Joshua Pedrosa</div><div class="text-right">Date:</div><div class="underline"></div>
+        <div class="label">Reviewed by:</div><div class="underline">Julius Mar Dela Cruz</div><div class="text-right">Date:</div><div class="underline"></div>
+        <div class="label">Posted by:</div><div class="underline">Aaron Basa - thru GAMIT</div><div class="text-right">Date:</div><div class="underline">{{ batch.created_at|date:"Y-m-d" }}</div>
     </div>
 </div>
 
 </body>
 </html>
+tml>
