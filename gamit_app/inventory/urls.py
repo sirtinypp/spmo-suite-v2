@@ -44,6 +44,7 @@ urlpatterns = [
     path('transaction/batch/<int:pk>/process/', views.process_batch_admin, name='process_batch_admin'),
     path('transaction/batch/<int:pk>/print/', views.print_acceptance_report, name='print_acceptance_report'),
     path('transaction/batch/<int:pk>/print-par/', views.print_par, name='print_par'),
+    path('transaction/batch/<int:pk>/print-par-v2/', views.print_par_v2, name='print_par_v2'),
 
     # --- ADMINISTRATION ---
     path('administration/activity-log/', views.activity_log, name='activity_log'),

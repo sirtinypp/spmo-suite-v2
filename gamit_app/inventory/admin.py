@@ -12,6 +12,9 @@ from .models import (
     ServiceLog,
     AssetChangeLog,
     AssetNotification,
+    PropertyClearanceRequest,
+    AssetReturnRequest,
+    AssetLossReport,
 )
 from .resources import AssetResource, patch_csv_format
 
@@ -138,6 +141,27 @@ class AssetTransferRequestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('transaction_id', 'asset__name', 'requestor__username', 'new_officer_surname')
     readonly_fields = ('transaction_id', 'requestor', 'current_officer', 'created_at')
+
+@admin.register(AssetReturnRequest)
+class AssetReturnRequestAdmin(admin.ModelAdmin):
+    list_display = ('transaction_id', 'asset', 'requestor', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('transaction_id', 'asset__property_number', 'requestor__username')
+    readonly_fields = ('transaction_id', 'requestor', 'created_at')
+
+@admin.register(AssetLossReport)
+class AssetLossReportAdmin(admin.ModelAdmin):
+    list_display = ('transaction_id', 'asset', 'requestor', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('transaction_id', 'asset__property_number', 'requestor__username')
+    readonly_fields = ('transaction_id', 'requestor', 'created_at')
+
+@admin.register(PropertyClearanceRequest)
+class PropertyClearanceRequestAdmin(admin.ModelAdmin):
+    list_display = ('transaction_id', 'requestor', 'status', 'created_at')
+    list_filter = ('status', 'created_at')
+    search_fields = ('transaction_id', 'requestor__username')
+    readonly_fields = ('transaction_id', 'requestor', 'created_at')
 
 # --- NEW: SERVICE LOG ADMIN (Standalone Table) ---
 @admin.register(ServiceLog)

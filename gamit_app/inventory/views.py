@@ -11,6 +11,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
 from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
+from workflow.models import WorkflowMovementLog, WorkflowStep, Persona
 
 from .forms import (
     AddAssetForm, AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
@@ -809,6 +810,117 @@ def print_par(request, pk):
         'total_value': sum(item.amount for item in batch.items.all())
     }
     return render(request, 'inventory/print_par.html', context)
+
+
+# 16b. PRINT PAR v2 (Alternate Template — Clean Modern Government Minimalist)
+# Implements 1 Asset = 1 PAR page for print output
+@login_required
+def print_par_v2(request, pk):
+    batch = get_object_or_404(AssetBatch, pk=pk)
+
+    # Build one PAR page per physical asset
+    par_pages = []
+    
+    # Primary: Use generated assets (finalized batches)
+    assets = batch.generated_assets.all()
+    if assets.exists():
+        # Pre-fetch batch items for metadata lookup
+        batch_items = list(batch.items.all())
+        first_item = batch_items[0] if batch_items else None
+        
+        for asset in assets:
+            # Try to match asset to its source BatchItem by description
+            matched_item = None
+            for bi in batch_items:
+                if bi.description and asset.name and bi.description.lower() in asset.name.lower():
+                    matched_item = bi
+                    break
+            if not matched_item:
+                matched_item = first_item  # fallback
+            
+            par_pages.append({
+                'property_number': asset.property_number or 'N/A',
+                'description': asset.name,
+                'custodian_position': matched_item.custodian_position if matched_item else '',
+                'unit': matched_item.unit if matched_item else 'pc',
+                'amount': asset.acquisition_cost or (matched_item.amount if matched_item else 0),
+                'date_acquired': asset.date_acquired,
+            })
+    else:
+        # Fallback: Use batch items (pre-finalization), one page per unit qty
+        for item in batch.items.all():
+            for i in range(item.quantity):
+                par_pages.append({
+                    'property_number': '(Pending)',
+                    'description': item.description,
+                    'custodian_position': item.custodian_position or '',
+                    'unit': item.unit or 'pc',
+                    'amount': item.amount,
+                    'date_acquired': batch.created_at,
+                })
+
+    # --- SIGNATURE INJECTION (New for Simulation/PARv2) ---
+    movement_logs = batch.movement_logs.filter(signature_snapshot__isnull=False).order_by('timestamp')
+    signatures = {}
+    
+    # Map steps to specific signature keys for the template
+    # Prepared (SPMO_AO)
+    prep_log = movement_logs.filter(status_label__icontains='SPMO AO').first()
+    if prep_log:
+        signatures['prepared'] = {
+            'name': prep_log.user.get_full_name() or prep_log.user.username,
+            'pos': prep_log.persona.position_title if prep_log.persona else "SPMO Admin",
+            'date': prep_log.timestamp.date(),
+            'img': prep_log.signature_snapshot.url
+        }
+
+    # Inspected (INSPECTION_OFFICER)
+    insp_log = movement_logs.filter(status_label__icontains='Inspection Signature').first()
+    if insp_log:
+        signatures['inspected'] = {
+            'name': insp_log.user.get_full_name() or insp_log.user.username,
+            'pos': insp_log.persona.position_title if insp_log.persona else "Inspection Officer",
+            'date': insp_log.timestamp.date(),
+            'img': insp_log.signature_snapshot.url
+        }
+
+    # Reviewed (SPMO_SUPERVISOR)
+    rev_log = movement_logs.filter(status_label__icontains='Supervisor Signature').first()
+    if rev_log:
+        signatures['reviewed'] = {
+            'name': rev_log.user.get_full_name() or rev_log.user.username,
+            'pos': rev_log.persona.position_title if rev_log.persona else "SPMO Supervisor",
+            'date': rev_log.timestamp.date(),
+            'img': rev_log.signature_snapshot.url
+        }
+
+    # Authorized (SPMO_CHIEF)
+    auth_log = movement_logs.filter(status_label__icontains='Chief Final Approval').first()
+    if auth_log:
+        signatures['authorized'] = {
+            'name': auth_log.user.get_full_name() or auth_log.user.username,
+            'pos': auth_log.persona.position_title if auth_log.persona else "Chief, SPMO",
+            'date': auth_log.timestamp.date(),
+            'img': auth_log.signature_snapshot.url
+        }
+
+    try:
+        requestor_name = batch.requestor.get_full_name().upper() or batch.requestor.username.upper()
+    except:
+        requestor_name = "UNKNOWN END-USER"
+
+    context = {
+        'batch': batch,
+        'par_pages': par_pages,
+        'issued_by_name': signatures.get('authorized', {}).get('name', "ISAGANI L. BAGUS"),
+        'issued_by_position': signatures.get('authorized', {}).get('pos', "Director / SPMO Chief"),
+        'received_name': requestor_name,
+        'received_by_position': batch.items.first().custodian_position if batch.items.exists() else "End-User",
+        'total_value': sum(item.amount for item in batch.items.all()),
+        'signatures': signatures
+    }
+    return render(request, 'inventory/PARv2.html', context)
+
 
 # 17. ADD SERVICE LOG
 @login_required

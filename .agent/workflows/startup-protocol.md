@@ -105,6 +105,7 @@ After reading, silently confirm these rules are active:
 - ✅ Verification First (check before fixing)
 - ✅ Double-Entry Logging (agent log + CHANGELOG)
 - ✅ **Persona Lock** (Strict focus: GAMIT, LIPAD, SUPLAY)
+- ✅ **Execution Guardrails** (No automated simulations or complex scripts without explicit user validation; seek simple UI/DB fixes first)
 
 ---
 
@@ -226,4 +227,5 @@ After the startup report is delivered and the user provides direction, create to
 |---------|------|---------|
 | 1.0 | 2026-01-23 | Original 4-step session start in `JARVIS_LOCK_ENFORCEMENT.md` |
 | 1.1 | 2026-02-12 | First formal startup report (`01_JARVIS_STARTUP_REPORT.md`) |
-| **2.0** | **2026-03-04** | **Unified 5-phase protocol (this document)** |
+| 2.0 | 2026-03-04 | Unified 5-phase protocol (this document) |
+| **2.1** | **2026-03-19** | **Added Execution & Assumption Guardrails to Phase 2.4 Confirmation** |

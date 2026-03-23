@@ -15,15 +15,34 @@ class WorkflowEngine:
     @staticmethod
     def get_workflow_steps(transaction):
         """Returns rich step objects for the transaction's workflow (for UI Vertical Timeline)."""
+        steps = None
         if transaction.current_step:
             steps = WorkflowStep.objects.filter(phase__workflow=transaction.current_step.phase.workflow).order_by('order')
+        else:
+            # System Fix: Fallback for finalized transactions whose active step was natively cleared
+            from inventory.models import AssetBatch, AssetTransferRequest, InspectionRequest, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
+            from workflow.models import WorkflowProcess
+            process_code = None
+            if isinstance(transaction, AssetBatch): process_code = 'BATCH_ACQUISITION'
+            elif isinstance(transaction, AssetTransferRequest): process_code = 'TRANSFER'
+            elif isinstance(transaction, InspectionRequest): process_code = 'INSPECTION'
+            elif isinstance(transaction, AssetReturnRequest): process_code = 'RETURN'
+            elif isinstance(transaction, AssetLossReport): process_code = 'LOSS_REPORT'
+            elif isinstance(transaction, PropertyClearanceRequest): process_code = 'CLEARANCE'
             
+            if process_code:
+                process_obj = WorkflowProcess.objects.filter(code=process_code).first()
+                if process_obj and process_obj.workflows.exists():
+                    steps = process_obj.workflows.first().steps.all().order_by('order')
+
+        if steps:
             logs = transaction.movement_logs.all() if hasattr(transaction, 'movement_logs') else []
             timeline = []
             reached_current = False
             
             for step in steps:
-                is_current = (transaction.current_step.id == step.id) and transaction.status != 'FINALIZED'
+                is_current = getattr(transaction, 'current_step', None) and (transaction.current_step.id == step.id) and transaction.status != 'FINALIZED'
+
                 if is_current:
                     reached_current = True
                     status_class = 'primary'

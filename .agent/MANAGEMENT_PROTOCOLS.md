@@ -67,4 +67,12 @@
 
 ---
 
+## 4. 🛑 Execution & Assumption Guardrails
+**Rule**: Never assume complex automated solutions (like full database simulations or script refactors) are the default answer for UI or data correction requests.
+- **Validation First**: Always ask for explicit user validation and instruction before writing or running complex standalone scripts.
+- **Efficiency Over Cascades**: Prioritize the simplest, direct fix (e.g., direct UI tweak or single DB record patch) over creating complex, multi-step simulation environments. 
+- **Token Economy**: If a background script or simulation fails with environment errors, **STOP** immediately. Do not enter a loop of recursive debugging. Present the issue to the user and ask for the preferred path forward.
+
+---
+
 **JARVIS Signature**: _Protocols Active_
