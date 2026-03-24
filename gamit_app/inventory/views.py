@@ -768,6 +768,27 @@ def print_ptr(request, pk):
     })
 
 
+
+# 13c. TRANSFER DETAIL PAGE
+@login_required
+def transfer_detail(request, pk):
+    transfer = get_object_or_404(AssetTransferRequest, pk=pk)
+
+    try:
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(transfer, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(transfer)
+    except Exception:
+        allowed_transitions = []
+        workflow_steps = []
+
+    return render(request, 'inventory/transfer_detail.html', {
+        'transfer': transfer,
+        'req': transfer,  # alias for vertical_timeline snippet compatibility
+        'allowed_transitions': allowed_transitions,
+        'workflow_steps': workflow_steps,
+    })
+
+
 # 14. ADMIN PROCESS BATCH (Add Items & Update Header)
 @login_required
 def process_batch_admin(request, pk):

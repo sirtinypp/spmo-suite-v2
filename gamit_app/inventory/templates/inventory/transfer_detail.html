@@ -1,0 +1,139 @@
+{% extends 'inventory/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header: Status & Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Transfer Request #{{ transfer.transaction_id }}</h4>
+            <span class="badge bg-info text-dark fs-6">{{ transfer.current_step.label|default:transfer.get_status_display }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'print_ptr' transfer.id %}" target="_blank" class="btn btn-success shadow-sm">
+                <i class="fas fa-file-alt me-2"></i>Print PTR
+            </a>
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- LEFT: Details -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Requestor:</strong> {{ transfer.requestor.get_full_name|default:transfer.requestor.username }}</p>
+                            <p><strong>Date:</strong> {{ transfer.created_at|date:"F d, Y" }}</p>
+                            <p><strong>Status:</strong> {{ transfer.get_status_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Asset:</strong> {{ transfer.asset.property_number }} — {{ transfer.asset.name }}</p>
+                            <p><strong>Current Officer:</strong> {{ transfer.current_officer }}</p>
+                            <p><strong>New Officer:</strong> {{ transfer.new_officer_firstname }} {{ transfer.new_officer_surname }}</p>
+                        </div>
+                    </div>
+                    {% if transfer.remarks %}
+                    <hr>
+                    <p><strong>Reason for Transfer:</strong></p>
+                    <p class="text-muted">{{ transfer.remarks }}</p>
+                    {% endif %}
+                    {% if transfer.admin_remarks %}
+                    <div class="alert alert-warning py-2 mt-2">
+                        <small class="text-uppercase fw-bold">Admin Remarks:</small>
+                        <p class="mb-0 small">{{ transfer.admin_remarks }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Asset Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Asset Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Property No.:</strong> {{ transfer.asset.property_number }}</p>
+                            <p><strong>Description:</strong> {{ transfer.asset.name }}</p>
+                            <p><strong>PPE Category:</strong> {{ transfer.asset.get_asset_class_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Department:</strong> {{ transfer.asset.department.name|default:"—" }}</p>
+                            <p><strong>Date Acquired:</strong> {{ transfer.asset.date_acquired|date:"Y-m-d" }}</p>
+                            <p><strong>Acquisition Cost:</strong> {% if transfer.asset.acquisition_cost %}₱{{ transfer.asset.acquisition_cost|floatformat:2 }}{% else %}—{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attached Documents -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Attached Documents</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% if transfer.document_1 %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-file-alt text-primary me-2"></i><strong>Transfer Form (ITR)</strong></div>
+                        <a href="{{ transfer.document_1.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                    {% if transfer.document_2 %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div><i class="fas fa-id-card text-secondary me-2"></i><strong>ID / Authorization</strong></div>
+                        <a href="{{ transfer.document_2.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                    </li>
+                    {% endif %}
+                    {% if not transfer.document_1 and not transfer.document_2 %}
+                    <li class="list-group-item text-muted">No documents attached.</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- RIGHT: Actions & Timeline -->
+        <div class="col-md-4">
+            <!-- Vertical Timeline -->
+            {% include 'inventory/snippets/vertical_timeline.html' %}
+
+            <!-- Action Panel -->
+            <div class="card shadow mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if allowed_transitions %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <p class="text-muted small mb-2">Provide remarks (optional for advance, required for return):</p>
+                        <textarea name="remarks" class="form-control form-control-sm mb-3" rows="2" placeholder="Enter remarks here..."></textarea>
+                        <div class="d-grid gap-2">
+                            {% for transition in allowed_transitions %}
+                            <button type="submit"
+                                    formaction="{% url 'approve_transfer_workflow' transfer.id transition.target %}"
+                                    class="btn {{ transition.css_class|default:'btn-primary' }} w-100 fw-bold shadow-sm">
+                                <i class="{{ transition.icon|default:'fas fa-check' }} me-2"></i>{{ transition.action }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </form>
+                    {% else %}
+                    <div class="text-center text-muted p-3">
+                        <i class="fas fa-lock fs-4 mb-2 d-block"></i>
+                        <p class="mb-0 small">No actions available. You lack the required Persona role for the current step.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Movement Log (Audit Trail) -->
+    {% include 'inventory/snippets/movement_log_table.html' %}
+</div>
+{% endblock %}

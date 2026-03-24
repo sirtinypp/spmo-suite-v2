@@ -232,9 +232,14 @@
                                     {% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">Pending</span>{% endif %}
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-light border shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#transfer-{{ item.id }}">
-                                        <i class="fas fa-chevron-down text-secondary"></i>
-                                    </button>
+                                    <div class="btn-group shadow-sm">
+                                        <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="collapse" data-bs-target="#transfer-{{ item.id }}" title="Quick View">
+                                            <i class="fas fa-chevron-down text-secondary"></i>
+                                        </button>
+                                        <a href="{% url 'transfer_detail' item.id %}" class="btn btn-sm btn-light border text-primary" title="Full Detail & Print PTR">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </div>
                                 </td>
                                 {% if request.user.is_superuser %}
                                 <td class="text-center">
