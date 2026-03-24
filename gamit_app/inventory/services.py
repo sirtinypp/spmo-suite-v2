@@ -85,10 +85,15 @@ class PARGenerator:
         logs = batch.movement_logs.filter(persona__role__code__in=['INSPECTION_OFFICER', 'SPMO_SUPERVISOR'])
         
         for log in logs:
-            if log.persona.role.code == 'INSPECTION_OFFICER' and log.signature_snapshot:
-                 PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS['INSPECTOR'])
-            elif log.persona.role.code == 'SPMO_SUPERVISOR' and log.signature_snapshot:
-                 PARGenerator._draw_signature(c, log.signature_snapshot.path, PARGenerator.COORDS['SUPERVISOR'])
+            role_code = log.persona.role.code if log.persona and log.persona.role else ''
+            if role_code == 'INSPECTION_OFFICER' and log.signature_snapshot:
+                coord = PARGenerator.COORDS.get('INSPECTOR') or PARGenerator.COORDS.get('SIG_ISSUED')
+                if coord:
+                    PARGenerator._draw_signature(c, log.signature_snapshot.path, coord)
+            elif role_code == 'SPMO_SUPERVISOR' and log.signature_snapshot:
+                coord = PARGenerator.COORDS.get('SUPERVISOR') or PARGenerator.COORDS.get('SIG_RECEIVED')
+                if coord:
+                    PARGenerator._draw_signature(c, log.signature_snapshot.path, coord)
         c.showPage()
         c.save()
         

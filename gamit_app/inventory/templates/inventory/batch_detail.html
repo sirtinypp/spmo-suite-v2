@@ -9,14 +9,12 @@
             <h4 class="mb-0">Batch #{{ batch.transaction_id }}</h4>
             <span class="badge bg-primary fs-6">{{ batch.get_status_display }}</span>
         </div>
-        <div>
-            {% if batch.par_file %}
-            <a href="{{ batch.par_file.url }}" target="_blank" class="btn btn-success">
-                <i class="fas fa-file-pdf me-2"></i>Download Final PAR
+        <div class="d-flex gap-2">
+            <a href="{% url 'print_par_v2' batch.id %}" target="_blank" class="btn btn-success shadow-sm">
+                <i class="fas fa-file-alt me-2"></i>Print Official PAR
             </a>
-            {% endif %}
-            <a href="{% url 'print_par_v2' batch.id %}" target="_blank" class="btn btn-outline-dark">
-                <i class="fas fa-print me-2"></i>Print PARv2
+            <a href="{% url 'print_acceptance_report' batch.id %}" target="_blank" class="btn btn-outline-secondary shadow-sm">
+                <i class="fas fa-file-invoice me-2"></i>Print IAR
             </a>
             <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
         </div>
@@ -43,19 +41,9 @@
                             <p><strong>Appr. No (IAR):</strong> {{ batch.acceptance_report_number }}</p>
                         </div>
                     </div>
-                    {% if batch.par_hash %}
-                    <div class="alert alert-success py-2 mt-3">
-                        <div class="d-flex align-items-center mb-1">
-                            <small class="text-uppercase fw-bold"><i class="fas fa-fingerprint me-2"></i>Digital Integrity Seal (SHA256 Hash)</small>
-                        </div>
-                        <p class="small text-muted mb-2 card-text" style="font-size: 0.75rem;">
-                            This unique identifier serves as the transaction's digital fingerprint. It certifies that the record and generated documents are authentic, immutable, and have not been tampered with.
-                        </p>
-                        <code class="text-dark bg-white px-2 py-1 rounded border small d-block" style="word-break: break-all;">{{ batch.par_hash }}</code>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
+
 
             <!-- Items Table -->
             <div class="card shadow-sm mb-4">
