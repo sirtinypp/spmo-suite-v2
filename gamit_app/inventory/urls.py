@@ -39,6 +39,7 @@ urlpatterns = [
     path('transaction/<int:pk>/status/<str:action>/', views.update_request_status, name='update_request_status'),
     path('transaction/batch/<int:pk>/status/<str:action>/', views.update_batch_status, name='update_batch_status'),
     path('transaction/transfer/<int:pk>/status/<str:action>/', views.update_transfer_status, name='update_transfer_status'),
+    path('transaction/transfer/<int:pk>/print-ptr/', views.print_ptr, name='print_ptr'),
     
     # --- BATCH PROCESSING & PRINTING ---
     path('transaction/batch/<int:pk>/process/', views.process_batch_admin, name='process_batch_admin'),

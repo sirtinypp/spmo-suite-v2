@@ -729,6 +729,45 @@ def update_transfer_status(request, pk, action):
     return redirect('transaction_history')
 
 
+# 13b. PRINT PTR (Property Transfer Report)
+@login_required
+def print_ptr(request, pk):
+    transfer = get_object_or_404(AssetTransferRequest, pk=pk)
+
+    # Inject signatures from movement logs
+    movement_logs = transfer.movement_logs.filter(signature_snapshot__isnull=False).order_by('timestamp') \
+        if hasattr(transfer, 'movement_logs') else []
+    signatures = {}
+
+    for log in movement_logs:
+        role_code = log.persona.role.code if log.persona and log.persona.role else ''
+        entry = {
+            'name': log.user.get_full_name() or log.user.username,
+            'pos': log.persona.position_title if log.persona else '',
+            'date': log.timestamp.date(),
+            'img': log.signature_snapshot.url,
+        }
+        if role_code == 'SPMO_CLERK' and 'prepared' not in signatures:
+            signatures['prepared'] = entry
+        elif role_code == 'SPMO_SUPERVISOR' and 'reviewed' not in signatures:
+            signatures['reviewed'] = entry
+        elif role_code == 'SPMO_CHIEF' and 'approved' not in signatures:
+            signatures['approved'] = entry
+
+    # Released By = same as SPMO AO (re-use prepared or second AO log)
+    if 'prepared' in signatures and 'released' not in signatures:
+        signatures['released'] = signatures['prepared']
+
+    # Posted By = SPMO Supervisor
+    if 'reviewed' in signatures:
+        signatures['posted'] = signatures['reviewed']
+
+    return render(request, 'inventory/print_ptr.html', {
+        'transfer': transfer,
+        'signatures': signatures,
+    })
+
+
 # 14. ADMIN PROCESS BATCH (Add Items & Update Header)
 @login_required
 def process_batch_admin(request, pk):

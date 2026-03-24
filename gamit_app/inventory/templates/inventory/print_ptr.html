@@ -1,0 +1,520 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PTR — {{ transfer.transaction_id }}</title>
+    <style>
+        /* ============================================================
+           PROPERTY TRANSFER REPORT (PTR)
+           Uniform design with PARv2 — A4 portrait print output
+           ============================================================ */
+
+        @page {
+            size: A4 portrait;
+            margin: 12mm 14mm 10mm 14mm;
+        }
+
+        *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --ink: #1a1a1a;
+            --ink-light: #555;
+            --ink-muted: #888;
+            --border: #2c2c2c;
+            --border-light: #ccc;
+            --bg-header: #f4f4f4;
+            --bg-page: #fff;
+            --accent: #1a3a5c;
+            --font: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            font-size: 9pt;
+            color: var(--ink);
+            background: #d0d0d0;
+            line-height: 1.35;
+        }
+
+        /* ---- Toolbar (hidden on print) ---- */
+        .toolbar {
+            position: fixed; top: 16px; right: 16px; z-index: 999;
+            display: flex; gap: 8px;
+        }
+        .toolbar button {
+            padding: 10px 22px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: .3px;
+            transition: opacity .2s;
+        }
+        .toolbar button:hover { opacity: .85; }
+        .toolbar .doc-label {
+            display: flex; align-items: center;
+            padding: 0 14px;
+            background: rgba(255,255,255,.9);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 9pt;
+            color: var(--ink);
+        }
+
+        /* ---- Page Container ---- */
+        .page {
+            background: var(--bg-page);
+            width: 210mm;
+            min-height: 297mm;
+            margin: 24px auto;
+            padding: 14mm 16mm 10mm 16mm;
+            box-shadow: 0 2px 16px rgba(0,0,0,.12);
+            position: relative;
+            page-break-after: always;
+        }
+        .page:last-child { page-break-after: auto; }
+
+        /* ---- Header ---- */
+        .doc-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 2.5px solid var(--border);
+            margin-bottom: 18px;
+        }
+        .header-logo {
+            width: 75px; height: 75px;
+            margin-right: 20px; flex-shrink: 0;
+        }
+        .header-text-container {
+            flex: 1; text-align: center;
+            padding-right: 75px;
+        }
+        .doc-header .org {
+            font-size: 9.5pt; font-weight: 500;
+            letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--ink-light);
+        }
+        .doc-header .title {
+            font-size: 13pt; font-weight: 700;
+            letter-spacing: .8px; margin: 4px 0 2px;
+        }
+        .doc-header .subtitle {
+            font-size: 7.5pt; color: var(--ink-muted);
+            letter-spacing: .6px;
+        }
+
+        /* ---- Meta Fields ---- */
+        .meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 32px;
+            margin-bottom: 14px;
+        }
+        .meta-row {
+            display: flex; align-items: baseline; gap: 6px;
+        }
+        .meta-label {
+            font-size: 7.5pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .4px;
+            color: var(--ink-light); white-space: nowrap; min-width: 110px;
+        }
+        .meta-value {
+            flex: 1; border-bottom: 1px solid var(--border-light);
+            padding: 1px 4px 2px; font-size: 9pt;
+            font-weight: 500; min-height: 1.3em;
+        }
+
+        /* ---- Section Header ---- */
+        .section-header {
+            background: var(--bg-header);
+            border: 1.5px solid var(--border);
+            border-bottom: none;
+            padding: 5px 10px;
+            font-size: 7.5pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px;
+        }
+
+        /* ---- Asset Table ---- */
+        .asset-table {
+            width: 100%; border-collapse: collapse;
+            border: 1.5px solid var(--border);
+            margin-bottom: 14px;
+        }
+        .asset-table th {
+            background: var(--bg-header);
+            border: 1px solid var(--border);
+            padding: 6px 5px;
+            font-size: 7pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .5px;
+            text-align: center; vertical-align: middle;
+        }
+        .asset-table td {
+            border: 1px solid var(--border-light);
+            padding: 6px 8px;
+            font-size: 8.5pt; vertical-align: middle;
+        }
+        .asset-table .num { text-align: center; }
+        .asset-table .money { text-align: right; font-variant-numeric: tabular-nums; }
+
+        .total-row td {
+            background: var(--bg-header);
+            font-weight: 700;
+            border-top: 2px solid var(--border);
+        }
+
+        /* ---- Transfer Parties (From / To) ---- */
+        .parties-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            border: 1.5px solid var(--border);
+            margin-bottom: 14px;
+        }
+        .party-panel { padding: 0; }
+        .party-panel:first-child { border-right: 1.5px solid var(--border); }
+        .party-header {
+            background: var(--bg-header);
+            padding: 5px 10px;
+            font-size: 7.5pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px;
+            text-align: center; border-bottom: 1px solid var(--border);
+        }
+        .party-body { padding: 10px 14px 8px; }
+        .party-row {
+            display: flex; align-items: baseline;
+            margin-bottom: 5px;
+        }
+        .party-label {
+            font-size: 7pt; font-weight: 700;
+            text-transform: uppercase; color: var(--ink-light);
+            letter-spacing: .3px; width: 65px; flex-shrink: 0;
+        }
+        .party-value {
+            flex: 1; border-bottom: 1px solid var(--border-light);
+            padding: 0 4px 1px; min-height: 1.15em;
+            font-weight: 500; font-size: 8.5pt;
+        }
+
+        /* ---- Remarks ---- */
+        .remarks-block {
+            border: 1.5px solid var(--border);
+            padding: 8px 12px;
+            margin-bottom: 14px;
+        }
+        .remarks-block .block-label {
+            font-size: 7.5pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .4px;
+            color: var(--ink-light); margin-bottom: 4px;
+        }
+        .remarks-block .block-value {
+            font-size: 9pt; min-height: 2em;
+        }
+
+        /* ---- Signature Panels (Approved By / Released By / Received By) ---- */
+        .sig3-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            border: 1.5px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .sig3-panel { padding: 0; }
+        .sig3-panel:not(:last-child) { border-right: 1.5px solid var(--border); }
+        .sig3-header {
+            background: var(--bg-header);
+            padding: 5px 10px;
+            font-size: 7.5pt; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px;
+            text-align: center; border-bottom: 1px solid var(--border);
+        }
+        .sig3-body { padding: 8px 10px 6px; }
+        .sig-space {
+            height: 52px; border-bottom: 1px solid var(--border-light);
+            margin-bottom: 6px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .sig-image { max-height: 48px; max-width: 100%; object-fit: contain; }
+        .sig-row {
+            display: flex; align-items: baseline;
+            margin-bottom: 4px; font-size: 8pt;
+        }
+        .sig-label {
+            font-size: 6.5pt; font-weight: 700;
+            text-transform: uppercase; color: var(--ink-light);
+            letter-spacing: .3px; width: 60px; flex-shrink: 0;
+        }
+        .sig-value {
+            flex: 1; border-bottom: 1px solid var(--border-light);
+            padding: 0 3px 1px; min-height: 1.1em; font-weight: 500;
+        }
+
+        /* ---- Note ---- */
+        .note {
+            font-size: 7.5pt; font-style: italic;
+            color: var(--ink-muted); margin-bottom: 10px;
+        }
+
+        /* ---- Footer Table (Signatories) ---- */
+        .footer-table {
+            width: 100%; border-collapse: collapse;
+            border: 1.5px solid var(--border);
+        }
+        .footer-table th {
+            background: var(--bg-header);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            font-size: 7pt; font-weight: 700;
+            text-transform: uppercase; text-align: left;
+        }
+        .footer-table td {
+            border: 1px solid var(--border-light);
+            padding: 4px 8px; font-size: 8.5pt;
+        }
+        .footer-table .sig-inline {
+            height: 18px; vertical-align: middle; margin-right: 5px;
+        }
+
+        /* ---- Print Styles ---- */
+        @media print {
+            body { background: none; }
+            .toolbar { display: none !important; }
+            .page {
+                margin: 0; padding: 0;
+                box-shadow: none; width: 100%; min-height: auto;
+            }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="doc-label">PTR — {{ transfer.transaction_id }}</div>
+    <button onclick="window.print()">⎙ PRINT</button>
+    <button onclick="window.close()" style="background:#555;">✕ CLOSE</button>
+</div>
+
+<div class="page">
+
+    <!-- ========== HEADER ========== -->
+    <div class="doc-header">
+        <img src="{% static 'inventory/img/logo.png' %}" class="header-logo" alt="UP Logo">
+        <div class="header-text-container">
+            <div class="org">University of the Philippines System</div>
+            <div class="title">PROPERTY TRANSFER REPORT</div>
+            <div class="subtitle">System Supply and Property Management Office (SPMO)</div>
+        </div>
+    </div>
+
+    <!-- ========== META FIELDS ========== -->
+    <div class="meta">
+        <div class="meta-row">
+            <span class="meta-label">PTR No.</span>
+            <span class="meta-value">{{ transfer.transaction_id }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Date</span>
+            <span class="meta-value">{{ transfer.created_at|date:"F d, Y" }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Status</span>
+            <span class="meta-value">{{ transfer.get_status_display }}</span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Property No.</span>
+            <span class="meta-value">{{ transfer.asset.property_number }}</span>
+        </div>
+    </div>
+
+    <!-- ========== ASSET DETAILS TABLE ========== -->
+    <div class="section-header">Asset / Property Description</div>
+    <table class="asset-table">
+        <thead>
+            <tr>
+                <th style="width:16%;">Property No.</th>
+                <th>Description</th>
+                <th style="width:14%;">PPE Category</th>
+                <th style="width:10%;">Date Acq.</th>
+                <th style="width:12%;">Amount (₱)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="num">{{ transfer.asset.property_number }}</td>
+                <td>
+                    <strong>{{ transfer.asset.name }}</strong>
+                    {% if transfer.asset.description %}
+                    <div style="font-size:7.5pt; color:var(--ink-muted); margin-top:2px;">{{ transfer.asset.description|truncatechars:80 }}</div>
+                    {% endif %}
+                </td>
+                <td class="num">{{ transfer.asset.get_asset_class_display }}</td>
+                <td class="num">{{ transfer.asset.date_acquired|date:"Y-m-d" }}</td>
+                <td class="money">{% if transfer.asset.acquisition_cost %}{{ transfer.asset.acquisition_cost|intcomma }}{% else %}—{% endif %}</td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="4" style="text-align:right; padding-right:12px;">ACQUISITION COST</td>
+                <td class="money">₱{% if transfer.asset.acquisition_cost %}{{ transfer.asset.acquisition_cost|intcomma }}{% else %}—{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ========== TRANSFER PARTIES ========== -->
+    <div class="parties-grid">
+        <!-- FROM -->
+        <div class="party-panel">
+            <div class="party-header">Transferred From</div>
+            <div class="party-body">
+                <div class="party-row">
+                    <span class="party-label">Officer</span>
+                    <span class="party-value" style="font-weight:700;">{{ transfer.current_officer|upper }}</span>
+                </div>
+                <div class="party-row">
+                    <span class="party-label">Office</span>
+                    <span class="party-value">{{ transfer.asset.department.name|default:"—" }}</span>
+                </div>
+                <div class="party-row">
+                    <span class="party-label">Date</span>
+                    <span class="party-value">{{ transfer.created_at|date:"Y-m-d" }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- TO -->
+        <div class="party-panel">
+            <div class="party-header">Transferred To</div>
+            <div class="party-body">
+                <div class="party-row">
+                    <span class="party-label">Officer</span>
+                    <span class="party-value" style="font-weight:700;">{{ transfer.new_officer_firstname|upper }} {{ transfer.new_officer_surname|upper }}</span>
+                </div>
+                <div class="party-row">
+                    <span class="party-label">Office</span>
+                    <span class="party-value">{{ transfer.asset.department.name|default:"—" }}</span>
+                </div>
+                <div class="party-row">
+                    <span class="party-label">Date</span>
+                    <span class="party-value">{{ transfer.created_at|date:"Y-m-d" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== REASON / REMARKS ========== -->
+    <div class="remarks-block">
+        <div class="block-label">Reason for Transfer</div>
+        <div class="block-value">{{ transfer.remarks|default:"—" }}</div>
+    </div>
+
+    <!-- ========== APPROVED BY / RELEASED BY / RECEIVED BY ========== -->
+    <div class="sig3-grid">
+        <!-- Approved By: SPMO Chief -->
+        <div class="sig3-panel">
+            <div class="sig3-header">Approved By</div>
+            <div class="sig3-body">
+                <div class="sig-space">
+                    {% if signatures.approved.img %}
+                    <img src="{{ signatures.approved.img }}" class="sig-image" alt="Signature">
+                    {% endif %}
+                </div>
+                <div class="sig-row"><span class="sig-label">Name</span><span class="sig-value" style="font-weight:700;">{{ signatures.approved.name|default:"ISAGANI L. BAGUS" }}</span></div>
+                <div class="sig-row"><span class="sig-label">Position</span><span class="sig-value">{{ signatures.approved.pos|default:"Chief, UP System SPMO" }}</span></div>
+                <div class="sig-row"><span class="sig-label">Date</span><span class="sig-value">{{ signatures.approved.date|date:"Y-m-d"|default:"" }}</span></div>
+            </div>
+        </div>
+        <!-- Released By: SPMO Admin Officer -->
+        <div class="sig3-panel">
+            <div class="sig3-header">Released By</div>
+            <div class="sig3-body">
+                <div class="sig-space">
+                    {% if signatures.released.img %}
+                    <img src="{{ signatures.released.img }}" class="sig-image" alt="Signature">
+                    {% endif %}
+                </div>
+                <div class="sig-row"><span class="sig-label">Name</span><span class="sig-value" style="font-weight:700;">{{ signatures.released.name|default:"" }}</span></div>
+                <div class="sig-row"><span class="sig-label">Position</span><span class="sig-value">{{ signatures.released.pos|default:"Admin Officer, SPMO" }}</span></div>
+                <div class="sig-row"><span class="sig-label">Date</span><span class="sig-value">{{ signatures.released.date|date:"Y-m-d"|default:"" }}</span></div>
+            </div>
+        </div>
+        <!-- Received By: Requesting Unit / New Officer -->
+        <div class="sig3-panel">
+            <div class="sig3-header">Received By</div>
+            <div class="sig3-body">
+                <div class="sig-space"></div>
+                <div class="sig-row"><span class="sig-label">Name</span><span class="sig-value" style="font-weight:700;">{{ transfer.new_officer_firstname|upper }} {{ transfer.new_officer_surname|upper }}</span></div>
+                <div class="sig-row"><span class="sig-label">Position</span><span class="sig-value">Requesting Unit / End-User</span></div>
+                <div class="sig-row"><span class="sig-label">Date</span><span class="sig-value"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== NOTE ========== -->
+    <p class="note">Note: This document serves as the official record of property transfer for accountability and audit purposes.</p>
+
+    <!-- ========== FOOTER — 6 SIGNATORIES ========== -->
+    <table class="footer-table">
+        <thead>
+            <tr>
+                <th style="width:22%;">Action</th>
+                <th style="width:8%;">Role</th>
+                <th>Name / Signature</th>
+                <th style="width:16%;">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Prepared by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">SPMO AO</td>
+                <td>
+                    {% if signatures.prepared.img %}<img src="{{ signatures.prepared.img }}" class="sig-inline">{% endif %}
+                    {{ signatures.prepared.name|default:"" }}
+                </td>
+                <td>{{ signatures.prepared.date|date:"Y-m-d"|default:"" }}</td>
+            </tr>
+            <tr>
+                <td>Reviewed by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">SPMO Supervisor</td>
+                <td>
+                    {% if signatures.reviewed.img %}<img src="{{ signatures.reviewed.img }}" class="sig-inline">{% endif %}
+                    {{ signatures.reviewed.name|default:"" }}
+                </td>
+                <td>{{ signatures.reviewed.date|date:"Y-m-d"|default:"" }}</td>
+            </tr>
+            <tr>
+                <td>Approved by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">SPMO Chief</td>
+                <td>
+                    {% if signatures.approved.img %}<img src="{{ signatures.approved.img }}" class="sig-inline">{% endif %}
+                    {{ signatures.approved.name|default:"ISAGANI L. BAGUS" }}
+                </td>
+                <td>{{ signatures.approved.date|date:"Y-m-d"|default:"" }}</td>
+            </tr>
+            <tr>
+                <td>Released by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">SPMO AO</td>
+                <td>
+                    {% if signatures.released.img %}<img src="{{ signatures.released.img }}" class="sig-inline">{% endif %}
+                    {{ signatures.released.name|default:"" }}
+                </td>
+                <td>{{ signatures.released.date|date:"Y-m-d"|default:"" }}</td>
+            </tr>
+            <tr>
+                <td>Received by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">Requesting Unit</td>
+                <td>{{ transfer.new_officer_firstname }} {{ transfer.new_officer_surname }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Posted by</td>
+                <td style="font-size:7pt; color:var(--ink-muted);">SPMO Supervisor</td>
+                <td>{{ signatures.posted.name|default:"" }} — thru GAMIT</td>
+                <td>{{ transfer.created_at|date:"Y-m-d" }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div><!-- /page -->
+
+</body>
+</html>
