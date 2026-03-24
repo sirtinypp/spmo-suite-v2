@@ -330,7 +330,28 @@
             });
         });
 
-        // Filtering
+        // --- Filter/Search Progress Bar ---
+        // Suppress the full sspmo-loader splash and show a thin top bar instead.
+        function showFilterProgress() {
+            window.suppressSspmoLoader = true;
+            var loader = document.getElementById('sspmo-loader');
+            if (loader) { loader.style.display = 'none'; }
+            var bar = document.getElementById('sspmo-topbar');
+            if (bar) {
+                bar.style.opacity = '1';
+                bar.style.width = '60%';
+                // Animate to near-complete while waiting for server
+                setTimeout(function () { bar.style.width = '85%'; }, 300);
+            }
+        }
+
+        // Intercept the filter form (covers dropdown onchange + search button + debounce)
+        const filterForm = document.querySelector('form[method="GET"]');
+        if (filterForm) {
+            filterForm.addEventListener('submit', showFilterProgress);
+        }
+
+        // Search debounce with progress bar
         const searchInput = document.getElementById('searchInput');
         if (searchInput) {
             const searchForm = searchInput.closest('form');
@@ -339,6 +360,7 @@
             searchInput.addEventListener('input', function () {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
+                    showFilterProgress();
                     searchForm.submit();
                 }, 500);
             });

@@ -279,6 +279,9 @@
 </head>
 
 <body>
+    <!-- Thin top progress bar (filter/search navigation only) -->
+    <div id="sspmo-topbar" style="position:fixed;top:0;left:0;height:3px;width:0%;background:#7b1113;z-index:999999;opacity:0;transition:width 0.4s ease;"></div>
+
     <!-- SSPMO Branded Loader -->
     <div id="sspmo-loader"
         style="position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:opacity .4s ease;">
@@ -299,7 +302,7 @@
             }
         }
     </style>
-    <script>!function () { var s = Date.now(), h = function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
+    <script>!function () { var s = Date.now(), h = function () { if (window.suppressSspmoLoader) return; var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
 
     {% include 'inventory/snippets/sidebar_nav.html' with show_theme_toggle=True %}
 
