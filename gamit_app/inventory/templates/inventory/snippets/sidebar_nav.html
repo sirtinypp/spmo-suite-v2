@@ -171,6 +171,27 @@
                         </ul>
                     </div>
                 </div>
+            <!-- Folder 5: Reports -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingReports">
+                    <button class="accordion-button {% if request.resolver_match.url_name != 'reports_home' and request.resolver_match.url_name != 'rpcppe_report' %}collapsed{% endif %}" 
+                        type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseReports" aria-expanded="{% if request.resolver_match.url_name == 'reports_home' or request.resolver_match.url_name == 'rpcppe_report' %}true{% else %}false{% endif %}"
+                        aria-controls="collapseReports">
+                        <i class="fas fa-file-invoice me-3"></i> Master Reports
+                    </button>
+                </h2>
+                <div id="collapseReports" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'reports_home' or request.resolver_match.url_name == 'rpcppe_report' %}show{% endif %}"
+                    aria-labelledby="headingReports" data-bs-parent="#gamitSidebarAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="sub-menu">
+                            <li><a href="{% url 'reports_home' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'reports_home' %}active{% endif %}">Reports Center</a></li>
+                            <li><a href="{% url 'rpcppe_report' %}"
+                                    class="sub-link {% if request.resolver_match.url_name == 'rpcppe_report' %}active{% endif %}">RPCPPE Report</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
         </div>
