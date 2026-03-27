@@ -28,7 +28,9 @@ urlpatterns = [
     path('transaction/request/', views.create_inspection_request, name='create_inspection_request'), 
     path('transaction/batch/', views.create_batch_request, name='create_batch_request'), 
     path('transaction/transfer/', views.create_transfer_request, name='create_transfer_request'),
-    # --- NO NEW TRANSACTIONS FOR NOW ---
+    path('transaction/return/', views.create_return_request, name='create_return_request'),
+    path('transaction/loss/', views.create_loss_report, name='create_loss_report'),
+    path('transaction/clearance/', views.create_clearance_request, name='create_clearance_request'),
 
     # --- TRANSACTION HISTORY & MANAGEMENT ---
     path('transactions/history/', views.transaction_history, name='transaction_history'), 
