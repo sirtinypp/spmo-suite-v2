@@ -20,7 +20,7 @@ urlpatterns = [
     path('asset/<int:pk>/add-log/', views.add_service_log, name='add_service_log'),
     path('asset/<int:pk>/print-log/', views.print_service_log, name='print_service_log'),
     path('asset/<int:pk>/print-card/', views.print_property_card, name='print_property_card'),
-    path('service-log/<int:pk>/delete/', views.delete_service_log, name='delete_service_log'), # <--- ADDED THIS LINE
+    path('service-log/<int:pk>/delete/', views.delete_service_log, name='delete_service_log'), 
 
     # --- TRANSACTION CREATION (User Actions) ---
     path('assets/add/', views.add_asset_transaction, name='add_asset'),
@@ -28,9 +28,7 @@ urlpatterns = [
     path('transaction/request/', views.create_inspection_request, name='create_inspection_request'), 
     path('transaction/batch/', views.create_batch_request, name='create_batch_request'), 
     path('transaction/transfer/', views.create_transfer_request, name='create_transfer_request'),
-    path('transaction/return/', views.create_return_request, name='create_return_request'),
-    path('transaction/loss/', views.create_loss_report, name='create_loss_report'),
-    path('transaction/clearance/', views.create_clearance_request, name='create_clearance_request'),
+    # --- NO NEW TRANSACTIONS FOR NOW ---
 
     # --- TRANSACTION HISTORY & MANAGEMENT ---
     path('transactions/history/', views.transaction_history, name='transaction_history'), 
@@ -61,6 +59,10 @@ urlpatterns = [
     path('loss/<int:pk>/workflow/<str:target_state>/', views.approve_loss_workflow, name='approve_loss_workflow'),
     path('clearance/<int:pk>/', views.clearance_detail, name='clearance_detail'),
     path('clearance/<int:pk>/workflow/<str:target_state>/', views.approve_clearance_workflow, name='approve_clearance_workflow'),
+
+    # --- REPORTS ---
+    path('reports/', views.reports_home, name='reports_home'),
+    path('reports/rpcppe/', views.rpcppe_report, name='rpcppe_report'),
 
     # --- API HELPERS ---
     path('api/asset-info/<int:asset_id>/', views.get_asset_info, name='get_asset_info'),
