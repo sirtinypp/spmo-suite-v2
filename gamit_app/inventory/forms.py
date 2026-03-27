@@ -12,8 +12,8 @@ class AddAssetForm(forms.ModelForm):
         model = Asset
         fields = [
             # Section 1: Property Info
-            'property_number', 'name', 'description',
-            'date_acquired', 'acquisition_cost',
+            'property_number', 'name', 'brand', 'description',
+            'date_acquired', 'acquisition_cost', 'unit_of_measure', 'quantity_physical_count',
             # Section 2: Classification
             'asset_class', 'asset_nature', 'status',
             # Section 3: Accountability
@@ -25,9 +25,12 @@ class AddAssetForm(forms.ModelForm):
         widgets = {
             'property_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. PAR-105001'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Short description of the asset'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Brand/Model'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Full description, specifications, model number...'}),
             'date_acquired': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'acquisition_cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
+            'unit_of_measure': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. pc, unit, set'}),
+            'quantity_physical_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '1'}),
             'asset_class': forms.Select(attrs={'class': 'form-select'}),
             'asset_nature': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
@@ -247,7 +250,7 @@ class PropertyTabForm(forms.ModelForm):
     class Meta:
         model = Asset
         fields = [
-            'property_number', 'name', 'description', 'status',
+            'property_number', 'name', 'brand', 'description', 'status',
             'date_acquired', 'acquisition_cost',
             'asset_class', 'asset_nature',
             'accountable_firstname', 'accountable_surname',

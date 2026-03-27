@@ -135,8 +135,8 @@ class Asset(models.Model):
         ('OTHER', 'Other')
     ]
 
-    item_id = models.CharField(max_length=50, blank=True, null=True, verbose_name="Item ID")
-    property_number = models.CharField(max_length=50, unique=True, blank=True, null=True, verbose_name="Property Number")
+    item_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="Item ID")
+    property_number = models.CharField(max_length=255, unique=True, blank=True, null=True, verbose_name="Property Number")
     
     # SOP: Linkage to Transaction (Phase 7)
     acquisition_batch = models.ForeignKey('AssetBatch', on_delete=models.SET_NULL, null=True, blank=True, related_name='generated_assets')
@@ -152,14 +152,20 @@ class Asset(models.Model):
     assigned_custodian = models.CharField(max_length=255, blank=True, null=True, verbose_name="Assigned Custodian")
     custodian_signature = models.ImageField(upload_to='signatures/custodians/', blank=True, null=True, verbose_name="Custodian Signature")
     
-    asset_class = models.CharField(max_length=150, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
+    asset_class = models.CharField(max_length=255, choices=CLASS_CHOICES, default='OTHER', verbose_name="PPE Category")
     asset_nature = models.CharField(max_length=100, choices=ASSET_TYPE_CHOICES, default='OTHER', verbose_name="Asset Type")
+    
+    # --- NEW: RPCPPE Support Fields ---
+    brand = models.CharField(max_length=255, blank=True, null=True, verbose_name="Brand/Model")
+    unit_of_measure = models.CharField(max_length=255, default='pc', verbose_name="Unit of Measure")
+    quantity_physical_count = models.IntegerField(default=1, verbose_name="Physical Count Qty")
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='SERVICEABLE', verbose_name="Status")
     
-    accountable_surname = models.CharField(max_length=50, blank=True, null=True)
-    accountable_firstname = models.CharField(max_length=50, blank=True, null=True)
-    accountable_middle_initial = models.CharField(max_length=50, blank=True, null=True)
-    cu = models.CharField(max_length=50, blank=True, null=True)
+    accountable_surname = models.CharField(max_length=255, blank=True, null=True)
+    accountable_firstname = models.CharField(max_length=255, blank=True, null=True)
+    accountable_middle_initial = models.CharField(max_length=255, blank=True, null=True)
+    cu = models.CharField(max_length=255, blank=True, null=True)
     image_serial = models.ImageField(upload_to='assets/serials/', blank=True, null=True)
     image_condition = models.ImageField(upload_to='assets/condition/', blank=True, null=True)
     attachment = models.FileField(upload_to='assets/docs/', blank=True, null=True)

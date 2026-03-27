@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
-from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
+from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest, Department
 from workflow.models import WorkflowMovementLog, WorkflowStep, Persona
 
 from .forms import (
@@ -1408,3 +1408,57 @@ def activity_log(request):
         'all_departments': all_departments,
         'selected_department': selected_department
     })
+
+# ==========================================
+# 20. REPORTS & ANALYTICS
+# ==========================================
+@login_required
+def reports_home(request):
+    """Landing page for all inventory reports."""
+    return render(request, 'inventory/reports_home.html')
+
+@login_required
+def rpcppe_report(request):
+    """
+    COA-Compliant Report on Physical Count of Property, Plant & Equipment (RPCPPE).
+    Grouped by Department with totals.
+    """
+    # Filter by Serviceable PPE assets (excluding semi-expandable/expendable if needed)
+    # The requirement is "reflect all assets grouped by department"
+    assets_qs = Asset.objects.filter(status='SERVICEABLE').select_related('department').order_by('department__name', 'asset_class', 'name')
+    
+    grouped_data = {}
+    grand_total_cost = 0
+
+    total_assets_count = 0
+    for asset in assets_qs:
+        dept_name = asset.department.name if asset.department else "UNASSIGNED / GENERAL"
+        if dept_name not in grouped_data:
+            grouped_data[dept_name] = {
+                'assets': [],
+                'dept_total_cost': 0,
+            }
+        
+        # Calculations for COA alignment
+        qty_card = 1 # Asset is serialized by default
+        qty_physical = asset.quantity_physical_count or 0
+        unit_cost = asset.acquisition_cost or 0
+        total_price = unit_cost * qty_physical
+        
+        # Attach to asset object for template access
+        asset.qty_card = qty_card
+        asset.total_price = total_price
+        
+        grouped_data[dept_name]['assets'].append(asset)
+        grouped_data[dept_name]['dept_total_cost'] += total_price
+        grand_total_cost += total_price
+        total_assets_count += qty_physical
+
+    context = {
+        'grouped_data': grouped_data,
+        'grand_total_cost': grand_total_cost,
+        'total_assets_count': total_assets_count,
+        'dept_count': len(grouped_data),
+        'report_date': timezone.now().date(),
+    }
+    return render(request, 'inventory/rpcppe_report.html', context)

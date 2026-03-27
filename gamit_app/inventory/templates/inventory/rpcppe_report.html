@@ -1,0 +1,323 @@
+{% load humanize %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RPCPPE Report - {{ report_date }}</title>
+    <style>
+        :root {
+            --primary-gray: #333;
+            --light-gray: #f8f9fa;
+            --border-color: #000;
+            --font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+
+        body {
+            font-family: var(--font-family);
+            font-size: 8pt;
+            color: var(--primary-gray);
+            margin: 0;
+            padding: 0;
+            background: #e0e0e0;
+        }
+
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-print {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2c3e50, #000);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: transform 0.2s;
+        }
+
+        .btn-print:hover { transform: translateY(-2px); }
+
+        .report-wrapper {
+            background: white;
+            width: 297mm;
+            min-height: 210mm;
+            margin: 20px auto;
+            padding: 15mm;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin-right: 20px;
+        }
+
+        .header-text {
+            text-align: center;
+            flex: 1;
+        }
+
+        .header-text h4 { margin: 0; font-size: 10pt; font-weight: 400; }
+        .header-text h3 { margin: 5px 0; font-size: 14pt; font-weight: 700; text-transform: uppercase; }
+        .header-text h5 { margin: 0; font-size: 9pt; font-weight: 500; }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 9pt;
+        }
+
+        .meta-item { display: flex; gap: 5px; }
+        .label { font-weight: 700; text-transform: uppercase; }
+        .value { border-bottom: 1px solid #777; min-width: 150px; padding: 0 5px; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1.5px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+
+        th {
+            background: var(--light-gray) !important;
+            border: 1px solid var(--border-color);
+            padding: 5px;
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        td {
+            border: 0.5px solid #ccc;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 2px 4px;
+            font-size: 8pt;
+            vertical-align: middle;
+            line-height: 1.1;
+        }
+
+        .kpi-bar {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .kpi-item { display: flex; gap: 8px; font-size: 9pt; }
+        .kpi-label { font-weight: 700; color: #555; text-transform: uppercase; }
+        .kpi-value { font-weight: 800; color: #000; }
+
+        .dept-header {
+            background-color: #f0f0f0 !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+        }
+
+        .total-row {
+            background-color: #fafafa !important;
+            font-weight: 700;
+            border-top: 1.5px solid var(--border-color);
+            border-bottom: 1.5px solid var(--border-color);
+        }
+
+        .grand-total {
+            background-color: #eee !important;
+            font-weight: 800;
+            font-size: 9pt;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .sig-container {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .sig-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sig-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sig-label { font-weight: 700; margin-bottom: 15px; font-size: 9pt; }
+        .sig-name { font-weight: 700; border-bottom: 1.5px solid var(--border-color); width: 100%; text-align: center; margin-top: 5px; font-size: 9pt; }
+        .sig-pos { font-size: 8pt; text-align: center; margin-top: 2px; color: #444; }
+
+        @media print {
+            body { background: none; }
+            .no-print { display: none !important; }
+            .report-wrapper {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                width: 100%;
+            }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <button class="btn-print" onclick="window.print()">PRINT MASTER RPCPPE</button>
+    <a href="{% url 'reports_home' %}" style="margin-left: 10px; font-size: 9pt; color: #666;">Back to Reports</a>
+</div>
+
+<div class="report-wrapper">
+    <div class="header">
+        <img src="{% static 'inventory/img/logo.png' %}" class="logo" alt="UP Logo">
+        <div class="header-text">
+            <h4>University of the Philippines System</h4>
+            <h3>REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT</h3>
+            <h5>As of {{ report_date|date:"F d, Y" }}</h5>
+        </div>
+    </div>
+
+    <div class="kpi-bar">
+        <div class="kpi-item">
+            <span class="kpi-label">Total Assets:</span>
+            <span class="kpi-value">{{ total_assets_count|intcomma }}</span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-label">Total Valuation:</span>
+            <span class="kpi-value">₱{{ grand_total_cost|intcomma }}</span>
+        </div>
+        <div class="kpi-item">
+            <span class="kpi-label">Departments Covered:</span>
+            <span class="kpi-value">{{ dept_count }}</span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="12%">ARTICLE</th>
+                <th width="15%">BRAND / MODEL</th>
+                <th>DESCRIPTION</th>
+                <th width="12%">PROPERTY NO.</th>
+                <th width="5%">UOM</th>
+                <th width="10%">UNIT VALUE</th>
+                <th width="5%">QTY per Card</th>
+                <th width="5%">QTY Physical</th>
+                <th width="10%">TOTAL PRICE</th>
+                <th width="10%">REMARKS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dept, data in grouped_data.items %}
+                <tr class="dept-header">
+                    <td colspan="10">OFFICE / DEPARTMENT: {{ dept }}</td>
+                </tr>
+                {% for asset in data.assets %}
+                <tr>
+                    <td>{{ asset.asset_class }}</td>
+                    <td class="text-center">{{ asset.brand|default:"" }}</td>
+                    <td>{{ asset.name }}</td>
+                    <td class="text-center">{{ asset.property_number }}</td>
+                    <td class="text-center">{{ asset.unit_of_measure }}</td>
+                    <td class="text-right">{{ asset.acquisition_cost|intcomma }}</td>
+                    <td class="text-center">{{ asset.qty_card }}</td>
+                    <td class="text-center">{{ asset.quantity_physical_count }}</td>
+                    <td class="text-right">{{ asset.total_price|intcomma }}</td>
+                    <td class="text-center">SERVICEABLE</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="8" class="text-right">SUBTOTAL FOR {{ dept }}:</td>
+                    <td class="text-right">₱{{ data.dept_total_cost|intcomma }}</td>
+                    <td></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="10" class="text-center py-5 text-muted">No serviceable assets found matching the criteria.</td></tr>
+            {% endfor %}
+
+            {% if grand_total_cost > 0 %}
+            <tr class="grand-total">
+                <td colspan="8" class="text-right">GRAND TOTAL:</td>
+                <td class="text-right">₱{{ grand_total_cost|intcomma }}</td>
+                <td></td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="sig-container">
+        <!-- Section 1: Prepared By -->
+        <div class="sig-group">
+            <div class="sig-label">Prepared by:</div>
+            <div class="sig-box">
+                <div class="sig-name">ELDEFONSO T. SARDUAL</div>
+                <div class="sig-pos">Junior Office Associate, UPSSPMO</div>
+            </div>
+            <div class="sig-box" style="margin-top: 20px;">
+                <div class="sig-name">REYNALD M. SIBUCAO</div>
+                <div class="sig-pos">Senior Office Aide, UPSAO</div>
+            </div>
+        </div>
+
+        <!-- Section 2: Checked By -->
+        <div class="sig-group">
+            <div class="sig-label">Checked by:</div>
+            <div class="sig-box">
+                <div class="sig-name">JULIUS MAR DELA CRUZ</div>
+                <div class="sig-pos">Junior Office Manager, UPSSPMO</div>
+            </div>
+        </div>
+
+        <!-- Section 3: Approved By -->
+        <div class="sig-group">
+            <div class="sig-label">Approved by:</div>
+            <div class="sig-box">
+                <div class="sig-name">ISAGANI L. BAGUS</div>
+                <div class="sig-pos">Chief, UPSSPMO</div>
+            </div>
+            <div class="sig-box" style="margin-top: 20px;">
+                <div class="sig-name">RONNIE B. PAGAL</div>
+                <div class="sig-pos">Director, UPSAO</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
