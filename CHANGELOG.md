@@ -18,6 +18,16 @@
 - **GAMIT**: Rejoined split template tags in `asset_list.html` to ensure single-line compliance for Django parser.
 - **GAMIT**: Aligned Dashboard KPI logic to use `SERVICEABLE` instead of `ACTIVE` to match model status choices.
 
+### Maintenance & Optimization
+- **Static Code Analysis**: Ran `flake8` on all services. Identified consistent style violations (PEP 8). Use of a formatter is recommended.
+- **Dependency Audit**: Ran `pip-audit`. Identified missing system dependencies (`libcairo2-dev`) required for `suplay_app` PDF generation.
+- **Baseline Tests**: Created baseline unit tests (`test_basics.py`) for `spmo_website`, `gfa_app`, and `suplay_app`.
+- **Docker Optimization**: Optimized Dockerfiles (added `PYTHONDONTWRITEBYTECODE`, cleaned up apt lists, added `--no-install-recommends`).
+- **Configuration**: Updated `suplay_app` settings to allow local testing with SQLite fallback.
+
+### Critical Findings
+- **Missing GAMIT Code**: The `gamit_app` directory is empty. Source code recovery is required.
+
 ### Added
 - **GAMIT**: Implemented dynamic column sorting (ASC/DESC) for Property No., Name, Category, Type, Status, and Department.
 - **GAMIT**: Added "Results per Page" selector (10, 20, 50, 100) to the Asset Inventory.
