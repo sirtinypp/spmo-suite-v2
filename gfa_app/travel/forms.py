@@ -1,5 +1,6 @@
 from django import forms
-from .models import BookingRequest
+from django.forms import inlineformset_factory
+from .models import BookingRequest, TravelTrip, PassengerRecord, Settlement
 
 # 1. USER: Initial Request Form
 class BookingRequestForm(forms.ModelForm):
@@ -74,3 +75,81 @@ class AdminBookingForm(forms.ModelForm):
                 })
         self.fields['admin_instructions'].widget.attrs.update({'rows': 4, 'placeholder': 'Enter check-in reminders, terminal details, etc.'})
         self.fields['total_amount'].widget.attrs.update({'placeholder': '0.00'})
+
+# 4. Phase 9: Trip Request Form
+class TripForm(forms.ModelForm):
+    class Meta:
+        model = TravelTrip
+        exclude = [
+            'created_by', 'status', 'created_at', 
+            'admin_verified', 'admin_verified_at', 'admin_verified_by',
+            'supervisor_verified', 'supervisor_verified_at', 'supervisor_verified_by',
+            'chief_approved', 'chief_approved_at', 'chief_approved_by',
+            'booking_reference_no', 'total_amount', 'admin_instructions', 'ticket_issued_at',
+            'legacy_booking'
+        ]
+        widgets = {
+            'departure_date': forms.DateInput(attrs={'type': 'date'}),
+            'departure_time': forms.TimeInput(attrs={'type': 'time'}),
+            'return_date': forms.DateInput(attrs={'type': 'date'}),
+            'return_time': forms.TimeInput(attrs={'type': 'time'}),
+            'approval_date': forms.DateInput(attrs={'type': 'date'}),
+            'purpose': forms.Textarea(attrs={'rows': 3}),
+            'special_requests': forms.Textarea(attrs={'rows': 2}),
+            'remarks': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields:
+            if isinstance(self.fields[field].widget, forms.CheckboxInput):
+                self.fields[field].widget.attrs.update({'class': 'w-5 h-5 text-blue-600 rounded focus:ring-blue-500'})
+            else:
+                self.fields[field].widget.attrs.update({
+                    'class': 'w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 focus:border-transparent outline-none transition duration-200 text-sm'
+                })
+
+# 5. Phase 9: Passenger Record Form
+class PassengerRecordForm(forms.ModelForm):
+    class Meta:
+        model = PassengerRecord
+        exclude = ['trip', 'doc_flight_ticket', 'doc_voucher']
+        widgets = {
+            'birthday': forms.DateInput(attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields:
+            if isinstance(self.fields[field].widget, forms.CheckboxInput):
+                self.fields[field].widget.attrs.update({'class': 'w-5 h-5 text-blue-600 rounded focus:ring-blue-500'})
+            else:
+                self.fields[field].widget.attrs.update({
+                    'class': 'w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-sm'
+                })
+
+PassengerFormSet = inlineformset_factory(
+    TravelTrip, PassengerRecord, form=PassengerRecordForm,
+    extra=1, can_delete=True
+)
+
+# 6. Phase 10: Financial Settlement Form
+class SettlementForm(forms.ModelForm):
+    class Meta:
+        model = Settlement
+        fields = ['reference_no', 'amount', 'settlement_date', 'attachment', 'remarks']
+        widgets = {
+            'settlement_date': forms.DateInput(attrs={'type': 'date'}),
+            'remarks': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs.update({
+                'class': 'w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-purple-600 outline-none text-sm'
+            })
+            if field == 'attachment':
+                self.fields[field].widget.attrs.update({
+                    'class': 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer border border-slate-300 rounded-lg bg-white'
+                })
