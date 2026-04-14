@@ -1,0 +1,112 @@
+{% extends 'travel/base_lipad.html' %}
+{% load static %}
+
+{% block content %}
+<div class="px-6 py-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Financial Audit Log</h1>
+                <p class="text-slate-500 mt-1">Real-time tracking of airline credit deductions and replenishments.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'settlement_list' %}" class="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition text-sm font-medium border border-slate-200">
+                    Settlement History
+                </a>
+                <a href="{% url 'settlement_create' %}" class="px-4 py-2 bg-[#7b1113] text-white rounded-lg hover:bg-[#630d0f] transition text-sm font-medium shadow-sm">
+                    + New Settlement
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+            <form method="GET" class="flex flex-wrap items-center gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Airline</label>
+                    <select name="airline" onchange="this.form.submit()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-900">
+                        <option value="">All Airlines</option>
+                        <option value="PAL" {% if current_airline == 'PAL' %}selected{% endif %}>Philippine Airlines</option>
+                        <option value="CEB" {% if current_airline == 'CEB' %}selected{% endif %}>Cebu Pacific</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Transaction Type</label>
+                    <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-900">
+                        <option value="">All Types</option>
+                        <option value="DEDUCTION" {% if current_type == 'DEDUCTION' %}selected{% endif %}>Deductions</option>
+                        <option value="TOP_UP" {% if current_type == 'TOP_UP' %}selected{% endif %}>Settlements/Top-ups</option>
+                        <option value="REFUND" {% if current_type == 'REFUND' %}selected{% endif %}>Refunds</option>
+                    </select>
+                </div>
+                {% if current_airline or current_type %}
+                <div class="pt-5">
+                    <a href="{% url 'credit_log_list' %}" class="text-sm text-slate-500 hover:text-red-600 transition underline">Clear Filters</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <!-- Audit Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Timestamp</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Airline</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Balance After</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Remarks</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Processed By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for log in logs %}
+                        <tr class="hover:bg-slate-50/50 transition duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                {{ log.timestamp|date:"M d, Y" }}
+                                <div class="text-[10px] text-slate-400">{{ log.timestamp|date:"H:i A" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if log.transaction_type == 'DEDUCTION' %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20">DEDUCTION</span>
+                                {% elif log.transaction_type == 'TOP_UP' %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20">SETTLEMENT</span>
+                                {% else %}
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">{{ log.transaction_type }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                                {{ log.get_airline_display }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right {% if log.transaction_type == 'DEDUCTION' %}text-red-600{% else %}text-emerald-600{% endif %}">
+                                <span class="text-xs mr-1 opacity-70">
+                                    {% if log.transaction_type == 'DEDUCTION' %}(−){% else %}(+){% endif %}
+                                </span>
+                                ₱{{ log.amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 text-right">
+                                ₱{{ log.balance_after|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">
+                                {{ log.remarks|default:"---" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                {{ log.processed_by.username|default:"System" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic">No audit logs found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ dashboard_title }}{% endblock %} | LIPAD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        :root { --up-maroon: #7b1113; }
+        body { @apply font-['Inter'] bg-slate-100 text-slate-800; }
+        .sidebar-link { @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200; }
+        .sidebar-link:hover { @apply bg-white/10; }
+        .sidebar-link.active { @apply bg-white/15 text-white font-semibold; }
+        .sidebar-link.disabled { @apply opacity-40 cursor-not-allowed pointer-events-none; }
+        
+        /* KPI & Chart Containers */
+        .kpi-card { @apply bg-white rounded-xl border border-slate-200 shadow-sm p-5 hover:shadow-md hover:scale-[1.02] transition-all duration-300; }
+        .chart-card { @apply bg-white rounded-xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-all duration-300; }
+        
+        /* Form Styling */
+        .form-input { @apply w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#7b1113] focus:border-transparent outline-none transition; }
+        .form-label { @apply block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1; }
+        
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+
+<div class="flex min-h-screen">
+    <!-- ===== SIDEBAR ===== -->
+    {% if user.is_authenticated %}
+    <aside class="w-64 bg-gradient-to-b from-[#0f172a] to-[#1e293b] text-slate-300 flex flex-col fixed h-full z-40">
+        <!-- Brand -->
+        <div class="px-5 py-5 border-b border-white/10">
+            <a href="{% url 'index' %}" class="flex items-center gap-3">
+                <img src="{% static 'travel/img/logo.png' %}" alt="UP Seal" class="w-10 h-10 drop-shadow">
+                <div>
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">SSPMO System</div>
+                    <div class="text-lg font-bold text-white leading-tight">LIPAD</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {% if user.is_authenticated %}
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-4 mb-2">Main</div>
+                <a href="{% url 'gfa_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'gfa_dashboard' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2-2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                    Dashboard
+                </a>
+                <a href="{% url 'gfa_create' %}" class="sidebar-link {% if request.resolver_match.url_name == 'gfa_create' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                    New Booking
+                </a>
+
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-4 mt-6 mb-2">Records</div>
+                <a href="{% url 'gfa_transactions' %}" class="sidebar-link {% if request.resolver_match.url_name == 'gfa_transactions' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    Transactions
+                </a>
+                <a href="{% url 'credit_log_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'credit_log_list' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    Credit Log
+                </a>
+                <a href="{% url 'settlement_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'settlement_list' or request.resolver_match.url_name == 'settlement_create' %}active{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Settlement
+                </a>
+            {% else %}
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Account</div>
+                <a href="{% url 'login' %}" class="sidebar-link">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Portal Login
+                </a>
+            {% endif %}
+        </nav>
+
+        <!-- User Footer -->
+        {% if user.is_authenticated %}
+        <div class="px-4 py-4 border-t border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-[#7b1113] flex items-center justify-center text-white font-bold text-xs">
+                    {{ user.username|make_list|first|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-semibold text-white truncate">{{ user.username }}</div>
+                    <div class="text-[10px] text-slate-500">
+                        {% if user.is_superuser %}Administrator{% else %}Staff User{% endif %}
+                    </div>
+                </div>
+                <form action="{% url 'logout' %}" method="post">{% csrf_token %}
+                    <button class="text-slate-500 hover:text-red-400 transition" title="Logout">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+    {% endif %}
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="flex-1 {% if user.is_authenticated %}ml-64{% endif %}">
+        <!-- Top Bar -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-30">
+            <div>
+                <h1 class="text-xl font-bold text-slate-900">{% block header_title %}{{ dashboard_title }}{% endblock %}</h1>
+                <p class="text-xs text-slate-500">{% block header_subtitle %}Real-time GFA Logistics tracking & Credit monitoring{% endblock %}</p>
+            </div>
+            <div class="flex items-center gap-4">
+                {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="text-sm font-bold text-slate-600 hover:text-[#7b1113] transition flex items-center gap-2">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Portal Login</span>
+                </a>
+                {% endif %}
+                <div class="flex items-center gap-2 text-emerald-600 text-xs font-semibold bg-emerald-50 px-3 py-1.5 rounded-full">
+                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                    System Online
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8 space-y-6">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <!-- Footer -->
+        <footer class="px-8 py-4 text-center text-xs text-slate-400 border-t">&copy; 2026 UP System Supply and Property Management Office (LIPAD Team)</footer>
+    </main>
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

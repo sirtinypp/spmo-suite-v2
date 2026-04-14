@@ -1,0 +1,82 @@
+{% extends 'travel/base_lipad.html' %}
+{% load static %}
+
+{% block content %}
+<div class="px-6 py-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+                <nav class="flex text-sm text-slate-500 mb-2 gap-2">
+                    <a href="{% url 'credit_log_list' %}" class="hover:text-blue-900 transition">Financial Audit</a>
+                    <span>/</span>
+                    <span class="text-slate-900 font-medium">Settlement History</span>
+                </nav>
+                <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Airline Settlements</h1>
+                <p class="text-slate-500 mt-1">History of credit replenishments and payments from University to Airlines.</p>
+            </div>
+            <div>
+                <a href="{% url 'settlement_create' %}" class="px-5 py-2.5 bg-[#7b1113] text-white rounded-xl hover:bg-[#630d0f] transition text-sm font-semibold shadow-md flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+                    New Settlement
+                </a>
+            </div>
+        </div>
+
+        <!-- Settlements Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Airline</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Reference No</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Proof</th>
+                            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Processed By</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for s in settlements %}
+                        <tr class="hover:bg-slate-50/50 transition duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                                {{ s.settlement_date|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold {% if s.airline == 'PAL' %}bg-blue-50 text-blue-700{% else %}bg-amber-50 text-amber-700{% endif %}">
+                                    {{ s.get_airline_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right text-emerald-600">
+                                +₱{{ s.amount|floatformat:2 }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-mono">
+                                {{ s.reference_no }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if s.attachment %}
+                                <a href="{{ s.attachment.url }}" target="_blank" class="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 transition font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.414a4 4 0 00-5.656-5.656l-6.415 6.415a6 6 0 108.486 8.486L20.5 13"/></svg>
+                                    View
+                                </a>
+                                {% else %}
+                                <span class="text-slate-400 italic text-xs">No file</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                {{ s.processed_by.username|default:"---" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-400 italic text-sm">No settlement records found. Click "New Settlement" to replenish funds.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
