@@ -18,7 +18,7 @@ services:
   spmo_website:
     build: ./spmo_website
     container_name: app_hub
-    command: gunicorn gamit_core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --forwarded-allow-ips="*"
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./spmo_website:/app
     # Ports Exposed
@@ -45,7 +45,7 @@ services:
   gamit_app:
     build: ./gamit_app
     container_name: app_gamit
-    command: gunicorn gamit_core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --forwarded-allow-ips="*"
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./gamit_app:/app
     # Ports Exposed
@@ -72,7 +72,7 @@ services:
   gfa_app:
     build: ./gfa_app
     container_name: app_gfa
-    command: gunicorn gamit_core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --forwarded-allow-ips="*"
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./gfa_app:/app
     # Ports Exposed
@@ -99,7 +99,7 @@ services:
   virtual_store:
     build: ./suplay_app
     container_name: app_store
-    command: gunicorn gamit_core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --forwarded-allow-ips="*"
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./suplay_app:/app
     # Ports Exposed
