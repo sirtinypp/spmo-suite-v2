@@ -630,6 +630,170 @@ def transaction_history(request):
     }
     return render(request, 'inventory/transaction_list.html', context)
 
+# 8b. TRANSACTION LEDGER (Unified History with Search/Filter/Sort)
+@login_required
+def transaction_ledger(request):
+    search = request.GET.get('q', '').strip()
+    type_filter = request.GET.get('type', '')
+    status_filter = request.GET.get('status', '')
+    sort_by = request.GET.get('sort', 'date')
+    direction = request.GET.get('dir', 'desc')
+
+    is_admin = request.user.is_superuser
+    active_roles = list(Persona.objects.filter(
+        user=request.user, is_active=True
+    ).values_list('role', flat=True)) if not is_admin else []
+
+    def base_qs(model, related=None):
+        if is_admin:
+            qs = model.objects.all()
+        else:
+            qs = model.objects.filter(requestor=request.user)
+            if active_roles:
+                qs = qs | model.objects.filter(
+                    current_step__required_persona_role__in=active_roles)
+            qs = qs.distinct()
+        if related:
+            qs = qs.select_related(*related)
+        return qs
+
+    def normalize_status(raw):
+        u = str(raw).upper()
+        if u in ('APPROVED', 'PAR_RELEASED', 'FINALIZED'):
+            return 'Approved'
+        if u in ('RETURNED', 'REJECTED'):
+            return 'Returned'
+        return 'Pending'
+
+    TYPE_MAP = {
+        'BATCH': ('Acquisition', 'fas fa-boxes-packing', 'success',
+                  AssetBatch, False, ['requestor']),
+        'REQ':   ('Inspection', 'fas fa-search', 'info',
+                  InspectionRequest, True, ['asset', 'requestor']),
+        'TRF':   ('Transfer', 'fas fa-exchange-alt', 'warning',
+                  AssetTransferRequest, True, ['asset', 'requestor']),
+        'RET':   ('Return', 'fas fa-undo', 'primary',
+                  AssetReturnRequest, True, ['asset', 'requestor']),
+        'LOSS':  ('Loss Report', 'fas fa-exclamation-triangle', 'danger',
+                  AssetLossReport, True, ['asset', 'requestor']),
+        'CLR':   ('Clearance', 'fas fa-file-signature', 'secondary',
+                  PropertyClearanceRequest, False, ['requestor']),
+    }
+
+    DETAIL_URLS = {
+        'BATCH': 'batch_detail', 'TRF': 'transfer_detail',
+        'RET': 'return_detail', 'LOSS': 'loss_detail', 'CLR': 'clearance_detail',
+    }
+
+    rows = []
+    for code, (label, icon, color, model, has_asset, related) in TYPE_MAP.items():
+        if type_filter and type_filter != code:
+            continue
+
+        qs = base_qs(model, related)
+
+        # Search
+        if search:
+            q_s = (Q(transaction_id__icontains=search) |
+                   Q(requestor__first_name__icontains=search) |
+                   Q(requestor__last_name__icontains=search))
+            if has_asset:
+                q_s |= (Q(asset__name__icontains=search) |
+                        Q(asset__property_number__icontains=search))
+            elif code == 'BATCH':
+                q_s |= (Q(supplier_name__icontains=search) |
+                        Q(requesting_unit__icontains=search))
+            elif code == 'CLR':
+                q_s |= Q(purpose__icontains=search)
+            qs = qs.filter(q_s)
+
+        # Status filter
+        if status_filter == 'APPROVED':
+            if code == 'BATCH':
+                qs = qs.filter(status='PAR_RELEASED')
+            else:
+                qs = qs.filter(
+                    Q(status__iexact='Approved') | Q(status__iexact='APPROVED') |
+                    Q(status__iexact='FINALIZED'))
+        elif status_filter == 'PENDING':
+            qs = qs.exclude(status__in=[
+                'APPROVED', 'PAR_RELEASED', 'RETURNED', 'REJECTED',
+                'Approved', 'Returned', 'Rejected', 'FINALIZED'])
+        elif status_filter == 'RETURNED':
+            qs = qs.filter(
+                Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED') |
+                Q(status__iexact='Returned') | Q(status__iexact='Rejected'))
+
+        for obj in qs.order_by('-created_at')[:200]:
+            if has_asset:
+                a_label = obj.asset.property_number
+                a_name = obj.asset.name
+            elif code == 'BATCH':
+                a_label = obj.supplier_name or obj.requesting_unit or '-'
+                a_name = f"PO: {obj.po_number}" if obj.po_number else ''
+            else:
+                a_label = (obj.purpose[:50] + '...') if obj.purpose and len(obj.purpose) > 50 else (obj.purpose or '-')
+                a_name = ''
+
+            url_name = DETAIL_URLS.get(code, '')
+            detail_url = reverse(url_name, args=[obj.pk]) if url_name else ''
+
+            raw_status = obj.status or 'Pending'
+            rows.append({
+                'transaction_id': obj.transaction_id,
+                'type_code': code,
+                'type_label': label,
+                'type_icon': icon,
+                'type_color': color,
+                'asset_label': a_label,
+                'asset_name': a_name,
+                'requestor_name': obj.requestor.get_full_name() or obj.requestor.username,
+                'created_at': obj.created_at,
+                'raw_status': raw_status,
+                'norm_status': normalize_status(raw_status),
+                'detail_url': detail_url,
+            })
+
+    # Sort
+    rev = (direction == 'desc')
+    sort_keys = {
+        'id': lambda r: r['transaction_id'],
+        'type': lambda r: r['type_label'],
+        'status': lambda r: r['norm_status'],
+    }
+    rows.sort(key=sort_keys.get(sort_by, lambda r: r['created_at']), reverse=rev)
+
+    # Paginate
+    paginator = Paginator(rows, 20)
+    page = request.GET.get('page')
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
+    context = {
+        'rows': page_obj,
+        'total_count': len(rows),
+        'search': search,
+        'type_filter': type_filter,
+        'status_filter': status_filter,
+        'sort_by': sort_by,
+        'direction': direction,
+        'type_choices': [
+            ('BATCH', 'Acquisition'), ('REQ', 'Inspection'),
+            ('TRF', 'Transfer'), ('RET', 'Return'),
+            ('LOSS', 'Loss Report'), ('CLR', 'Clearance'),
+        ],
+        'status_choices': [
+            ('PENDING', 'Pending'), ('APPROVED', 'Approved / Finalized'),
+            ('RETURNED', 'Returned / Rejected'),
+        ],
+    }
+    return render(request, 'inventory/transaction_history.html', context)
+
+
 # 9. UPDATE INSPECTION STATUS
 @login_required
 def update_request_status(request, pk, action):

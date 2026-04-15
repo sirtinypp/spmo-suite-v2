@@ -213,6 +213,12 @@
             </a>
         </li>
         <li class="nav-item">
+            <a href="{% url 'transaction_ledger' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'transaction_ledger' %}active{% endif %}">
+                <i class="fas fa-clock-rotate-left me-2"></i> Transaction History
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="{% url 'sitemap' %}"
                 class="nav-link {% if request.resolver_match.url_name == 'sitemap' %}active{% endif %}">
                 <i class="fas fa-compass me-2"></i> System Map

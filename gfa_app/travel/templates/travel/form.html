@@ -74,17 +74,18 @@
                 <form method="post" id="bookingForm" class="p-8 space-y-10">
                     {% csrf_token %}
 
-                    {% if form.errors %}
-                    <div class="rounded-md bg-red-50 p-4 mb-6 border-l-4 border-red-500">
+                    {% if form.errors or formset.errors or form.non_field_errors or formset.non_field_errors %}
+                    <div class="rounded-md bg-red-50 p-4 mb-6 border-l-4 border-red-500 shadow-sm">
                         <div class="flex">
-                            <div class="flex-shrink-0"><svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd" />
-                                </svg></div>
+                            <div class="flex-shrink-0"><svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></div>
                             <div class="ml-3">
-                                <h3 class="text-sm font-medium text-red-800">Please correct errors below:</h3>
+                                <h3 class="text-sm font-bold text-red-900 uppercase tracking-tight">Form Validation Failed</h3>
+                                <ul class="mt-2 text-xs text-red-700 list-disc list-inside space-y-1">
+                                    {% for field, errors in form.errors.items %}<li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>{% endfor %}
+                                    {% for p_error in formset.errors %}{% for field, errors in p_error.items %}<li><strong>Passenger:</strong> {{ errors|striptags }}</li>{% endfor %}{% endfor %}
+                                    {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                                    {% for error in formset.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -112,6 +113,36 @@
                         </div>
                     </div>
 
+                    <!-- Passenger FormSet (Phase 11 Multi-Passenger Support) -->
+                    <div class="bg-blue-50/50 p-6 rounded-xl border border-blue-100 italic ml-4">
+                        <h3 class="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            Additional Passengers (Optional)
+                        </h3>
+                        {{ formset.management_form }}
+                        <div id="passenger-formset-container" class="space-y-4">
+                            {% for p_form in formset %}
+                            <div class="passenger-form-row bg-white p-4 rounded-lg border border-slate-200 shadow-sm relative">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>{{ p_form.full_name }}</div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email</label>{{ p_form.email }}</div>
+                                    <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Birthday</label>{{ p_form.birthday }}</div>
+                                </div>
+                                {% if formset.can_delete %}
+                                <div class="mt-2 flex items-center gap-2 text-xs text-red-500">
+                                    {{ p_form.DELETE }} Remove this passenger
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" id="add-passenger-btn" class="mt-4 inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 text-sm font-bold rounded-lg hover:bg-blue-600 hover:text-white transition shadow-sm">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Add Another Passenger
+                        </button>
+                    </div>
+
                     <div>
                         <h3
                             class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2 mb-6 flex items-center gap-2">
@@ -135,7 +166,7 @@
                                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Origin (Departure
                                         From)</label> {{ form.origin }}</div>
                                 <div><label class="block text-sm font-medium text-slate-700 mb-1">Destination (Arrival
-                                        At)</label> {{ form.destination_details }}</div>
+                                        At)</label> {{ form.destination }}</div>
 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div><label
@@ -285,7 +316,7 @@
 
             // Form Elements to Populate on Multi-City Submit
             const mainOrigin = document.querySelector('[name="origin"]');
-            const mainDest = document.querySelector('[name="destination_details"]');
+            const mainDest = document.querySelector('[name="destination"]');
             const mainDepDate = document.querySelector('[name="departure_date"]');
             const mainDepTime = document.querySelector('[name="departure_time"]');
 
@@ -399,9 +430,34 @@
                 }
             });
 
+            // --- 4. Passenger FormSet Logic ---
+            const passengerContainer = document.getElementById('passenger-formset-container');
+            const addPassengerBtn = document.getElementById('add-passenger-btn');
+            const totalForms = document.getElementById('id_passengers-TOTAL_FORMS');
+
+            addPassengerBtn.addEventListener('click', function() {
+                const currentRows = passengerContainer.querySelectorAll('.passenger-form-row');
+                const formIdx = currentRows.length;
+                
+                // Clone the first row as a template
+                const newRow = currentRows[0].cloneNode(true);
+                
+                // Clear inputs in the new row
+                newRow.querySelectorAll('input').forEach(input => {
+                    input.value = '';
+                    const name = input.getAttribute('name').replace('-0-', `-${formIdx}-`);
+                    const id = input.getAttribute('id').replace('-0-', `-${formIdx}-`);
+                    input.setAttribute('name', name);
+                    input.setAttribute('id', id);
+                });
+                
+                passengerContainer.appendChild(newRow);
+                totalForms.value = formIdx + 1;
+            });
+
             // Initialize
-            addSegmentBtn.addEventListener('click', addSegment);
-            tripTypeSelect.addEventListener('change', updateFormView);
+            if (addSegmentBtn) addSegmentBtn.addEventListener('click', addSegment);
+            if (tripTypeSelect) tripTypeSelect.addEventListener('change', updateFormView);
             updateFormView(); // Run on load
         });
     </script>

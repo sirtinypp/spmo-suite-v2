@@ -45,8 +45,8 @@ def index(request):
 def book_flight(request):
     from .forms import TripForm, PassengerFormSet
     if request.method == 'POST':
-        form = TripForm(request.POST)
-        formset = PassengerFormSet(request.POST)
+        form = TripForm(request.POST, user=request.user)
+        formset = PassengerFormSet(request.POST, prefix='passengers')
         if form.is_valid() and formset.is_valid():
             trip = form.save(commit=False)
             trip.status = 'DRAFT'
@@ -56,8 +56,8 @@ def book_flight(request):
             formset.save()
             return redirect('gfa_dashboard')
     else:
-        form = TripForm()
-        formset = PassengerFormSet()
+        form = TripForm(user=request.user)
+        formset = PassengerFormSet(prefix='passengers')
     
     return render(request, 'travel/form.html', {'form': form, 'formset': formset})
 

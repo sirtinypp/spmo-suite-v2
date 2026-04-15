@@ -34,6 +34,7 @@ urlpatterns = [
 
     # --- TRANSACTION HISTORY & MANAGEMENT ---
     path('transactions/history/', views.transaction_history, name='transaction_history'), 
+    path('transactions/ledger/', views.transaction_ledger, name='transaction_ledger'),
     
     # --- STATUS UPDATES (Admin Actions) ---
     path('transaction/<int:pk>/status/<str:action>/', views.update_request_status, name='update_request_status'),

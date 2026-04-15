@@ -187,6 +187,15 @@ class TravelTrip(models.Model):
     mother_unit = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='mother_unit_trips', verbose_name="Mother Unit")
     admin_officer = models.CharField(max_length=200, verbose_name="Admin Officer (Requesting Staff)")
 
+    # Traveler Information (Primary)
+    full_name = models.CharField(max_length=200, verbose_name="Official Name of Traveler", null=True, blank=True)
+    employee_id = models.CharField(max_length=50, verbose_name="Employee ID", null=True, blank=True)
+    email = models.EmailField(verbose_name="Email Address", null=True, blank=True)
+    up_mail = models.EmailField(verbose_name="UP Mail", null=True, blank=True)
+    contact_number = models.CharField(max_length=50, verbose_name="Contact Phone Number", null=True, blank=True)
+    designation = models.CharField(max_length=100, verbose_name="Designation", null=True, blank=True)
+    birthday = models.DateField(verbose_name="Birthday", null=True, blank=True)
+
     # Trip Details
     purpose = models.TextField(verbose_name="Purpose of Travel")
     trip_type = models.CharField(max_length=20, choices=TRIP_TYPE_CHOICES, default='ROUND_TRIP')
@@ -256,13 +265,13 @@ class PassengerRecord(models.Model):
     trip = models.ForeignKey(TravelTrip, on_delete=models.CASCADE, related_name='passengers')
 
     # Personal Info
-    full_name = models.CharField(max_length=200, verbose_name="Full Name")
-    email = models.EmailField(verbose_name="Email Address")
-    employee_id = models.CharField(max_length=50, verbose_name="Employee ID")
-    birthday = models.DateField(verbose_name="Birthday")
-    designation = models.CharField(max_length=100, verbose_name="Designation")
-    up_mail = models.EmailField(verbose_name="UP Mail")
-    contact_number = models.CharField(max_length=50, verbose_name="Contact Number")
+    full_name = models.CharField(max_length=200, verbose_name="Full Name", null=True, blank=True)
+    email = models.EmailField(verbose_name="Email Address", null=True, blank=True)
+    employee_id = models.CharField(max_length=50, verbose_name="Employee ID", null=True, blank=True)
+    birthday = models.DateField(verbose_name="Birthday", null=True, blank=True)
+    designation = models.CharField(max_length=100, verbose_name="Designation", null=True, blank=True)
+    up_mail = models.EmailField(verbose_name="UP Mail", null=True, blank=True)
+    contact_number = models.CharField(max_length=50, verbose_name="Contact Number", null=True, blank=True)
 
     # Documents (per passenger)
     doc_gov_id = models.FileField(upload_to='passengers/ids/', blank=True, null=True, verbose_name="Government ID")

@@ -100,7 +100,14 @@ class TripForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Auto-populate office for non-admins
+        if user and hasattr(user, 'userprofile') and user.userprofile.office:
+            self.fields['unit_office'].initial = user.userprofile.office
+            self.fields['mother_unit'].initial = user.userprofile.office.parent_unit if hasattr(user.userprofile.office, 'parent_unit') else user.userprofile.office
+
         for field in self.fields:
             if isinstance(self.fields[field].widget, forms.CheckboxInput):
                 self.fields[field].widget.attrs.update({'class': 'w-5 h-5 text-blue-600 rounded focus:ring-blue-500'})
