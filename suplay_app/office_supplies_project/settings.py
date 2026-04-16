@@ -86,14 +86,11 @@ WSGI_APPLICATION = 'office_supplies_project.wsgi.application'
 # Database
 # Connects to the Docker Container named 'db' using variables from docker-compose.yml
 
+# SURGICAL PROTOCOL: Local SQLite Isolation for development branch to prevent shared DB crashes
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'), 
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db_expansion.sqlite3',
     }
 }
 
