@@ -9,6 +9,32 @@ from ..forms import ProductForm, StockBatchForm
 #             ADMIN VIEWS (STOCK & APP LOGIC)
 # ==========================================
 
+@user_passes_test(lambda u: u.is_staff)
+def admin_dashboard(request):
+    """The central Command Center for SPMO Staff"""
+    orders = Order.objects.all().order_by('-created_at')
+    
+    # Aggregates for Dashboard
+    active_orders_count = orders.filter(status='pending').count()
+    delivery_queue_count = orders.filter(status='approved').count()
+    
+    # Calculate Stock Value
+    # Using float conversion for SQLite-compatibility during expansion
+    products = Product.objects.all()
+    total_stock_value = sum(float(p.price) * p.stock for p in products)
+
+    # APR Requests (To be implemented in Phase 3)
+    pending_apr_count = 0 
+    
+    context = {
+        'active_orders_count': active_orders_count,
+        'delivery_queue_count': delivery_queue_count,
+        'pending_apr_count': pending_apr_count,
+        'total_stock_value': total_stock_value,
+        'recent_orders': orders[:8],
+    }
+    return render(request, 'supplies/admin_dashboard.html', context)
+
 @user_passes_test(lambda u: u.is_superuser)
 def transaction_list(request):
     orders = Order.objects.all().order_by('-created_at')

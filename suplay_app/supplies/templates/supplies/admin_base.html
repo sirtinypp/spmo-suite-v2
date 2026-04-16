@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Console | SUPLAY{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --suplay-green: #198754;
+            --up-maroon: #7b1113;
+            --sidebar-width: 280px;
+            --bg-body: #f1f5f9;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); overflow-x: hidden; }
+        
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            z-index: 1000;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .nav-link {
+            color: #64748b;
+            font-weight: 500;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            margin: 0.2rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        .nav-link:hover { background: #f8fafc; color: var(--suplay-green); }
+        .nav-link.active { background: var(--suplay-green); color: white; box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2); }
+        .nav-link.active i { color: white; }
+        
+        .sidebar-header { padding: 1.5rem 1.5rem; border-bottom: 1px solid #f1f5f9; margin-bottom: 0.5rem; }
+        .sidebar-category {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1.5rem 1.5rem 0.5rem 2rem;
+        }
+        
+        /* Containerized Blocks */
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .stat-card:hover { transform: translateY(-4px); border-color: var(--suplay-green); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+
+        .btn-success { background-color: var(--suplay-green); border-color: var(--suplay-green); }
+        .btn-success:hover { background-color: #157347; border-color: #146c43; }
+
+        .badge-institutional { background-color: rgba(123, 17, 19, 0.1); color: var(--up-maroon); border: 1px solid rgba(123, 17, 19, 0.2); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{% static 'up_logo_official.png' %}" alt="UP" width="48">
+                <div>
+                    <div class="fw-bold text-dark" style="line-height: 1; margin-bottom: 2px; letter-spacing: -0.5px;">SUPLAY <span class="text-success">Admin</span></div>
+                    <div class="small text-muted" style="font-size: 9px; text-transform: uppercase; letter-spacing: 1px;">Systems Control</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="overflow-y-auto flex-grow-1">
+            <div class="sidebar-category">Operations</div>
+            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            
+            <div class="sidebar-category">Procurement (Incoming)</div>
+            <a href="#" class="nav-link"><i class="bi bi-file-earmark-plus"></i> APR Requests</a>
+            <a href="{% url 'receive_delivery' %}" class="nav-link"><i class="bi bi-box-seam"></i> Receive Deliveries</a>
+            
+            <div class="sidebar-category">Distribution (Outgoing)</div>
+            <a href="{% url 'transaction_list' %}" class="nav-link"><i class="bi bi-clipboard2-check"></i> Fulfillment Queue</a>
+            <a href="{% url 'order_history' %}" class="nav-link"><i class="bi bi-truck"></i> Releasing Control</a>
+
+            <div class="sidebar-category">Financials & Assets</div>
+            <a href="#" class="nav-link"><i class="bi bi-bank"></i> Settlement Tracker</a>
+            <a href="{% url 'inventory_list' %}" class="nav-link"><i class="bi bi-database-check"></i> Master Inventory</a>
+            <a href="#" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Reports & KPIs</a>
+        </div>
+
+        <div class="mt-auto p-4 border-top bg-light-subtle">
+            <a href="{% url 'home' %}" class="btn btn-outline-success w-100 btn-sm mb-2 rounded-pill">
+                <i class="bi bi-shop me-1"></i> Catalog View
+            </a>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-link link-danger p-0 small w-100 text-start text-decoration-none" style="font-size: 0.85rem;">
+                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <header class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h3 class="fw-bold mb-1 text-dark">{% block header_title %}Command Center{% endblock %}</h3>
+                <p class="text-muted small mb-0 fw-medium">
+                    <i class="bi bi-calendar3 me-1"></i> <span id="current-date">{% now "F d, Y" %}</span>
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-md-block">
+                    <div class="fw-bold small">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="text-muted" style="font-size: 11px;">{{ user.profile.get_role_display|default:"System Admin" }}</div>
+                </div>
+                <div class="bg-white p-2 rounded-circle shadow-sm border">
+                    <i class="bi bi-person-circle fs-4 text-success"></i>
+                </div>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

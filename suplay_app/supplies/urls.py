@@ -28,6 +28,7 @@ urlpatterns = [
     path('order-success/<int:order_id>/', views.order_success, name='order_success'),
 
     # --- ADMIN ---
+    path('console/', views.admin_dashboard, name='admin_dashboard'),
     path('transactions/', views.transaction_list, name='transaction_list'),
     path('update-status/<int:order_id>/<str:new_status>/', views.update_status, name='update_status'),
     path('return-order/<int:order_id>/', views.return_order, name='return_order'),
