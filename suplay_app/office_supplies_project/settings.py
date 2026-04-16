@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-for-local-dev-stability')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True  # Moved to line 181 (environment-controlled)
@@ -198,7 +198,7 @@ SECURE_REFERRER_POLICY = 'same-origin'
 
 # 4. Production Readiness
 # DEBUG = False
-DEBUG = os.environ.get('DEBUG') == 'True'
+DEBUG = True
 
 # 5. Ensure WhiteNoise (Logic verifies existing config)
 if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
