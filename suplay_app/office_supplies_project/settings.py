@@ -17,7 +17,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-fallback-key-f
 # DEBUG = True  # Moved to line 181 (environment-controlled)
 
 # Allow all hosts so Docker containers can talk to each other
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 # CSRF Configuration - Read from environment or use production defaults
 csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')

@@ -1,12 +1,12 @@
-{% extends 'supplies/admin_base.html' %}
+{% extends base_template|default:'supplies/admin_base.html' %}
 {% load humanize static %}
 
 {% block title %}Dashboard | SUPLAY Admin{% endblock %}
 {% block header_title %}Command Dashboard{% endblock %}
 
 {% block content %}
-<div class="row g-4 mb-5">
-    <!-- Stat Blocks -->
+<div class="row g-4 mb-4">
+    <!-- Stat Blocks: Operational -->
     <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -26,28 +26,28 @@
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div class="bg-primary-subtle p-2 rounded-3 text-primary">
-                    <i class="bi bi-file-earmark-spreadsheet fs-4"></i>
+                    <i class="bi bi-wallet2 fs-4"></i>
                 </div>
             </div>
-            <div class="text-muted small fw-bold mb-1 text-uppercase ls-wide">Pending APRs</div>
-            <div class="fs-2 fw-bold text-dark">{{ pending_apr_count|default:"0" }}</div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase ls-wide">Monthly Utilization</div>
+            <div class="fs-3 fw-bold text-dark">₱{{ monthly_utilization|default:"0"|intcomma }}</div>
             <div class="mt-2 text-primary small fw-medium">
-                Procurement Pipeline
+                Current Month Flow
             </div>
         </div>
     </div>
 
     <div class="col-md-3">
-        <div class="stat-card">
+        <div class="stat-card border-danger-subtle bg-danger-subtle bg-opacity-10">
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <div class="bg-warning-subtle p-2 rounded-3 text-warning">
-                    <i class="bi bi-truck fs-4"></i>
+                <div class="bg-danger-subtle p-2 rounded-3 text-danger">
+                    <i class="bi bi-exclamation-triangle fs-4"></i>
                 </div>
             </div>
-            <div class="text-muted small fw-bold mb-1 text-uppercase ls-wide">WH Deliveries</div>
-            <div class="fs-2 fw-bold text-dark">{{ delivery_queue_count|default:"0" }}</div>
-            <div class="mt-2 text-warning small fw-medium">
-                Inspection Target
+            <div class="text-muted small fw-bold mb-1 text-uppercase ls-wide">Low Stock Alerts</div>
+            <div class="fs-2 fw-bold text-danger">{{ low_stock_count|default:"0" }}</div>
+            <div class="mt-2 text-danger small fw-medium">
+                Action Required
             </div>
         </div>
     </div>
@@ -62,16 +62,16 @@
             <div class="text-muted small fw-bold mb-1 text-uppercase ls-wide">Registry Value</div>
             <div class="fs-3 fw-bold text-dark">₱{{ total_stock_value|default:"0"|intcomma }}</div>
             <div class="mt-2 text-secondary small fw-medium">
-                Current Inventory
+                Total Inventory Asset
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Recent Activity -->
+    <!-- Left Column: Recent Activity -->
     <div class="col-lg-8">
-        <div class="stat-card p-0 overflow-hidden">
+        <div class="stat-card p-0 overflow-hidden mb-4">
             <div class="px-4 py-3 border-bottom bg-light d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0">Recent Order Activity</h6>
                 <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-link text-success text-decoration-none fw-bold p-0">View All</a>
@@ -94,13 +94,13 @@
                                 <div class="text-muted" style="font-size: 10px;">{{ order.created_at|date:"M d, Y" }}</div>
                             </td>
                             <td>
-                                <div class="fw-medium">{{ order.department.name }}</div>
+                                <div class="fw-medium text-truncate" style="max-width: 150px;">{{ order.department.name|default:"General" }}</div>
                             </td>
                             <td>
                                 {% if order.status == 'pending' %}
-                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pending Validation</span>
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Validation</span>
                                 {% elif order.status == 'approved' %}
-                                <span class="badge bg-info-subtle text-info rounded-pill px-3">Approved</span>
+                                <span class="badge bg-info-subtle text-info rounded-pill px-3">Ready</span>
                                 {% elif order.status == 'completed' %}
                                 <span class="badge bg-success-subtle text-success rounded-pill px-3">Released</span>
                                 {% else %}
@@ -113,10 +113,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted italic">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No active requests found.
-                            </td>
+                            <td colspan="4" class="text-center py-5 text-muted">No recent activity.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -125,38 +122,56 @@
         </div>
     </div>
 
-    <!-- Quick Actions Column -->
+    <!-- Right Column: Velocity & Actions -->
     <div class="col-lg-4">
-        <div class="stat-card mb-4 bg-success text-white border-0 shadow-lg">
-            <h5 class="fw-bold mb-1">Logistics RapidEntry</h5>
-            <p class="small opacity-75 mb-4">Select a task to begin processing.</p>
+        <!-- Item Velocity Leaderboard -->
+        <div class="stat-card mb-4">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-graph-up text-success"></i> 
+                Item Velocity Leaderboard
+            </h6>
+            <div class="small text-muted mb-3">Top 5 most requested supplies</div>
+            
+            <div class="list-group list-group-flush">
+                {% for item in top_items %}
+                <div class="list-group-item px-0 border-0 mb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-truncate me-2" style="max-width: 200px;">
+                            <div class="fw-bold small text-dark mb-0">{{ item.product__name }}</div>
+                            <div class="text-muted" style="font-size: 10px;">{{ item.product__item_code|default:"No Code" }}</div>
+                        </div>
+                        <div class="badge bg-success bg-opacity-10 text-success rounded-pill">
+                            {{ item.total_delivered }} released
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="small text-muted italic p-3">No inventory velocity data available.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Rapid Actions -->
+        <div class="stat-card bg-success text-white border-0 shadow-sm mb-4">
+            <h6 class="fw-bold mb-1">Administrative Actions</h6>
+            <p class="small opacity-75 mb-3">Quick access for SPMO Control.</p>
             
             <div class="d-grid gap-2">
-                <button class="btn btn-white text-success fw-bold text-start py-3 px-4 rounded-4 border-0 d-flex justify-content-between align-items-center bg-white">
-                    <div>
-                        <div class="mb-0">New APR (Form 002)</div>
-                        <div class="small fw-normal text-muted" style="font-size: 10px;">Start external procurement</div>
-                    </div>
-                    <i class="bi bi-plus-circle-fill fs-4"></i>
-                </button>
-                <a href="{% url 'receive_delivery' %}" class="btn btn-link text-white text-decoration-none text-start py-3 px-4 rounded-4 border border-white border-opacity-25 d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="mb-0 fw-bold">Receive Delivery</div>
-                        <div class="small opacity-75 fw-normal" style="font-size: 10px;">Log incoming stock batches</div>
-                    </div>
-                    <i class="bi bi-box-seam fs-4"></i>
+                <a href="{% url 'inventory_list' %}" class="btn btn-white text-dark fw-bold text-start py-2 px-3 rounded-3 border-0 bg-white small">
+                    <i class="bi bi-database-check me-2 text-success"></i> Master Inventory
+                </a>
+                <a href="{% url 'batch_list' %}" class="btn btn-link text-white text-decoration-none text-start py-2 px-3 rounded-3 border border-white border-opacity-25 small">
+                    <i class="bi bi-box-seam me-2"></i> Batch Monitor
                 </a>
             </div>
         </div>
 
-        <div class="stat-card">
-            <h6 class="fw-bold mb-3">System Identity</h6>
-            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 border border-dashed border-secondary border-opacity-25">
-                <img src="{% static 'up_logo_official.png' %}" width="32">
-                <div>
-                    <div class="fw-bold small">SSPMO SUPLAY</div>
-                    <div class="text-muted" style="font-size: 10px;">V2.0 Core Expansion Active</div>
-                </div>
+        <!-- System Branding -->
+        <div class="p-4 rounded-4 border bg-white shadow-sm d-flex align-items-center gap-3">
+            <img src="{% static 'up_logo_official.png' %}" width="35">
+            <div>
+                <div class="fw-bold small text-dark">SSPMO SUPLAY</div>
+                <div class="text-muted" style="font-size: 10px;">Strategic Insights Core Active</div>
             </div>
         </div>
     </div>

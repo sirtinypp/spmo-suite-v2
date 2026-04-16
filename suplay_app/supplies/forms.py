@@ -20,6 +20,39 @@ class ProductForm(forms.ModelForm):
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
+# --- APR REQUEST FORM ---
+from .models import APRRequest, Settlement
+
+class APRRequestForm(forms.ModelForm):
+    class Meta:
+        model = APRRequest
+        fields = ['apr_no', 'control_no', 'date_prepared', 'supplier', 'mode_of_delivery', 'insufficient_fund_action', 'remarks']
+        widgets = {
+            'apr_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'control_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_prepared': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'supplier': forms.Select(attrs={'class': 'form-select'}),
+            'mode_of_delivery': forms.Select(attrs={'class': 'form-select'}),
+            'insufficient_fund_action': forms.Select(attrs={'class': 'form-select'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
+# --- SETTLEMENT FORM ---
+class SettlementForm(forms.ModelForm):
+    class Meta:
+        model = Settlement
+        fields = ['settlement_type', 'order_id', 'is_settled', 'date_settled', 'reference_no', 'amount_paid', 'attachment', 'remarks']
+        widgets = {
+            'settlement_type': forms.Select(attrs={'class': 'form-select'}),
+            'order_id': forms.NumberInput(attrs={'class': 'form-control'}),
+            'is_settled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'date_settled': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'reference_no': forms.TextInput(attrs={'class': 'form-control'}),
+            'amount_paid': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'attachment': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+
 # --- STOCK BATCH FORM (For Incoming Deliveries) ---
 class StockBatchForm(forms.ModelForm):
     class Meta:

@@ -1,0 +1,57 @@
+{% extends "supplies/admin_base.html" %}
+{% load static %}
+
+{% block admin_content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h4 class="fw-bold text-success mb-1">{{ title }}</h4>
+                    <p class="text-muted small">Enter the official PS-DBM APR details below.</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">PS APR Number</label>
+                                {{ form.apr_no }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Agency Control No. (Optional)</label>
+                                {{ form.control_no }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Date Prepared</label>
+                                {{ form.date_prepared }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Supplier (PS-DBM)</label>
+                                {{ form.supplier }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Mode of Delivery</label>
+                                {{ form.mode_of_delivery }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted">Insufficient Fund Action</label>
+                                {{ form.insufficient_fund_action }}
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-muted">Internal Remarks</label>
+                                {{ form.remarks }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                            <a href="{% url 'apr_list' %}" class="btn btn-light rounded-pill px-4">Cancel</a>
+                            <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm">Save & Initialize APR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

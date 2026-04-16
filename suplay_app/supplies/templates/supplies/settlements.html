@@ -1,0 +1,87 @@
+{% extends "supplies/admin_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Settlement Tracker</h2>
+            <p class="text-muted small mb-0">Monitor financial accountability for distribution orders and procurement APRs.</p>
+        </div>
+        <a href="{% url 'add_settlement' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+            <i class="bi bi-shield-check me-2"></i> Record Settlement
+        </a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="small fw-bold text-muted text-uppercase">Filter Type:</span>
+                <a href="{% url 'settlement_list' %}" class="btn btn-sm {% if not selected_type %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">All</a>
+                <a href="?type=OUTGOING" class="btn btn-sm {% if selected_type == 'OUTGOING' %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">Outgoing (Orders)</a>
+                <a href="?type=INCOMING" class="btn btn-sm {% if selected_type == 'INCOMING' %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">Incoming (Procurement)</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settlements Grid -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase small fw-bold">Settlement Details</th>
+                            <th class="py-3 text-uppercase small fw-bold">Linked Ref</th>
+                            <th class="py-3 text-uppercase small fw-bold">Date Settled</th>
+                            <th class="py-3 text-uppercase small fw-bold text-end">Amount Paid</th>
+                            <th class="py-3 text-uppercase small fw-bold text-center pe-4">Attachment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for st in settlements %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="badge {% if st.settlement_type == 'OUTGOING' %}bg-info-subtle text-info{% else %}bg-purple-subtle text-purple{% endif %} border rounded-pill px-2 mb-1" style="font-size: 10px;">
+                                    {{ st.settlement_type }}
+                                </span>
+                                <div class="fw-bold">{{ st.reference_no }}</div>
+                            </td>
+                            <td>
+                                <div class="small fw-bold text-muted">#{{ st.order_id }}</div>
+                            </td>
+                            <td>{{ st.date_settled|date:"M d, Y"|default:"---" }}</td>
+                            <td class="text-end fw-bold text-dark">₱{{ st.amount_paid|floatformat:2|intcomma }}</td>
+                            <td class="text-center pe-4">
+                                {% if st.attachment %}
+                                <a href="{{ st.attachment.url }}" class="btn btn-sm btn-outline-primary rounded-circle" target="_blank">
+                                    <i class="bi bi-file-earmark-arrow-down"></i>
+                                </a>
+                                {% else %}
+                                <i class="bi bi-x-circle text-muted opacity-50"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center text-muted">
+                                <i class="bi bi-bank d-block h1 mb-3 opacity-25"></i>
+                                No settlements established in the current view.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-purple-subtle { background-color: #f3e8ff; }
+    .text-purple { color: #7e22ce; }
+</style>
+{% endblock %}

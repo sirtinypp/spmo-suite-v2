@@ -46,4 +46,10 @@ urlpatterns = [
     path('requisition-slip/<int:order_id>/', views.requisition_slip, name='requisition_slip_download'),
     path('my-allocation/', views.my_app_status, name='my_app_status'),
 
+    # --- MANAGEMENT CONTROLS ---
+    path('apr/', views.apr_list, name='apr_list'),
+    path('apr/add/', views.add_apr, name='add_apr'),
+    path('settlements/', views.settlement_list, name='settlement_list'),
+    path('settlements/add/', views.add_settlement, name='add_settlement'),
+
 ]

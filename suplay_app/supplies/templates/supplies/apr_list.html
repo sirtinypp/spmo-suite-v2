@@ -1,0 +1,82 @@
+{% extends "supplies/admin_base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Procurement Management</h2>
+            <p class="text-muted small mb-0">Track and manage APR (Annual Procurement Requests) and PS-DBM interactions.</p>
+        </div>
+        <a href="{% url 'add_apr' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i> New APR Request
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="p-3 rounded-4 border bg-white shadow-sm h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-2">Total APRs</div>
+                <div class="h3 fw-bold mb-0">{{ aprs.count }}</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="p-3 rounded-4 border bg-white shadow-sm h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-2 text-warning">Pending Validation</div>
+                <div class="h3 fw-bold mb-0">{{ aprs|dictsort:"status"|slice:":1"|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light border-bottom">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase small fw-bold">APR No. / Control</th>
+                            <th class="py-3 text-uppercase small fw-bold">Date Prepared</th>
+                            <th class="py-3 text-uppercase small fw-bold">Supplier</th>
+                            <th class="py-3 text-uppercase small fw-bold">Status</th>
+                            <th class="py-3 text-uppercase small fw-bold text-end pe-4">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for apr in aprs %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">{{ apr.apr_no }}</div>
+                                <div class="text-muted smaller">Ref: {{ apr.control_no|default:"---" }}</div>
+                            </td>
+                            <td>{{ apr.date_prepared|date:"M d, Y" }}</td>
+                            <td>{{ apr.supplier.name }}</td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if apr.status == 'CLOSED' %}bg-success
+                                    {% elif apr.status == 'CANCELLED' %}bg-danger
+                                    {% elif 'FOR' in apr.status %}bg-warning text-dark
+                                    {% else %}bg-primary{% endif %} px-3">
+                                    {{ apr.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4 fw-bold">₱{{ apr.total_amount|floatformat:2|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center text-muted">
+                                <i class="bi bi-file-earmark-text d-block h1 mb-3 opacity-25"></i>
+                                No APR requests established in the system.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
