@@ -34,6 +34,22 @@ class Product(models.Model):
     def __str__(self): return self.name
     class Meta: ordering = ['name']
 
+class DeliveryRecord(models.Model):
+    apr = models.ForeignKey('APRRequest', on_delete=models.CASCADE, related_name='deliveries')
+    dr_number = models.CharField(max_length=100, verbose_name="Delivery Receipt No.")
+    si_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Sales Invoice No.")
+    
+    # Document Scans
+    dr_scan = models.FileField(upload_to='deliveries/dr/', blank=True, null=True)
+    si_scan = models.FileField(upload_to='deliveries/si/', blank=True, null=True)
+    signed_apr_scan = models.FileField(upload_to='deliveries/apr/', blank=True, null=True)
+    
+    received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    date_received = models.DateTimeField(auto_now_add=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    def __str__(self): return f"DR {self.dr_number} for APR {self.apr.apr_no}"
+
 class StockBatch(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='batches')
     supplier_name = models.CharField(max_length=100, blank=True)
@@ -43,7 +59,10 @@ class StockBatch(models.Model):
     cost_per_item = models.DecimalField(max_digits=10, decimal_places=2)
     date_received = models.DateField(default=timezone.now)
     
-    # Link to the Incoming Procurement Request (if any)
+    # Link to the Delivery Event (Audit Trail)
+    delivery_record = models.ForeignKey(DeliveryRecord, on_delete=models.SET_NULL, null=True, blank=True, related_name='batches')
+    
+    # Legacy link (Keep for compatibility)
     apr_reference = models.ForeignKey('APRRequest', on_delete=models.SET_NULL, null=True, blank=True, related_name='received_batches')
     
     class Meta: ordering = ['date_received', 'id']
@@ -253,11 +272,19 @@ class UserProfile(models.Model):
         return f"{self.user.username} - {self.get_role_display()} - {self.department}"
 
 class News(models.Model):
+    URGENCY_CHOICES = [
+        ('URGENT', 'Critical Alert / Pulse'),
+        ('INFO', 'General News / Info'),
+        ('SUCCESS', 'Success / Update'),
+    ]
+
     title = models.CharField(max_length=200)
     content = models.TextField()
+    urgency = models.CharField(max_length=10, choices=URGENCY_CHOICES, default='INFO')
     image = models.ImageField(upload_to='news_images/', blank=True, null=True)
     date_posted = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "News"

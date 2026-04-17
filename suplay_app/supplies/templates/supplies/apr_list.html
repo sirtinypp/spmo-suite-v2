@@ -2,74 +2,85 @@
 {% load static %}
 {% load humanize %}
 
+{% block header_title %}
+<div class="d-flex align-items-center">
+    <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+        <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
+    </div>
+    <div>
+        <h4 class="fw-bold text-dark mb-0">Procurement Management</h4>
+        <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Agency Procurement Requests (APR) Registry</span>
+    </div>
+</div>
+<div class="ms-auto me-4">
+    <a href="{% url 'add_apr' %}" hx-get="{% url 'add_apr' %}" hx-target="#admin-panel" hx-push-url="true" class="btn btn-emerald rounded-pill px-4 shadow-sm fw-bold border-0 text-white" style="background-color: #059669;">
+        <i class="bi bi-plus-lg me-2"></i> New APR Request
+    </a>
+</div>
+{% endblock %}
+
 {% block admin_content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Procurement Management</h2>
-            <p class="text-muted small mb-0">Track and manage APR (Annual Procurement Requests) and PS-DBM interactions.</p>
+<div class="row g-4">
+    <!-- Stat Indicators (Stretched) -->
+    <div class="col-md-3">
+        <div class="p-4 rounded-4 border-0 bg-white shadow-sm h-100 d-flex flex-column justify-content-center">
+            <div class="text-uppercase small fw-extrabold text-muted ls-wide mb-1" style="font-size: 0.6rem;">Active Requests</div>
+            <div class="h3 fw-black mb-0 text-dark">{{ aprs.count }}</div>
         </div>
-        <a href="{% url 'add_apr' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
-            <i class="bi bi-plus-circle me-2"></i> New APR Request
-        </a>
     </div>
-
-    <!-- Stats Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="p-3 rounded-4 border bg-white shadow-sm h-100">
-                <div class="text-muted small fw-bold text-uppercase mb-2">Total APRs</div>
-                <div class="h3 fw-bold mb-0">{{ aprs.count }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="p-3 rounded-4 border bg-white shadow-sm h-100">
-                <div class="text-muted small fw-bold text-uppercase mb-2 text-warning">Pending Validation</div>
-                <div class="h3 fw-bold mb-0">{{ aprs|dictsort:"status"|slice:":1"|length }}</div>
-            </div>
+    <div class="col-md-3">
+        <div class="p-4 rounded-4 border-0 bg-white shadow-sm h-100 d-flex flex-column justify-content-center border-start border-warning border-4">
+            <div class="text-uppercase small fw-extrabold text-warning ls-wide mb-1" style="font-size: 0.6rem;">Requires Validation</div>
+            <div class="h3 fw-black mb-0 text-dark">{{ aprs|dictsort:"status"|slice:":1"|length }}</div>
         </div>
     </div>
 
-    <!-- Main Table -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-body p-0">
+    <!-- Main Table (Stretched) -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light border-bottom">
+                    <thead class="bg-light-subtle">
                         <tr>
-                            <th class="ps-4 py-3 text-uppercase small fw-bold">APR No. / Control</th>
-                            <th class="py-3 text-uppercase small fw-bold">Date Prepared</th>
-                            <th class="py-3 text-uppercase small fw-bold">Supplier</th>
-                            <th class="py-3 text-uppercase small fw-bold">Status</th>
-                            <th class="py-3 text-uppercase small fw-bold text-end pe-4">Total Amount</th>
+                            <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">APR No. / Control</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Date Prepared</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Fulfillment Status</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Items</th>
+                            <th class="pe-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Grand Total</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-top-0">
                         {% for apr in aprs %}
-                        <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold">{{ apr.apr_no }}</div>
-                                <div class="text-muted smaller">Ref: {{ apr.control_no|default:"---" }}</div>
+                        <tr class="office-row" style="cursor: pointer;" onclick="window.location='{% url 'apr_detail' apr.pk %}'">
+                            <td class="ps-5 py-4">
+                                <div class="fw-bold text-dark fs-6">{{ apr.apr_no }}</div>
+                                <div class="text-muted smaller fw-medium" style="font-size: 11px;">Agency Ref: {{ apr.control_no|default:"---" }}</div>
                             </td>
-                            <td>{{ apr.date_prepared|date:"M d, Y" }}</td>
-                            <td>{{ apr.supplier.name }}</td>
-                            <td>
+                            <td class="py-4 fw-medium">{{ apr.date_prepared|date:"M d, Y" }}</td>
+                            <td class="text-center py-4">
                                 <span class="badge rounded-pill 
-                                    {% if apr.status == 'CLOSED' %}bg-success
-                                    {% elif apr.status == 'CANCELLED' %}bg-danger
-                                    {% elif 'FOR' in apr.status %}bg-warning text-dark
-                                    {% else %}bg-primary{% endif %} px-3">
+                                    {% if apr.status == 'CLOSED' %}bg-success-subtle text-success border border-success-subtle
+                                    {% elif apr.status == 'CANCELLED' %}bg-danger-subtle text-danger border border-danger-subtle
+                                    {% elif 'PARTIAL' in apr.status %}bg-warning-subtle text-warning border border-warning-subtle
+                                    {% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} px-3 py-2 fw-bold" style="font-size: 0.7rem;">
                                     {{ apr.get_status_display }}
                                 </span>
                             </td>
-                            <td class="text-end pe-4 fw-bold">₱{{ apr.total_amount|floatformat:2|intcomma }}</td>
+                            <td class="text-center py-4">
+                                <span class="fw-bold text-muted">{{ apr.item_count|default:"0" }} line items</span>
+                            </td>
+                            <td class="pe-5 text-end py-4">
+                                <div class="fw-black text-dark" style="font-size: 1.1rem;">₱{{ apr.total_amount|floatformat:2|intcomma }}</div>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
                             <td colspan="5" class="py-5 text-center text-muted">
-                                <i class="bi bi-file-earmark-text d-block h1 mb-3 opacity-25"></i>
-                                No APR requests established in the system.
+                                <div class="py-5">
+                                    <i class="bi bi-journal-text d-block fs-1 mb-3 opacity-25"></i>
+                                    <h5 class="fw-bold">No Procurement Requests</h5>
+                                    <p class="small">Initiate a new APR to begin the PS-DBM replenishment flow.</p>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -79,4 +90,11 @@
         </div>
     </div>
 </div>
+
+<style>
+    .ls-wide { letter-spacing: 0.15em; font-size: 0.65rem !important; }
+    .fw-extrabold { font-weight: 800; }
+    .fw-black { font-weight: 900; }
+    .office-row:hover { background-color: #fcfdfe !important; }
+</style>
 {% endblock %}

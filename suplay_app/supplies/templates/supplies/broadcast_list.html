@@ -1,0 +1,84 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-primary-subtle p-2 rounded-3 me-3" style="background-color: rgba(59, 130, 246, 0.1);">
+            <i class="bi bi-megaphone fs-4 text-primary"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Broadcast Hub</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Global Announcement & Emergency Alert Manager</span>
+        </div>
+    </div>
+    <a href="{% url 'add_broadcast' %}" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold border-0" style="background-color: #3b82f6;">
+        <i class="bi bi-plus-lg me-2"></i> Initiate Broadcast
+    </a>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+    {% for news in news_items %}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 p-4" 
+             style="border-left: 6px solid 
+                {% if news.urgency == 'URGENT' %}#ef4444{% elif news.urgency == 'SUCCESS' %}#10b981{% else %}#3b82f6{% endif %} !important;">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge {% if news.urgency == 'URGENT' %}bg-danger-subtle text-danger{% elif news.urgency == 'SUCCESS' %}bg-success-subtle text-success{% else %}bg-primary-subtle text-primary{% endif %} rounded-pill px-3 py-2 fw-bold mb-2">
+                        {{ news.get_urgency_display }}
+                    </span>
+                    <h5 class="fw-bold mb-1 text-dark">{{ news.title }}</h5>
+                    <div class="text-muted small">
+                        <i class="bi bi-person-circle me-1"></i> {{ news.author.get_full_name|default:news.author.username }} 
+                        <span class="mx-2">|</span>
+                        <i class="bi bi-clock me-1"></i> {{ news.date_posted|date:"M d, Y H:i" }}
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-light rounded-circle p-0" style="width: 32px; height: 32px;" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3">
+                        <li><a class="dropdown-item py-2" href="{% url 'edit_broadcast' news.pk %}"><i class="bi bi-pencil me-2"></i> Edit Broadcast</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{% url 'delete_broadcast' news.pk %}" method="post" onsubmit="return confirm('Archive this broadcast?')">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-danger py-2"><i class="bi bi-archive me-2"></i> Archive / Delete</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="text-muted mb-4 flex-grow-1" style="font-size: 0.95rem;">{{ news.content|truncatechars:200 }}</p>
+
+            <div class="d-flex align-items-center justify-content-between mt-auto pt-3 border-top border-light">
+                <div class="d-flex align-items-center">
+                    <div class="form-check form-switch m-0">
+                        <input class="form-check-input" type="checkbox" {% if news.is_active %}checked{% endif %} disabled>
+                        <span class="small fw-bold text-muted ms-2">Live Status</span>
+                    </div>
+                </div>
+                {% if news.image %}
+                <div class="bg-light rounded-3 p-1">
+                    <img src="{{ news.image.url }}" class="rounded-2" style="width: 40px; height: 40px; object-fit: cover;">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="py-5">
+            <i class="bi bi-broadcast fs-1 text-muted opacity-25"></i>
+            <h5 class="fw-bold text-muted mt-3">The Hub is Silent</h5>
+            <p class="text-muted">Initiate your first global broadcast to inform the SPMO community.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
+
+{% block title %}Categories | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-tags fs-4 text-success"></i>
+        </div>
+        <div>
+            <span class="text-dark d-block">Classification Registry</span>
+            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Manage Supply Categories & Groupings</span>
+        </div>
+    </div>
+    <a href="{% url 'add_category' %}" hx-get="{% url 'add_category' %}" hx-target="#admin-panel" hx-push-url="true" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold border-0">
+        <i class="bi bi-plus-lg me-2"></i> Add Classification
+    </a>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-2">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light-subtle">
+                <tr>
+                    <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">Category Identifier</th>
+                    <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Group Description</th>
+                    <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Registry Volume</th>
+                    <th class="pe-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="border-top-0">
+                {% for cat in categories %}
+                <tr class="office-row">
+                    <td class="ps-5 py-4">
+                        <div class="fw-bold text-dark fs-6">{{ cat.name }}</div>
+                        <div class="text-muted smaller fw-medium" style="font-size: 11px;">ID: #{{ cat.id|stringformat:"03d" }}</div>
+                    </td>
+                    <td class="py-4">
+                        <div class="text-muted small text-truncate" style="max-width: 300px;">{{ cat.description|default:"No description provided" }}</div>
+                    </td>
+                    <td class="text-center py-4">
+                        <div class="fw-black text-Emerald" style="font-size: 1.1rem;">{{ cat.product_count }}</div>
+                        <div class="text-muted smaller fw-bold" style="font-size: 9px; text-transform: uppercase;">Mapped Items</div>
+                    </td>
+                    <td class="pe-5 text-end py-4">
+                        <a href="{% url 'edit_category' cat.pk %}" 
+                           hx-get="{% url 'edit_category' cat.pk %}" 
+                           hx-target="#admin-panel" 
+                           hx-push-url="true"
+                           class="btn btn-light rounded-circle shadow-sm border-0 d-flex align-items-center justify-content-center ms-auto" style="width: 32px; height: 32px;">
+                            <i class="bi bi-pencil text-success"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="py-5 text-center text-muted">
+                        <div class="py-5">
+                            <i class="bi bi-tags d-block fs-1 mb-3 opacity-25"></i>
+                            <h5 class="fw-bold">No Classifications</h5>
+                            <p class="small">Define your first category to organize the inventory.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .ls-wide { letter-spacing: 0.15em; font-size: 0.65rem !important; }
+    .fw-extrabold { font-weight: 800; }
+    .fw-black { font-weight: 900; }
+    .text-Emerald { color: #059669; }
+    .office-row:hover { background-color: #f8fafc !important; }
+</style>
+{% endblock %}

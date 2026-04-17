@@ -2,74 +2,91 @@
 {% load static %}
 {% load humanize %}
 
-{% block admin_content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">Settlement Tracker</h2>
-            <p class="text-muted small mb-0">Monitor financial accountability for distribution orders and procurement APRs.</p>
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-bank fs-4 text-success"></i>
         </div>
-        <a href="{% url 'add_settlement' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-shield-check me-2"></i> Record Settlement
-        </a>
+        <div>
+            <span class="text-dark d-block">Settlement Tracker</span>
+            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Monitoring Financial Accountability</span>
+        </div>
     </div>
+    <a href="{% url 'add_settlement' %}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+        <i class="bi bi-shield-check me-2"></i> Record Settlement
+    </a>
+</div>
+{% endblock %}
 
-    <!-- Filter Bar -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body py-2 px-3">
-            <div class="d-flex align-items-center gap-3">
-                <span class="small fw-bold text-muted text-uppercase">Filter Type:</span>
-                <a href="{% url 'settlement_list' %}" class="btn btn-sm {% if not selected_type %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">All</a>
-                <a href="?type=OUTGOING" class="btn btn-sm {% if selected_type == 'OUTGOING' %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">Outgoing (Orders)</a>
-                <a href="?type=INCOMING" class="btn btn-sm {% if selected_type == 'INCOMING' %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-3">Incoming (Procurement)</a>
+{% block admin_content %}
+<div class="row g-4">
+    <!-- Filter Bar (Stretched) -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 mb-2" style="background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);">
+            <div class="card-body py-3 px-4">
+                <div class="d-flex align-items-center gap-4">
+                    <span class="small fw-extrabold text-muted text-uppercase ls-wide" style="font-size: 0.65rem; letter-spacing: 0.1em;">Filter Framework:</span>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'settlement_list' %}" class="btn btn-sm {% if not selected_type %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">All Records</a>
+                        <a href="?type=OUTGOING" class="btn btn-sm {% if selected_type == 'OUTGOING' %}btn-success{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">Outgoing (Orders)</a>
+                        <a href="?type=INCOMING" class="btn btn-sm {% if selected_type == 'INCOMING' %}btn-success{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">Incoming (Procurement)</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Settlements Grid -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-body p-0">
+    <!-- Settlements Grid (Stretched) -->
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light border-bottom">
+                    <thead class="bg-light-subtle">
                         <tr>
-                            <th class="ps-4 py-3 text-uppercase small fw-bold">Settlement Details</th>
-                            <th class="py-3 text-uppercase small fw-bold">Linked Ref</th>
-                            <th class="py-3 text-uppercase small fw-bold">Date Settled</th>
-                            <th class="py-3 text-uppercase small fw-bold text-end">Amount Paid</th>
-                            <th class="py-3 text-uppercase small fw-bold text-center pe-4">Attachment</th>
+                            <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">Settlement Details</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Linked Reference</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Date Settled</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Amount Paid</th>
+                            <th class="pe-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Audit Scan</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="border-top-0">
                         {% for st in settlements %}
-                        <tr>
-                            <td class="ps-4">
-                                <span class="badge {% if st.settlement_type == 'OUTGOING' %}bg-info-subtle text-info{% else %}bg-purple-subtle text-purple{% endif %} border rounded-pill px-2 mb-1" style="font-size: 10px;">
+                        <tr class="office-row">
+                            <td class="ps-5 py-4">
+                                <span class="badge {% if st.settlement_type == 'OUTGOING' %}bg-info-subtle text-info{% else %}bg-success-subtle text-success{% endif %} border-0 rounded-pill px-3 mb-1" style="font-size: 10px; font-weight: 800;">
                                     {{ st.settlement_type }}
                                 </span>
-                                <div class="fw-bold">{{ st.reference_no }}</div>
+                                <div class="fw-bold text-dark fs-6">{{ st.reference_no }}</div>
                             </td>
-                            <td>
-                                <div class="small fw-bold text-muted">#{{ st.order_id }}</div>
+                            <td class="py-4">
+                                <div class="badge bg-light text-muted border px-3">REFID #{{ st.order_id|default:"N/A" }}</div>
                             </td>
-                            <td>{{ st.date_settled|date:"M d, Y"|default:"---" }}</td>
-                            <td class="text-end fw-bold text-dark">₱{{ st.amount_paid|floatformat:2|intcomma }}</td>
-                            <td class="text-center pe-4">
+                            <td class="py-4 fw-medium">{{ st.date_settled|date:"M d, Y"|default:"---" }}</td>
+                            <td class="text-end py-4">
+                                <div class="fw-black text-dark" style="font-size: 1.1rem;">₱{{ st.amount_paid|floatformat:2|intcomma }}</div>
+                            </td>
+                            <td class="text-center pe-5 py-4">
                                 {% if st.attachment %}
-                                <a href="{{ st.attachment.url }}" class="btn btn-sm btn-outline-primary rounded-circle" target="_blank">
-                                    <i class="bi bi-file-earmark-arrow-down"></i>
+                                <a href="{{ st.attachment.url }}" class="btn btn-sm btn-light border-0 rounded-circle shadow-sm text-success" target="_blank" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-file-earmark-arrow-down fs-5"></i>
                                 </a>
                                 {% else %}
-                                <i class="bi bi-x-circle text-muted opacity-50"></i>
+                                <div class="bg-light-subtle rounded-circle d-inline-flex align-items-center justify-content-center opacity-25" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-slash-circle"></i>
+                                </div>
                                 {% endif %}
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
                             <td colspan="5" class="py-5 text-center text-muted">
-                                <i class="bi bi-bank d-block h1 mb-3 opacity-25"></i>
-                                No settlements established in the current view.
+                                <div class="py-5">
+                                    <i class="bi bi-bank d-block fs-1 mb-3 opacity-25"></i>
+                                    <h5 class="fw-bold">No Financial Settlements Found</h5>
+                                    <p class="small">Adjust your filters or record a new transaction settlement.</p>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -81,7 +98,9 @@
 </div>
 
 <style>
-    .bg-purple-subtle { background-color: #f3e8ff; }
-    .text-purple { color: #7e22ce; }
+    .ls-wide { letter-spacing: 0.15em; font-size: 0.65rem !important; }
+    .fw-extrabold { font-weight: 800; }
+    .fw-black { font-weight: 900; }
+    .office-row:hover { background-color: #fcfdfe !important; }
 </style>
 {% endblock %}

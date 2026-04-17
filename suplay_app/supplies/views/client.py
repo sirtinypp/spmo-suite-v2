@@ -220,7 +220,7 @@ def home(request):
     newly_added = products.filter(created_at__gte=thirty_days_ago).order_by('-created_at')[:5]
     
     # Latest News
-    news_items = News.objects.filter(is_active=True).order_by('-date_posted')[:5]
+    news_items = News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5]
 
     context = {
         'products': products_paginated,

@@ -108,14 +108,18 @@
                             <div id="newsDropdown" class="position-absolute bg-white text-dark rounded shadow-lg p-2"
                                 style="top: 100%; left: 0; min-width: 320px; max-height: 400px; overflow-y: auto; display: none; z-index: 1000; margin-top: 5px;">
                                 {% for news in news_items %}
-                                <div class="p-2 border-bottom hover-item rounded">
+                                <div class="p-3 border-bottom hover-item rounded">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div class="{% if news.urgency == 'URGENT' %}bg-danger{% elif news.urgency == 'SUCCESS' %}bg-success{% else %}bg-primary{% endif %} rounded-circle me-2" 
+                                             style="width: 8px; height: 8px; {% if news.urgency == 'URGENT' %}box-shadow: 0 0 10px #ef4444; animation: pulse 2s infinite;{% endif %}"></div>
+                                        <small class="fw-bold text-uppercase" style="font-size: 0.6rem; color: #64748b; letter-spacing: 0.05em;">{{ news.get_urgency_display }}</small>
+                                    </div>
                                     {% if news.image %}
-                                    <img src="{{ news.image.url }}" class="img-fluid rounded mb-2 w-100"
-                                        style="max-height: 150px; object-fit: cover;">
+                                    <img src="{{ news.image.url }}" class="img-fluid rounded-3 mb-2 w-100" style="max-height: 120px; object-fit: cover;">
                                     {% endif %}
-                                    <h6 class="fw-bold mb-1 small">{{ news.title }}</h6>
-                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">{{ news.formatted_date }}</small>
-                                    <p class="small mb-0 text-secondary" style="font-size: 0.8rem; line-height: 1.4;">{{ news.short_content }}</p>
+                                    <h6 class="fw-bold mb-1" style="font-size: 0.85rem; color: #1e293b;">{{ news.title }}</h6>
+                                    <p class="small mb-1 text-secondary" style="font-size: 0.75rem; line-height: 1.4;">{{ news.short_content }}</p>
+                                    <small class="text-muted" style="font-size: 0.65rem;">{{ news.formatted_date }}</small>
                                 </div>
                                 {% endfor %}
                             </div>

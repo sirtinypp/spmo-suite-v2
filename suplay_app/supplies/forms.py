@@ -1,68 +1,100 @@
 from django import forms
-from .models import Product, StockBatch
+from .models import Product, StockBatch, APRRequest, Settlement, Supplier, Category, Department, News
 
-# --- PRODUCT FORM (For Add/Edit Product Page) ---
+class NewsForm(forms.ModelForm):
+    class Meta:
+        model = News
+        fields = ['title', 'content', 'urgency', 'is_active', 'image']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Announcement Title'}),
+            'content': forms.Textarea(attrs={'rows': 4, 'class': 'form-control', 'placeholder': 'Global broadcast message...'}),
+            'urgency': forms.Select(attrs={'class': 'form-select'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        # Added 'brand' to the fields list
-        fields = ['name', 'category', 'brand', 'price', 'stock', 'item_code', 'supplier', 'description', 'image']
-        
+        fields = ['name', 'brand', 'item_code', 'category', 'supplier', 'description', 'price', 'unit', 'reorder_point', 'image']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Product Name'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
-            'brand': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Brand Name'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control'}),
             'item_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'}),
+            'category': forms.Select(attrs={'class': 'form-select'}),
             'supplier': forms.Select(attrs={'class': 'form-select'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'unit': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., pc, box'}),
+            'reorder_point': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
-# --- APR REQUEST FORM ---
-from .models import APRRequest, Settlement
+class StockBatchForm(forms.ModelForm):
+    class Meta:
+        model = StockBatch
+        fields = ['product', 'supplier_name', 'batch_number', 'quantity_initial', 'cost_per_item', 'date_received', 'apr_reference']
+        widgets = {
+            'product': forms.Select(attrs={'class': 'form-select'}),
+            'date_received': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'supplier_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'batch_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity_initial': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cost_per_item': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'apr_reference': forms.Select(attrs={'class': 'form-select'}),
+        }
 
 class APRRequestForm(forms.ModelForm):
     class Meta:
         model = APRRequest
-        fields = ['apr_no', 'control_no', 'date_prepared', 'supplier', 'mode_of_delivery', 'insufficient_fund_action', 'remarks']
+        fields = ['apr_no', 'control_no', 'supplier', 'mode_of_delivery', 'insufficient_fund_action', 'total_amount', 'remarks']
         widgets = {
             'apr_no': forms.TextInput(attrs={'class': 'form-control'}),
             'control_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'date_prepared': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'supplier': forms.Select(attrs={'class': 'form-select'}),
             'mode_of_delivery': forms.Select(attrs={'class': 'form-select'}),
             'insufficient_fund_action': forms.Select(attrs={'class': 'form-select'}),
-            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'total_amount': forms.NumberInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         }
 
-# --- SETTLEMENT FORM ---
 class SettlementForm(forms.ModelForm):
     class Meta:
         model = Settlement
-        fields = ['settlement_type', 'order_id', 'is_settled', 'date_settled', 'reference_no', 'amount_paid', 'attachment', 'remarks']
+        fields = ['settlement_type', 'order_id', 'reference_no', 'amount_paid', 'attachment', 'remarks']
         widgets = {
             'settlement_type': forms.Select(attrs={'class': 'form-select'}),
-            'order_id': forms.NumberInput(attrs={'class': 'form-control'}),
-            'is_settled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-            'date_settled': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'order_id': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Order/APR ID'}),
             'reference_no': forms.TextInput(attrs={'class': 'form-control'}),
-            'amount_paid': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'attachment': forms.ClearableFileInput(attrs={'class': 'form-control'}),
-            'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'amount_paid': forms.NumberInput(attrs={'class': 'form-control'}),
+            'attachment': forms.FileInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         }
 
-# --- STOCK BATCH FORM (For Incoming Deliveries) ---
-class StockBatchForm(forms.ModelForm):
+class SupplierForm(forms.ModelForm):
     class Meta:
-        model = StockBatch
-        fields = ['product', 'supplier_name', 'batch_number', 'quantity_initial', 'cost_per_item', 'date_received']
+        model = Supplier
+        fields = ['name', 'contact_person', 'email', 'is_ps_dbm']
         widgets = {
-            'product': forms.Select(attrs={'class': 'form-select'}),
-            'supplier_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Supplier Name'}),
-            'batch_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'DR / Invoice Number'}),
-            'quantity_initial': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cost_per_item': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'date_received': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_person': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'is_ps_dbm': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        }
+
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = Department
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }

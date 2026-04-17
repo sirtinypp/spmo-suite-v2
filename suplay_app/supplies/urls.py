@@ -40,6 +40,7 @@ urlpatterns = [
     path('batch-monitor/', views.batch_list, name='batch_list'),
     path('delivery/', views.delivery_dashboard, name='delivery_dashboard'),
     path('delivery/confirm/<int:order_id>/', views.mark_delivered, name='mark_delivered'),
+    path('delivery/manifest/<int:apr_id>/', views.get_apr_manifest, name='get_apr_manifest'),
     path('order-history/', views.delivery_dashboard, name='order_history'),
 
     path('requisition-slip/', views.requisition_slip, name='requisition_slip'),
@@ -49,7 +50,30 @@ urlpatterns = [
     # --- MANAGEMENT CONTROLS ---
     path('apr/', views.apr_list, name='apr_list'),
     path('apr/add/', views.add_apr, name='add_apr'),
+    path('apr/detail/<int:pk>/', views.apr_detail, name='apr_detail'),
+    path('apr/add-item/<int:apr_id>/', views.add_apr_item, name='add_apr_item'),
+    path('apr/delete-item/<int:item_id>/', views.delete_apr_item, name='delete_apr_item'),
+    path('apr/print/<int:pk>/', views.apr_print, name='apr_print'),
+
     path('settlements/', views.settlement_list, name='settlement_list'),
     path('settlements/add/', views.add_settlement, name='add_settlement'),
 
+    path('broadcast/', views.broadcast_list, name='broadcast_list'),
+    path('broadcast/add/', views.add_broadcast, name='add_broadcast'),
+    path('broadcast/edit/<int:pk>/', views.edit_broadcast, name='edit_broadcast'),
+    path('broadcast/delete/<int:pk>/', views.delete_broadcast, name='delete_broadcast'),
+
+    # --- CONFIGURATION HUB ---
+    path('suppliers/', views.supplier_list, name='supplier_list'),
+    path('suppliers/add/', views.add_supplier, name='add_supplier'),
+    path('suppliers/edit/<int:pk>/', views.edit_supplier, name='edit_supplier'),
+
+    path('categories/', views.category_list, name='category_list'),
+    path('categories/add/', views.add_category, name='add_category'),
+    path('categories/edit/<int:pk>/', views.edit_category, name='edit_category'),
+
+    path('units/', views.unit_list, name='unit_list'),
+    path('units/add/', views.add_unit, name='add_unit'),
+    path('units/edit/<int:pk>/', views.edit_unit, name='edit_unit'),
+    path('units/unlink/<int:profile_id>/', views.unlink_user, name='unlink_user'),
 ]

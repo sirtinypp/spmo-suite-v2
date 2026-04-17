@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>APR_Print_{{ apr.apr_no }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            color: #000;
+            background: #fff;
+            margin: 0;
+            padding: 20mm;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .header-table td {
+            vertical-align: top;
+        }
+        .title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 20px;
+        }
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .meta-table td {
+            padding: 4px;
+        }
+        .apr-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid black;
+        }
+        .apr-table th, .apr-table td {
+            border: 1px solid black;
+            padding: 6px;
+            text-align: left;
+        }
+        .apr-table th {
+            text-align: center;
+            background-color: #f2f2f2;
+            text-transform: uppercase;
+        }
+        .text-center { text-align: center !important; }
+        .text-right { text-align: right !important; }
+        
+        .footer-sig {
+            margin-top: 40px;
+            width: 100%;
+        }
+        .sig-block {
+            width: 45%;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .sig-line {
+            border-bottom: 1px solid black;
+            margin-top: 50px;
+            width: 80%;
+            text-align: center;
+        }
+        .sig-label {
+            width: 80%;
+            text-align: center;
+            margin-top: 5px;
+            font-weight: bold;
+        }
+        .sig-title {
+            width: 80%;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+    <div class="no-print" style="background: #fff3cd; padding: 10px; border: 1px solid #ffeeba; margin-bottom: 20px; text-align: center;">
+        <strong>PRINT PREVIEW</strong> - This document is formatted for <strong>Wet Signature</strong>. Ensure your printer is set to A4/Letter size. 
+        <button onclick="window.print()" style="margin-left: 10px; cursor: pointer;">Print Now</button>
+    </div>
+
+    <table class="header-table">
+        <tr>
+            <td width="50%">
+                <strong>UNIVERSITY OF THE PHILIPPINES SYSTEM</strong><br>
+                System Supply and Property Management Office<br>
+                Quezon Hall, UP Diliman, Quezon City
+            </td>
+            <td width="50%" align="right">
+                <strong>PS APR No: {{ apr.apr_no }}</strong><br>
+                Agency Control No: {{ apr.control_no|default:"N/A" }}<br>
+                Date: {{ apr.date_prepared|date:"m/d/Y" }}
+            </td>
+        </tr>
+    </table>
+
+    <div class="title">AGENCY PROCUREMENT REQUEST</div>
+
+    <table class="meta-table">
+        <tr>
+            <td width="20%"><strong>To:</strong></td>
+            <td><strong>PROCUREMENT SERVICE</strong>, Department of Budget and Management</td>
+        </tr>
+        <tr>
+            <td><strong>Address:</strong></td>
+            <td>RR Road, Cristobal St., Paco, Manila</td>
+        </tr>
+    </table>
+
+    <p>Please deliver the following items to the address above subject to the terms and conditions of the Procurement Service:</p>
+
+    <table class="apr-table">
+        <thead>
+            <tr>
+                <th width="5%">ITEM NO.</th>
+                <th width="10%">UNIT</th>
+                <th>ITEM DESCRIPTION</th>
+                <th width="10%">QTY</th>
+                <th width="15%">UNIT PRICE</th>
+                <th width="15%">AMOUNT</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td class="text-center">{{ item.product.unit|default:"pc" }}</td>
+                <td>
+                    <strong>{{ item.product.name }}</strong><br>
+                    <small>{{ item.product.description|truncatechars:50 }}</small>
+                </td>
+                <td class="text-center">{{ item.quantity_requested }}</td>
+                <td class="text-right">{{ item.unit_price }}</td>
+                <td class="text-right">{{ item.total_amount }}</td>
+            </tr>
+            {% endfor %}
+            <!-- Fillers for standard look -->
+            {% if items.count < 10 %}
+                {% for i in "123456"|make_list %}
+                    {% if forloop.counter <= 10|add:items.count|add:"-10" %}
+                    <!-- Filler row logic can be more complex, but this ensures a minimum height -->
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            <tr>
+                <td colspan="5" class="text-right"><strong>TOTAL ESTIMATED AMOUNT:</strong></td>
+                <td class="text-right"><strong>₱ {{ apr.total_amount }}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+        <strong>Mode of Delivery:</strong> {{ apr.get_mode_of_delivery_display }}<br>
+        <strong>Remarks:</strong> {{ apr.remarks|default:"None" }}
+    </div>
+
+    <div class="footer-sig">
+        <div class="sig-block">
+            <div class="sig-line"></div>
+            <div class="sig-label">{{ apr.prepared_by.get_full_name|upper|default:"PREPARED BY" }}</div>
+            <div class="sig-title">SPMO Staff / Requesting Officer</div>
+        </div>
+        <div class="sig-block" style="float: right;">
+            <div class="sig-line"></div>
+            <div class="sig-label">ISAGANI L. BAGUS</div>
+            <div class="sig-title">Chief, System SPMO</div>
+        </div>
+    </div>
+
+    <div class="footer-sig" style="margin-top: 60px;">
+        <div class="sig-block" style="width: 100%; text-align: center;">
+            <div class="sig-line" style="margin-left: auto; margin-right: auto;"></div>
+            <div class="sig-label">GLENN A. LIZARES</div>
+            <div class="sig-title">Assistant Vice President for Administration</div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}APR #{{ apr.apr_no }} | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'apr_list' %}" 
+           hx-get="{% url 'apr_list' %}" 
+           hx-target="#admin-panel" 
+           hx-push-url="true"
+           class="btn btn-light rounded-circle shadow-sm me-3" 
+           style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: white; border: none;">
+            <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+        </a>
+        <div>
+            <span class="text-dark d-block">Procurement Workbench</span>
+            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Agency Procurement Request: <strong>#{{ apr.apr_no }}</strong></span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'apr_print' apr.pk %}" target="_blank" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-printer me-2"></i> Print for Signature
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+<div class="row g-5">
+    <!-- LEFT: APR METADATA -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-header bg-dark text-white p-4">
+                <h6 class="text-uppercase small fw-bold mb-1 ls-wide" style="font-size: 0.65rem; opacity: 0.8;">Verification Status</h6>
+                <div class="d-flex align-items-center justify-content-between mt-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">{{ apr.get_status_display }}</span>
+                    <span class="text-white-50 small">ID: {{ apr.id }}</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label class="text-uppercase small fw-extrabold text-muted ls-wide d-block mb-1" style="font-size: 0.6rem;">Target Supplier</label>
+                    <div class="fw-bold">{{ apr.supplier.name }}</div>
+                </div>
+                <div class="mb-4">
+                    <label class="text-uppercase small fw-extrabold text-muted ls-wide d-block mb-1" style="font-size: 0.6rem;">Date Prepared</label>
+                    <div class="fw-bold">{{ apr.date_prepared|date:"F d, Y" }}</div>
+                </div>
+                <hr class="my-4 opacity-10">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small fw-bold">Items Count:</span>
+                    <span class="fw-bold">{{ items.count }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-secondary small fw-bold">Estimated Total:</span>
+                    <h4 class="fw-black text-dark mb-0">₱{{ apr.total_amount|floatformat:2|intcomma }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUICK ADD FORM -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-4">Add Restock Item</h6>
+                <form action="{% url 'add_apr_item' apr.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Product Name</label>
+                        <select name="product" class="form-select border-0 bg-light py-2" required>
+                            <option value="">-- Select Product --</option>
+                            {% for p in products %}
+                            <option value="{{ p.id }}">{{ p.name }} (Stock: {{ p.stock }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" name="quantity" class="form-control border-0 bg-light py-2" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Est. Unit Price</label>
+                            <input type="number" step="0.01" name="unit_price" class="form-control border-0 bg-light py-2" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 py-3 shadow-sm fw-bold rounded-3">
+                        <i class="bi bi-plus-circle me-2"></i> Append to Ledger
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: LINE ITEMS (THE LEDGER) -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light-subtle">
+                        <tr>
+                            <th class="ps-4 py-3 text-uppercase small fw-bold text-muted ls-wide" style="font-size: 0.6rem;">Item Description</th>
+                            <th class="py-3 text-uppercase small fw-bold text-muted ls-wide text-center" style="font-size: 0.6rem;">Qty Requested</th>
+                            <th class="py-3 text-uppercase small fw-bold text-muted ls-wide text-end" style="font-size: 0.6rem;">Unit Price</th>
+                            <th class="py-3 text-uppercase small fw-bold text-muted ls-wide text-end" style="font-size: 0.6rem;">Subtotal</th>
+                            <th class="pe-4 py-3 text-end"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for item in items %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ item.product.name }}</div>
+                                <div class="text-muted extra-small" style="font-size: 10px;">CODE: {{ item.product.item_code|default:"-" }}</div>
+                            </td>
+                            <td class="text-center fw-bold">{{ item.quantity_requested }}</td>
+                            <td class="text-end fw-medium text-muted">₱{{ item.unit_price|floatformat:2|intcomma }}</td>
+                            <td class="text-end fw-bold text-dark">₱{{ item.total_amount|floatformat:2|intcomma }}</td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'delete_apr_item' item.id %}" class="text-danger opacity-50 hover-opacity-100">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="py-4">
+                                    <i class="bi bi-inbox fs-1 text-muted mb-3 d-block opacity-25"></i>
+                                    <p class="text-muted fw-bold mb-0">No items added to this APR yet.</p>
+                                    <p class="text-muted small">Begin by adding restock requirements from the left panel.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-wide { letter-spacing: 0.12em; }
+    .fw-black { font-weight: 900; }
+    .extra-small { font-size: 10px; }
+    .hover-opacity-100:hover { opacity: 1 !important; }
+</style>
+{% endblock %}

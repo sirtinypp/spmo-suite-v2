@@ -1,69 +1,141 @@
-{% extends 'supplies/base.html' %}
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
 
-{% block title %}Receive Delivery - SSPMO Virtual Store{% endblock %}
+{% block title %}Receive Delivery | SUPLAY Admin{% endblock %}
 
-{% block content %}
-<div class="container py-5">
-
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h6 class="text-uppercase text-muted fw-bold small mb-1">Admin Panel</h6>
-                    <h2 class="fw-bold text-dark mb-0">Receive Delivery</h2>
-                    <p class="text-muted small mb-0">Record incoming stock to inventory.</p>
-                </div>
-                <a href="{% url 'batch_list' %}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i> Back to Monitor
-                </a>
-            </div>
-
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <div class="card-body p-4 bg-white">
-                    <form method="POST" action="{% url 'receive_delivery' %}">
-                        {% csrf_token %}
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-uppercase text-muted">Stock Item</label>
-                            {{ form.product }}
-                            <div class="form-text small">Select the product being received.</div>
-                        </div>
-
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Date Received</label>
-                                {{ form.date_received }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Quantity</label>
-                                {{ form.quantity_initial }}
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Supplier /
-                                    Source</label>
-                                {{ form.supplier_name }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-uppercase text-muted">Batch / DR No.</label>
-                                {{ form.batch_number }}
-                            </div>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success fw-bold py-2 shadow-sm">
-                                <i class="bi bi-check-lg me-2"></i> Confirm Delivery
-                            </button>
-                            <a href="{% url 'batch_list' %}" class="btn btn-light border py-2">Cancel</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-        </div>
+{% block header_title %}
+<div class="d-flex align-items-center">
+    <div class="bg-primary-subtle p-2 rounded-3 me-3" style="background-color: rgba(59, 130, 246, 0.1);">
+        <i class="bi bi-truck fs-4 text-primary"></i>
+    </div>
+    <div>
+        <span class="text-dark d-block">Intake Intelligence</span>
+        <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Fulfillment & Stock Injection Terminal</span>
     </div>
 </div>
+{% endblock %}
+
+{% block admin_content %}
+<form method="post" enctype="multipart/form-data" class="row g-5">
+    {% csrf_token %}
+    
+    <!-- LEFT: TRANSACTIONAL METADATA -->
+    <div class="col-lg-4">
+        <div class="mb-4">
+            <h6 class="text-uppercase small fw-extrabold text-muted ls-wide mb-1" style="font-size: 0.65rem;">Registry Context</h6>
+            <div class="h5 fw-bold text-dark">Delivery Documentation</div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-body p-4">
+                <div class="mb-4">
+                    <label class="form-label">Reference APR Request</label>
+                    <select name="apr_id" class="form-select border-0 bg-light py-3" 
+                            hx-get="/delivery/manifest/" 
+                            hx-target="#manifest-container" 
+                            hx-trigger="change"
+                            hx-vals='js:{apr_id: event.target.value}'
+                            style="border-radius: 12px;" required>
+                        <option value="">-- Choose Active APR --</option>
+                        {% for apr in active_aprs %}
+                        <option value="{{ apr.id }}">APR #{{ apr.apr_no }} ({{ apr.supplier.name }})</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text mt-2" style="font-size: 11px;">Select the procurement request this delivery belongs to.</div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Delivery Receipt (DR) #</label>
+                        <input type="text" name="dr_number" class="form-control border-0 bg-light py-2" placeholder="DR-XXXXX" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Sales Invoice (SI) #</label>
+                        <input type="text" name="si_number" class="form-control border-0 bg-light py-2" placeholder="SI-XXXXX">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-uppercase small text-muted mb-0">Digital Audit Trail</h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-3">
+                    <label class="form-label extra-small">Scan: Delivery Receipt</label>
+                    <input type="file" name="dr_scan" class="form-control form-control-sm border-0 bg-light">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label extra-small">Scan: Sales Invoice</label>
+                    <input type="file" name="si_scan" class="form-control form-control-sm border-0 bg-light">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label extra-small">Scan: Signed APR</label>
+                    <input type="file" name="signed_apr_scan" class="form-control form-control-sm border-0 bg-light">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: THE MANIFEST (FULFILLMENT ENGINE) -->
+    <div class="col-lg-8">
+        <div class="mb-4 d-flex justify-content-between align-items-end">
+            <div>
+                <h6 class="text-uppercase small fw-extrabold text-muted ls-wide mb-1" style="font-size: 0.65rem;">Fulfillment Engine</h6>
+                <div class="h5 fw-bold text-dark">Expected Manifest Verification</div>
+            </div>
+            <div class="no-print">
+               <button type="button" onclick="autoFillManifest()" class="btn btn-link btn-sm text-decoration-none fw-bold text-primary">
+                    <i class="bi bi-magic me-1"></i> Auto-Fill Full Intake
+               </button>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden min-vh-50">
+            <div id="manifest-container">
+                <div class="text-center py-5">
+                    <div class="py-5">
+                        <i class="bi bi-file-earmark-check fs-1 text-muted d-block mb-3 opacity-25"></i>
+                        <h5 class="fw-bold text-muted">Awaiting Selection</h5>
+                        <p class="text-muted small">Select an APR on the left to reveal the manifest.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 d-flex justify-content-end gap-3">
+            <a href="{% url 'inventory_list' %}" class="btn btn-light rounded-pill px-4 fw-bold">Cancel Intake</a>
+            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold border-0" style="background-color: #3b82f6;">
+                <i class="bi bi-box-arrow-in-down me-2"></i> Commit & Inject Stock
+            </button>
+        </div>
+    </div>
+</form>
+
+<script>
+    function autoFillManifest() {
+        document.querySelectorAll('.manifest-qty-input').forEach(input => {
+            const balance = input.getAttribute('data-balance');
+            input.value = balance;
+        });
+    }
+
+    // HTMX doesn't handle JS in template directly well for dynamic paths, so we fix the trigger
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        if (event.detail.elt.hasAttribute('hx-get') && event.detail.elt.getAttribute('hx-get') === '/delivery/manifest/') {
+            const aprId = event.detail.elt.value;
+            if (aprId) {
+                event.detail.path = `/delivery/manifest/${aprId}/`;
+            }
+        }
+    });
+</script>
+
+<style>
+    .ls-wide { letter-spacing: 0.12em; }
+    .fw-extrabold { font-weight: 800; }
+    .extra-small { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8; }
+    .min-vh-50 { min-height: 400px; }
+</style>
 {% endblock %}
