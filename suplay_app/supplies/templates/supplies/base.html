@@ -81,44 +81,7 @@
 
 
 
-                    <!-- Staff Links -->
-                    {% if user.is_staff %}
-                    <li class="nav-item dropdown me-2">
-                        <a class="nav-link dropdown-toggle text-white" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-shield-lock me-1"></i> Management
-                        </a>
-                        <ul class="dropdown-menu shadow border-0">
-                            <li>
-                                <h6 class="dropdown-header text-uppercase small fw-bold">Overview</h6>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="{% url 'transaction_list' %}">
-                                    <span>Transactions</span>
-                                </a>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'inventory_list' %}">Inventory</a></li>
-
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-
-                            <li>
-                                <h6 class="dropdown-header text-uppercase small fw-bold">Receiving</h6>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'batch_list' %}">Batch Monitor</a></li>
-                            <li><a class="dropdown-item" href="{% url 'receive_delivery' %}">Receive Delivery</a></li>
-
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-
-                            <li>
-                                <h6 class="dropdown-header text-uppercase small fw-bold">Outbound</h6>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'order_history' %}">Releasing</a></li>
-                        </ul>
-                    </li>
-                    {% endif %}
+                    <!-- Management controls removed from client homepage per user request -->
 
                     <!-- Cart -->
                     <li class="nav-item me-3">
@@ -142,6 +105,7 @@
                             {% if user.is_authenticated %}
                             <li><a class="dropdown-item" href="{% url 'profile' %}"><i
                                         class="bi bi-person me-2"></i>Profile</a></li>
+                            <!-- Admin Console link restored for staff shortcut -->
                             {% if user.is_staff %}
                             <li><a class="dropdown-item fw-bold text-success" href="{% url 'admin_dashboard' %}"><i class="bi bi-grid-1x2-fill me-2 text-success"></i>Admin Console</a></li>
                             <li><a class="dropdown-item" href="/admin/"><i class="bi bi-speedometer2 me-2"></i>Django Admin</a></li>

@@ -2,26 +2,28 @@
 {% load static %}
 
 {% block header_title %}
-<div class="d-flex align-items-center">
-    <a href="{% url 'apr_list' %}" 
-       hx-get="{% url 'apr_list' %}" 
-       hx-target="#admin-panel" 
-       hx-push-url="true"
-       class="btn btn-light rounded-circle shadow-sm me-3 border-0 d-flex align-items-center justify-content-center" 
-       style="width: 38px; height: 38px; background: white;">
-        <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
-    </a>
-    <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
-        <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
-    </div>
-    <div>
-        <h4 class="fw-bold text-dark mb-0">Initiate Procurement</h4>
-        <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Defining the APR Strategic Framework</span>
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'apr_list' %}" 
+           hx-get="{% url 'apr_list' %}" 
+           hx-target="#admin-panel" 
+           hx-push-url="true"
+           class="btn btn-light rounded-circle shadow-sm me-3 border-0 d-flex align-items-center justify-content-center" 
+           style="width: 38px; height: 38px; background: white;">
+            <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+        </a>
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Initiate Procurement</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Defining the APR Strategic Framework</span>
+        </div>
     </div>
 </div>
 {% endblock %}
 
-{% block admin_content %}
+{% block content %}
 <div class="row g-5">
     <!-- LEFT: APR CONFIGURATION -->
     <div class="col-lg-7">

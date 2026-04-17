@@ -271,6 +271,31 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.get_role_display()} - {self.department}"
 
+    @property
+    def is_dept_staff(self): return self.role == 'dept_staff'
+    @property
+    def is_dept_head(self): return self.role == 'dept_head'
+    @property
+    def is_warehouse_staff(self): return self.role == 'wh_staff'
+    @property
+    def is_admin_ast(self): return self.role == 'admin_ast'
+    @property
+    def is_supply_officer(self): return self.role in ['admin_off', 'spmo_chief']
+    @property
+    def is_chief(self): return self.role == 'spmo_chief'
+
+    # Permission Scopes
+    @property
+    def can_manage_assets(self): return self.is_supply_officer
+    @property
+    def can_manage_procurement(self): return self.is_supply_officer or self.is_admin_ast
+    @property
+    def can_manage_fulfillment(self): return self.is_supply_officer or self.is_warehouse_staff
+    @property
+    def can_manage_finances(self): return self.is_supply_officer
+    @property
+    def can_manage_system(self): return self.is_supply_officer
+
 class News(models.Model):
     URGENCY_CHOICES = [
         ('URGENT', 'Critical Alert / Pulse'),

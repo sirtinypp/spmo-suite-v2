@@ -153,6 +153,7 @@
                 <i class="bi bi-megaphone"></i> Broadcast Hub
             </a>
             
+            {% if user.profile.can_manage_procurement %}
             <div class="sidebar-category">Procurement (Incoming)</div>
             <a href="{% url 'apr_list' %}" 
                hx-get="{% url 'apr_list' %}" 
@@ -161,6 +162,9 @@
                class="nav-link {% if request.resolver_match.url_name == 'apr_list' %}active{% endif %}">
                 <i class="bi bi-file-earmark-plus"></i> APR Requests
             </a>
+            {% endif %}
+            
+            {% if user.profile.can_manage_fulfillment %}
             <a href="{% url 'receive_delivery' %}" 
                hx-get="{% url 'receive_delivery' %}" 
                hx-target="#admin-panel" 
@@ -168,7 +172,9 @@
                class="nav-link {% if request.resolver_match.url_name == 'receive_delivery' %}active{% endif %}">
                 <i class="bi bi-box-seam"></i> Receive Deliveries
             </a>
+            {% endif %}
             
+            {% if user.profile.can_manage_fulfillment %}
             <div class="sidebar-category">Distribution (Outgoing)</div>
             <a href="{% url 'transaction_list' %}" 
                hx-get="{% url 'transaction_list' %}" 
@@ -184,8 +190,10 @@
                class="nav-link {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
                 <i class="bi bi-truck"></i> Releasing Control
             </a>
+            {% endif %}
 
             <div class="sidebar-category">Financials & Assets</div>
+            {% if user.profile.can_manage_finances %}
             <a href="{% url 'settlement_list' %}" 
                hx-get="{% url 'settlement_list' %}" 
                hx-target="#admin-panel" 
@@ -193,6 +201,9 @@
                class="nav-link {% if request.resolver_match.url_name == 'settlement_list' %}active{% endif %}">
                 <i class="bi bi-bank"></i> Settlement Tracker
             </a>
+            {% endif %}
+            
+            {% if user.profile.can_manage_fulfillment %}
             <a href="{% url 'inventory_list' %}" 
                hx-get="{% url 'inventory_list' %}" 
                hx-target="#admin-panel" 
@@ -200,8 +211,11 @@
                class="nav-link {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
                 <i class="bi bi-database-check"></i> Master Inventory
             </a>
-            <a href="#" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Reports & KPIs</a>
+            {% endif %}
+            
+            <a href="{% url 'reports_dashboard' %}" class="nav-link" hx-get="{% url 'reports_dashboard' %}" hx-target="#admin-panel" hx-push-url="true"><i class="bi bi-graph-up-arrow"></i> Reports & KPIs</a>
 
+            {% if user.profile.can_manage_system %}
             <div class="sidebar-category">System Configuration</div>
             <a href="{% url 'supplier_list' %}" 
                hx-get="{% url 'supplier_list' %}" 
@@ -224,6 +238,7 @@
                class="nav-link {% if request.resolver_match.url_name == 'unit_list' %}active{% endif %}">
                 <i class="bi bi-building"></i> System Units
             </a>
+            {% endif %}
         </div>
 
         <div class="mt-auto p-4 border-top bg-light-subtle">
@@ -244,7 +259,7 @@
         <div id="admin-panel">
             <!-- Admin Header -->
             <header class="d-flex align-items-center justify-content-between mb-5">
-                <div class="flex-grow-1">
+                <div class="flex-grow-1 d-flex align-items-center">
                     {% block header_title %}
                     <div class="d-flex align-items-center">
                         <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
@@ -271,7 +286,7 @@
                 </div>
             </header>
 
-            {% block admin_content %}{% endblock %}
+            {% block content %}{% endblock %}
         </div>
     </main>
 
@@ -289,6 +304,18 @@
                 } else {
                     link.classList.remove('active');
                 }
+            });
+        });
+    </script>
+    <!-- Institutional Session Security (Standardized) -->
+    <script src="{% static 'js/session_timeout.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initSessionTimeout({
+                logoutUrl: "{% url 'logout' %}",
+                loginUrl: "{% url 'login' %}", 
+                sessionMinutes: 10,
+                warningMinutes: 9
             });
         });
     </script>

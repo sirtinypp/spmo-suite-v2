@@ -3,20 +3,29 @@
 
 {% block title %}Dashboard | SUPLAY Admin{% endblock %}
 {% block header_title %}
-<div class="d-flex align-items-center">
-    <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
-        <i class="bi bi-speedometer2 fs-4 text-success"></i>
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-speedometer2 fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Command Dashboard</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">SPMO System Control & Analytics Overview</span>
+        </div>
     </div>
-    <div>
-        <h4 class="fw-bold text-dark mb-0">Command Dashboard</h4>
-        <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">SPMO System Control & Analytics Overview</span>
+    <div class="d-flex gap-2 text-end">
+        <span class="text-muted small fw-medium border-start ps-3 ms-3 py-1" style="font-size: 0.75rem;">
+            <i class="bi bi-calendar3 me-1 text-success"></i> {% now "F d, Y" %}
+        </span>
     </div>
 </div>
 {% endblock %}
 
 {% block content %}
+<!-- Dashboard Stats Grid -->
 <div class="row g-4 mb-4">
     <!-- Stat Blocks: Operational -->
+    {% if user.profile.can_manage_fulfillment %}
     <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -31,7 +40,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
     
+    {% if user.profile.can_manage_finances %}
     <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -46,7 +57,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
+    {% if user.profile.can_manage_fulfillment %}
     <div class="col-md-3">
         <div class="stat-card border-danger-subtle bg-danger-subtle bg-opacity-10">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -61,7 +74,9 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
+    {% if user.profile.can_manage_finances %}
     <div class="col-md-3">
         <div class="stat-card">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -76,14 +91,71 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </div>
 
-<div class="row g-4">
-    <!-- Left Column: Recent Activity -->
+<!-- Smart Analytics Hub -->
+<div class="row g-4 mb-4">
+    {% if user.profile.can_manage_fulfillment %}
     <div class="col-lg-8">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="fw-bold mb-0">Order Velocity & Volume Trends</h6>
+                <div class="badge bg-light text-muted fw-normal">Last 7 Days</div>
+            </div>
+            <p class="text-muted mb-4" style="font-size: 0.75rem;">Tracks the 7-day pace of incoming requests to help staff anticipate workload and fulfillment surges.</p>
+            <div style="height: 300px;">
+                <canvas id="velocityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if user.profile.can_manage_assets %}
+    <div class="col-lg-4">
+        <div class="stat-card">
+            <h6 class="fw-bold mb-1">Category Distribution</h6>
+            <p class="text-muted mb-4" style="font-size: 0.75rem;">Visualizes capital allocation by class to ensure high-value assets are balanced against high-turnover supplies.</p>
+            <div style="height: 300px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Recent Activity & Insights -->
+    <div class="col-lg-8">
+        <!-- Predictive Insights Panel -->
+        <div class="stat-card mb-4 bg-light border-0">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="bg-white p-2 rounded-3 shadow-sm">
+                    <i class="bi bi-lightbulb text-warning fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-dark">Smart Insights Engine</h6>
+                    <span class="text-muted small">Automatic Institutional Analysis</span>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border-start border-warning border-4 shadow-sm">
+                        <div class="small fw-bold text-dark mb-1">Restock Priority</div>
+                        <p class="small text-muted mb-0">Based on velocity, <strong>{{ low_stock_count }} items</strong> are at critical levels. Recommend initiating APR for Office Essentials.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 bg-white rounded-3 border-start border-primary border-4 shadow-sm">
+                        <div class="small fw-bold text-dark mb-1">Fulfillment Velocity</div>
+                        <p class="small text-muted mb-0">Average order validation time is currently tracking within <strong>institutional targets</strong> (24hrs).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="stat-card p-0 overflow-hidden mb-4">
             <div class="px-4 py-3 border-bottom bg-light d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0">Recent Order Activity</h6>
+                <h6 class="fw-bold mb-0">Departmental Delivery Queue</h6>
                 <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-link text-success text-decoration-none fw-bold p-0">View All</a>
             </div>
             <div class="table-responsive">
@@ -107,15 +179,9 @@
                                 <div class="fw-medium text-truncate" style="max-width: 150px;">{{ order.department.name|default:"General" }}</div>
                             </td>
                             <td>
-                                {% if order.status == 'pending' %}
-                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Validation</span>
-                                {% elif order.status == 'approved' %}
-                                <span class="badge bg-info-subtle text-info rounded-pill px-3">Ready</span>
-                                {% elif order.status == 'completed' %}
-                                <span class="badge bg-success-subtle text-success rounded-pill px-3">Released</span>
-                                {% else %}
-                                <span class="badge bg-light text-dark rounded-pill px-3">{{ order.status }}</span>
-                                {% endif %}
+                                <span class="badge {% if order.status == 'pending' %}bg-warning-subtle text-warning{% elif order.status == 'approved' %}bg-info-subtle text-info{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-3">
+                                    {{ order.get_status_display|default:order.status }}
+                                </span>
                             </td>
                             <td class="text-end pe-4 fw-bold text-dark">
                                 ₱{{ order.total_amount|intcomma }}
@@ -123,7 +189,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">No recent activity.</td>
+                            <td colspan="4" class="text-center py-5 text-muted">No pending deployments.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -132,34 +198,16 @@
         </div>
     </div>
 
-    <!-- Right Column: Velocity & Actions -->
-    <div class="col-lg-4">
-        <!-- Item Velocity Leaderboard -->
+    <!-- Right Column: Spend & news -->
+        {% if user.profile.can_manage_finances %}
         <div class="stat-card mb-4">
-            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
-                <i class="bi bi-graph-up text-success"></i> 
-                Item Velocity Leaderboard
-            </h6>
-            <div class="small text-muted mb-3">Top 5 most requested supplies</div>
-            
-            <div class="list-group list-group-flush">
-                {% for item in top_items %}
-                <div class="list-group-item px-0 border-0 mb-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-truncate me-2" style="max-width: 200px;">
-                            <div class="fw-bold small text-dark mb-0">{{ item.product__name }}</div>
-                            <div class="text-muted" style="font-size: 10px;">{{ item.product__item_code|default:"No Code" }}</div>
-                        </div>
-                        <div class="badge bg-success bg-opacity-10 text-success rounded-pill">
-                            {{ item.total_delivered }} released
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="small text-muted italic p-3">No inventory velocity data available.</div>
-                {% endfor %}
+            <h6 class="fw-bold mb-1">Monthly Department Spend</h6>
+            <p class="text-muted mb-4" style="font-size: 0.75rem;">Current month's budget drain per office unit to ensure adherence to institutional supply quotas.</p>
+            <div style="height: 250px;">
+                <canvas id="spendChart"></canvas>
             </div>
         </div>
+        {% endif %}
 
         <!-- Live Broadcast Feed -->
         <div class="stat-card mb-4">
@@ -187,39 +235,96 @@
                 <a href="{% url 'broadcast_list' %}" class="small text-primary text-decoration-none fw-bold">Manage All Broadcasts</a>
             </div>
         </div>
-
-        <style>
-            .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-            @keyframes pulse {
-                0% { transform: scale(0.95); opacity: 1; }
-                70% { transform: scale(1.3); opacity: 0; }
-                100% { transform: scale(0.95); opacity: 0; }
-            }
-        </style>
-
-        <!-- Rapid Actions -->
-        <div class="stat-card bg-success text-white border-0 shadow-sm mb-4">
-            <h6 class="fw-bold mb-1">Administrative Actions</h6>
-            <p class="small opacity-75 mb-3">Quick access for SPMO Control.</p>
-            
-            <div class="d-grid gap-2">
-                <a href="{% url 'inventory_list' %}" class="btn btn-white text-dark fw-bold text-start py-2 px-3 rounded-3 border-0 bg-white small">
-                    <i class="bi bi-database-check me-2 text-success"></i> Master Inventory
-                </a>
-                <a href="{% url 'batch_list' %}" class="btn btn-link text-white text-decoration-none text-start py-2 px-3 rounded-3 border border-white border-opacity-25 small">
-                    <i class="bi bi-box-seam me-2"></i> Batch Monitor
-                </a>
-            </div>
-        </div>
-
-        <!-- System Branding -->
-        <div class="p-4 rounded-4 border bg-white shadow-sm d-flex align-items-center gap-3">
-            <img src="{% static 'up_logo_official.png' %}" width="35">
-            <div>
-                <div class="fw-bold small text-dark">SSPMO SUPLAY</div>
-                <div class="text-muted" style="font-size: 10px;">Strategic Insights Core Active</div>
-            </div>
-        </div>
     </div>
 </div>
+
+<!-- Chart.js and Data Orchestration -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const emerald = '#059669';
+        const emeraldLight = 'rgba(5, 150, 105, 0.1)';
+
+        // 1. Order Velocity Chart
+        const velEl = document.getElementById('velocityChart');
+        if (velEl) {
+            const ctxVelocity = velEl.getContext('2d');
+            new Chart(ctxVelocity, {
+                type: 'line',
+                data: {
+                    labels: [{% for item in order_velocity %}'{{ item.created_at__date|date:"M d" }}',{% endfor %}],
+                    datasets: [{
+                        label: 'Order Volume',
+                        data: [{% for item in order_velocity %}{{ item.count }},{% endfor %}],
+                        borderColor: emerald,
+                        backgroundColor: emeraldLight,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // 2. Category Distribution
+        const catEl = document.getElementById('categoryChart');
+        if (catEl) {
+            const ctxCategory = catEl.getContext('2d');
+            new Chart(ctxCategory, {
+                type: 'doughnut',
+                data: {
+                    labels: [{% for item in category_data %}'{{ item.name }}',{% endfor %}],
+                    datasets: [{
+                        data: [{% for item in category_data %}{{ item.total_value }},{% endfor %}],
+                        backgroundColor: [
+                            '#059669', '#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // 3. Department Spend
+        const spendEl = document.getElementById('spendChart');
+        if (spendEl) {
+            const ctxSpend = spendEl.getContext('2d');
+            new Chart(ctxSpend, {
+                type: 'bar',
+                data: {
+                    labels: [{% for item in dept_spend %}'{{ item.department__name }}',{% endfor %}],
+                    datasets: [{
+                        label: 'Spend Amount',
+                        data: [{% for item in dept_spend %}{{ item.total }},{% endfor %}],
+                        backgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    });
+</script>
+
+<style>
+    .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    @keyframes pulse {
+        0% { transform: scale(0.95); opacity: 1; }
+        70% { transform: scale(1.3); opacity: 0; }
+        100% { transform: scale(0.95); opacity: 0; }
+    }
+</style>
 {% endblock %}

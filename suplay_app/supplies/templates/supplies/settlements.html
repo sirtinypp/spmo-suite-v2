@@ -3,23 +3,23 @@
 {% load humanize %}
 
 {% block header_title %}
-<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+<div class="d-flex align-items-center justify-content-between w-100 pe-5">
     <div class="d-flex align-items-center">
         <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
             <i class="bi bi-bank fs-4 text-success"></i>
         </div>
         <div>
-            <span class="text-dark d-block">Settlement Tracker</span>
-            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Monitoring Financial Accountability</span>
+            <h4 class="fw-bold text-dark mb-0">Settlement Tracker</h4>
+            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Forensic Monitoring of Financial Accountability & Unit Ledgers</span>
         </div>
     </div>
-    <a href="{% url 'add_settlement' %}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
-        <i class="bi bi-shield-check me-2"></i> Record Settlement
+    <a href="{% url 'add_settlement' %}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold border-0">
+        <i class="bi bi-shield-check me-2"></i> Record settlement
     </a>
 </div>
 {% endblock %}
 
-{% block admin_content %}
+{% block content %}
 <div class="row g-4">
     <!-- Filter Bar (Stretched) -->
     <div class="col-12">

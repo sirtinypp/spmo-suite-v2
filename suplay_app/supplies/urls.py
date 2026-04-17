@@ -36,6 +36,7 @@ urlpatterns = [
     path('inventory/add/', views.add_product, name='add_product'),
     path('inventory/edit/<int:pk>/', views.edit_product, name='edit_product'),
     path('inventory/delete/<int:pk>/', views.delete_product, name='delete_product'),
+    path('inventory/detail/<int:pk>/', views.inventory_detail, name='inventory_detail'),
     path('receive-delivery/', views.receive_delivery, name='receive_delivery'),
     path('batch-monitor/', views.batch_list, name='batch_list'),
     path('delivery/', views.delivery_dashboard, name='delivery_dashboard'),
@@ -57,6 +58,8 @@ urlpatterns = [
 
     path('settlements/', views.settlement_list, name='settlement_list'),
     path('settlements/add/', views.add_settlement, name='add_settlement'),
+
+    path('reports/', views.reports_dashboard, name='reports_dashboard'),
 
     path('broadcast/', views.broadcast_list, name='broadcast_list'),
     path('broadcast/add/', views.add_broadcast, name='add_broadcast'),

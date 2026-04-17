@@ -1,0 +1,217 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load humanize static %}
+
+{% block title %}Reports & KPIs | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center">
+    <div class="bg-primary-subtle p-2 rounded-3 me-3" style="background-color: rgba(37, 99, 235, 0.1);">
+        <i class="bi bi-graph-up-arrow fs-4 text-primary"></i>
+    </div>
+    <div>
+        <h4 class="fw-bold text-dark mb-0">Analytics & Institutional KPIs</h4>
+        <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Strategic Performance Monitoring & Data Exports</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- KPI Overview Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card border-0 shadow-sm bg-white p-4 rounded-4">
+            <div class="text-uppercase small fw-extrabold text-muted ls-wide mb-2" style="font-size: 0.65rem;">Total Delivered Value (FY 2026)</div>
+            <div class="h2 fw-bold text-dark mb-1">₱{{ total_spend|default:"0"|intcomma }}</div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 small" style="font-size: 0.65rem;">+12.5%</span>
+                <span class="text-muted small" style="font-size: 0.65rem;">vs last fiscal year</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card border-0 shadow-sm bg-white p-4 rounded-4">
+            <div class="text-uppercase small fw-extrabold text-muted ls-wide mb-2" style="font-size: 0.65rem;">Fulfillment Efficiency</div>
+            <div class="h2 fw-bold text-dark mb-1">94.2%</div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 small" style="font-size: 0.65rem;">High Velocity</span>
+                <span class="text-muted small" style="font-size: 0.65rem;">On-time delivery rate</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card border-0 shadow-sm bg-white p-4 rounded-4">
+            <div class="text-uppercase small fw-extrabold text-muted ls-wide mb-2" style="font-size: 0.65rem;">Active Inventory Turnover</div>
+            <div class="h2 fw-bold text-dark mb-1">3.4x</div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning-subtle text-warning rounded-pill px-2 py-1 small" style="font-size: 0.65rem;">Optimization Alert</span>
+                <span class="text-muted small" style="font-size: 0.65rem;">Rebalance suggested</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Departmental Utilization Heatmap -->
+    <div class="col-lg-8">
+        <div class="stat-card p-0 overflow-hidden">
+            <div class="px-4 py-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Institutional Utilization by Department</h6>
+                    <p class="text-muted smaller mb-0" style="font-size: 0.7rem;">Measures operational activity by unit to identify where supplies are being consumed most aggressively.</p>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 dropdown-toggle small" type="button" data-bs-toggle="dropdown">
+                        Export Report
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i> PDF Document</a></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel Spreadsheet</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="p-4">
+                <div style="height: 400px;">
+                    <canvas id="deptPerformanceChart"></canvas>
+                </div>
+            </div>
+            <div class="table-responsive border-top">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light-subtle">
+                        <tr class="small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <th class="ps-4">Department Unit</th>
+                            <th>Total Requisitions</th>
+                            <th>Fulfillment %</th>
+                            <th class="text-end pe-4">Utilization Rank</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in top_depts %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ dept.name }}</div>
+                            </td>
+                            <td>{{ dept.order_count }} Requests</td>
+                            <td>
+                                <div class="progress rounded-pill" style="height: 6px; width: 100px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 85%;"></div>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <span class="badge bg-light text-dark rounded-pill px-3 border">Rank #{{ forloop.counter }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Structural Insights -->
+    <div class="col-lg-4">
+        <div class="stat-card mb-4 bg-dark text-white border-0 shadow-lg">
+            <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-shield-check text-success"></i> 
+                Governance Health
+            </h6>
+            <div class="d-flex flex-column gap-3 mt-4">
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="opacity-75">Document Compliance</span>
+                        <span class="fw-bold text-success">98%</span>
+                    </div>
+                    <div class="progress bg-white bg-opacity-10 rounded-pill" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: 98%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="opacity-75">Liquidation Velocity</span>
+                        <span class="fw-bold text-info">72%</span>
+                    </div>
+                    <div class="progress bg-white bg-opacity-10 rounded-pill" style="height: 4px;">
+                        <div class="progress-bar bg-info" style="width: 72%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="opacity-75">Audit Gap Recovery</span>
+                        <span class="fw-bold text-warning">45%</span>
+                    </div>
+                    <div class="progress bg-white bg-opacity-10 rounded-pill" style="height: 4px;">
+                        <div class="progress-bar bg-warning" style="width: 45%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5 p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10">
+                <div class="small fw-bold mb-1">Strategic Note:</div>
+                <p class="mb-0" style="font-size: 0.7rem; opacity: 0.8; line-height: 1.5;">Institutional auditing metrics signify high synchronization between procurement and releasing events. Recommend focus on Q2 liquidation recovery for CAS and COE units.</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <h6 class="fw-bold mb-1">Allocation vs. Consumption</h6>
+            <p class="text-muted smaller mb-3" style="font-size: 0.7rem;">Tracks how much of the annual budget/stock has been utilized versus remaining institutional reserves.</p>
+            <div style="height: 300px;">
+                <canvas id="allocationChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctxDept = document.getElementById('deptPerformanceChart').getContext('2d');
+        const ctxAlloc = document.getElementById('allocationChart').getContext('2d');
+
+        // Styles
+        const blue = '#2563eb';
+        const blueLight = 'rgba(37, 99, 235, 0.1)';
+
+        // 1. Department Performance (Requisitions)
+        new Chart(ctxDept, {
+            type: 'bar',
+            data: {
+                labels: [{% for dept in top_depts %}'{{ dept.name }}',{% endfor %}],
+                datasets: [{
+                    label: 'Total Institutional Requisitions',
+                    data: [{% for dept in top_depts %}{{ dept.order_count }},{% endfor %}],
+                    backgroundColor: blue,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { beginAtZero: true, grid: { display: false } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Allocation Doughnut
+        new Chart(ctxAlloc, {
+            type: 'doughnut',
+            data: {
+                labels: ['Consumed', 'Remaining Allocation'],
+                datasets: [{
+                    data: [65, 35],
+                    backgroundColor: ['#2563eb', '#e2e8f0'],
+                    borderWidth: 0,
+                    cutout: '80%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

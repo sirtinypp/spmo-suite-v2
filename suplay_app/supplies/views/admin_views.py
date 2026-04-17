@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News
 from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm
+from ..decorators import role_required, scope_required
 
 # ==========================================
 #             ADMIN VIEWS (STOCK & APP LOGIC)
@@ -48,6 +49,27 @@ def admin_dashboard(request):
     # 4. Progress Tracking (APR - Phase 3 Logic)
     pending_apr_count = APRRequest.objects.exclude(status='CLOSED').count()
     
+    # 5. Smart Insights & Chart Data
+    # 5.1 Category Distribution (Stock Value by Category)
+    category_data = Category.objects.annotate(
+        total_value=Sum(F('product__price') * F('product__stock'))
+    ).values('name', 'total_value').order_by('-total_value')
+    
+    # 5.2 Order Velocity (Last 7 Days)
+    seven_days_ago = now - timezone.timedelta(days=7)
+    order_velocity = Order.objects.filter(
+        created_at__gte=seven_days_ago
+    ).values('created_at__date').annotate(
+        count=Count('id')
+    ).order_by('created_at__date')
+    
+    # 5.3 Department Spend
+    dept_spend = Order.objects.filter(
+        created_at__gte=month_start
+    ).values('department__name').annotate(
+        total=Sum('total_amount')
+    ).order_by('-total')[:5]
+
     context = {
         'active_orders_count': active_orders_count,
         'delivery_queue_count': delivery_queue_count,
@@ -58,9 +80,34 @@ def admin_dashboard(request):
         'top_items': top_items,
         'recent_orders': orders[:8],
         'news_items': News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5],
+        'category_data': list(category_data),
+        'order_velocity': list(order_velocity),
+        'dept_spend': list(dept_spend),
         'base_template': base_template,
     }
     return render(request, 'supplies/admin_dashboard.html', context)
+
+@user_passes_test(lambda u: u.is_staff)
+def reports_dashboard(request):
+    """Deep Analytics Hub for Institutional Reporting"""
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request'):
+        base_template = "supplies/includes/admin_partial.html"
+        
+    # Aggregate data for top performing departments
+    top_depts = Department.objects.annotate(
+        order_count=Count('orders')
+    ).order_by('-order_count')[:10]
+    
+    # Financial aggregate
+    total_spend = Order.objects.filter(status='delivered').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    
+    context = {
+        'top_depts': top_depts,
+        'total_spend': total_spend,
+        'base_template': base_template,
+    }
+    return render(request, 'supplies/reports_dashboard.html', context)
 
 @user_passes_test(lambda u: u.is_staff)
 def transaction_list(request):
@@ -108,7 +155,7 @@ def transaction_list(request):
     return render(request, 'supplies/transactions.html', context)
 
 # --- UPDATE STATUS (Includes Stock & APP Deduction) ---
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def update_status(request, order_id, new_status):
     order = get_object_or_404(Order, pk=order_id)
     old_status = order.status
@@ -193,7 +240,7 @@ def update_status(request, order_id, new_status):
     return redirect('transaction_list')
 
 # --- RETURN ORDER (Restock & Restore APP) ---
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def return_order(request, order_id):
     if request.method == 'POST':
         order = get_object_or_404(Order, pk=order_id)
@@ -230,7 +277,7 @@ def return_order(request, order_id):
     return redirect('transaction_list')
 
 # --- DELIVERY DASHBOARD ---
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def delivery_dashboard(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -259,7 +306,7 @@ def delivery_dashboard(request):
     }
     return render(request, 'supplies/delivery.html', context)
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def mark_delivered(request, order_id):
     order = get_object_or_404(Order, pk=order_id)
     order.status = 'delivered'
@@ -268,7 +315,7 @@ def mark_delivered(request, order_id):
     return redirect('delivery_dashboard')
 
 # --- INVENTORY & BATCH MANAGEMENT ---
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def inventory_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -307,7 +354,7 @@ def inventory_list(request):
     }
     return render(request, 'supplies/inventory.html', context)
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_assets')
 def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
@@ -318,7 +365,7 @@ def add_product(request):
         form = ProductForm()
     return render(request, 'supplies/product_form.html', {'form': form, 'title': 'Add New Product'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_assets')
 def edit_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     if request.method == 'POST':
@@ -330,13 +377,34 @@ def edit_product(request, pk):
         form = ProductForm(instance=product)
     return render(request, 'supplies/product_form.html', {'form': form, 'title': 'Edit Product'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_assets')
 def delete_product(request, pk):
     if request.method == 'POST':
         Product.objects.get(pk=pk).delete()
     return redirect('inventory_list')
 
 @user_passes_test(lambda u: u.is_staff)
+def inventory_detail(request, pk):
+    """Deep Item Intelligence & Batch Audit Trail"""
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') and not request.GET.get('full_page'):
+        base_template = "supplies/includes/admin_partial.html"
+        
+    product = get_object_or_404(Product, pk=pk)
+    batches = product.batches.all().order_by('-date_received')
+    
+    # Movement History (Orders that included this product)
+    movements = OrderItem.objects.filter(product=product).select_related('order', 'order__department').order_by('-order__created_at')[:20]
+    
+    context = {
+        'product': product,
+        'batches': batches,
+        'movements': movements,
+        'base_template': base_template,
+    }
+    return render(request, 'supplies/inventory_detail.html', context)
+
+@scope_required('can_manage_fulfillment')
 def receive_delivery(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request') and not request.GET.get('full_page'):
@@ -405,7 +473,7 @@ def receive_delivery(request):
         'base_template': base_template
     })
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def get_apr_manifest(request, apr_id):
     """HTMX endpoint to fetch items for a specific APR during delivery"""
     apr = get_object_or_404(APRRequest, pk=apr_id)
@@ -419,14 +487,14 @@ def get_apr_manifest(request, apr_id):
         'apr': apr
     })
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_fulfillment')
 def batch_list(request):
     batches = StockBatch.objects.all().order_by('-date_received')
     return render(request, 'supplies/batch_list.html', {'batches': batches})
 
 # --- PROCUREMENT (APR) MODULE ---
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def apr_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -435,7 +503,7 @@ def apr_list(request):
     aprs = APRRequest.objects.annotate(item_count=Count('items')).order_by('-date_prepared')
     return render(request, 'supplies/apr_list.html', {'aprs': aprs, 'base_template': base_template})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def add_apr(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request') and not request.GET.get('full_page'):
@@ -523,7 +591,7 @@ def apr_print(request, pk):
     }
     return render(request, 'supplies/apr_print.html', context)
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_finances')
 def settlement_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -564,7 +632,7 @@ def add_settlement(request):
 # 5. CONFIGURATION HUB (SUPPLIERS, CATEGORIES, UNITS)
 # ==========================================
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def supplier_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -573,7 +641,7 @@ def supplier_list(request):
     suppliers = Supplier.objects.annotate(product_count=Count('product')).order_by('name')
     return render(request, 'supplies/supplier_list.html', {'suppliers': suppliers, 'base_template': base_template})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def add_supplier(request):
     if request.method == 'POST':
         form = SupplierForm(request.POST)
@@ -584,7 +652,7 @@ def add_supplier(request):
         form = SupplierForm()
     return render(request, 'supplies/supplier_form.html', {'form': form, 'title': 'Add New Supplier'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def edit_supplier(request, pk):
     supplier = get_object_or_404(Supplier, pk=pk)
     if request.method == 'POST':
@@ -596,7 +664,7 @@ def edit_supplier(request, pk):
         form = SupplierForm(instance=supplier)
     return render(request, 'supplies/supplier_form.html', {'form': form, 'title': 'Edit Supplier'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def category_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -605,7 +673,7 @@ def category_list(request):
     categories = Category.objects.annotate(product_count=Count('product')).order_by('name')
     return render(request, 'supplies/category_list.html', {'categories': categories, 'base_template': base_template})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -616,7 +684,7 @@ def add_category(request):
         form = CategoryForm()
     return render(request, 'supplies/category_form.html', {'form': form, 'title': 'Add New Category'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def edit_category(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -628,7 +696,7 @@ def edit_category(request, pk):
         form = CategoryForm(instance=category)
     return render(request, 'supplies/category_form.html', {'form': form, 'title': 'Edit Category'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def unit_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -642,7 +710,7 @@ def unit_list(request):
         
     return render(request, 'supplies/unit_list.html', {'units': units, 'base_template': base_template, 'search_query': search_query})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def add_unit(request):
     if request.method == 'POST':
         form = DepartmentForm(request.POST)
@@ -653,7 +721,7 @@ def add_unit(request):
         form = DepartmentForm()
     return render(request, 'supplies/unit_form.html', {'form': form, 'title': 'Add New System Office'})
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def edit_unit(request, pk):
     unit = get_object_or_404(Department, pk=pk)
     # Get personnel linked to this unit
@@ -687,7 +755,7 @@ def edit_unit(request, pk):
     }
     return render(request, 'supplies/unit_form.html', context)
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_system')
 def unlink_user(request, profile_id):
     profile = get_object_or_404(UserProfile, pk=profile_id)
     unit_id = profile.department.id
@@ -695,7 +763,7 @@ def unlink_user(request, profile_id):
     profile.save()
     return redirect('edit_unit', pk=unit_id)
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def broadcast_list(request):
     """List all global announcements in the Broadcast Hub"""
     news_items = News.objects.all().order_by('-date_posted')
@@ -708,7 +776,7 @@ def broadcast_list(request):
         'base_template': base_template
     })
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def add_broadcast(request):
     """Create a new global announcement"""
     base_template = "supplies/admin_base.html"
@@ -731,7 +799,7 @@ def add_broadcast(request):
         'title': 'New Broadcast'
     })
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def edit_broadcast(request, pk):
     """Modify an existing global announcement"""
     news = get_object_or_404(News, pk=pk)
@@ -753,7 +821,7 @@ def edit_broadcast(request, pk):
         'title': 'Edit Broadcast'
     })
 
-@user_passes_test(lambda u: u.is_staff)
+@scope_required('can_manage_procurement')
 def delete_broadcast(request, pk):
     """Remove a global announcement"""
     if request.method == 'POST':

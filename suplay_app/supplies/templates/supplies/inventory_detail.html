@@ -1,0 +1,182 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load humanize static %}
+
+{% block title %}{{ product.name }} | Item Intelligence{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'inventory_list' %}" 
+           hx-get="{% url 'inventory_list' %}" 
+           hx-target="#admin-panel" 
+           hx-push-url="true"
+           class="btn btn-light rounded-circle shadow-sm me-3 border-0 d-flex align-items-center justify-content-center" 
+           style="width: 38px; height: 38px; background: white;">
+            <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+        </a>
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-shield-check fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">{{ product.name }}</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Registry ID: {{ product.item_code|default:"NOT_SET" }} | {{ product.category.name }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge bg-light text-muted border px-3 py-2 rounded-pill small fw-normal">Asset Ledger v2.0</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <!-- Item Stats Card -->
+    <div class="col-lg-4">
+        <div class="stat-card h-100 p-0 overflow-hidden">
+            <div class="p-4 border-bottom bg-light bg-opacity-50">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="bg-white p-2 rounded-4 shadow-sm border" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="img-fluid" style="object-fit: cover; height: 100%; width: 100%;">
+                            {% else %}
+                                <i class="bi bi-box text-muted opacity-25" style="font-size: 3rem;"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="text-uppercase small fw-extrabold text-muted ls-wide mb-1" style="font-size: 0.6rem;">Current Physical Inventory</div>
+                        <div class="h2 fw-black {% if product.stock <= product.reorder_point %}text-danger{% else %}text-emerald{% endif %} mb-0">{{ product.stock }} {{ product.unit|default:"units" }}</div>
+                        <div class="badge bg-light text-dark border small mt-1">Reorder Point: {{ product.reorder_point }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4">
+                <h6 class="fw-bold text-dark mb-3">Institutional Metadata</h6>
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted small">Base Unit Price</span>
+                        <span class="fw-bold text-dark">₱{{ product.price|intcomma }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted small">Preferred Supplier</span>
+                        <span class="fw-bold text-dark text-truncate ms-3" style="max-width: 150px;">{{ product.supplier.name|default:"Not Linked" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom pb-2">
+                        <span class="text-muted small">Brand Reference</span>
+                        <span class="fw-bold text-dark">{{ product.brand|default:"Generic / No Brand" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Created in Registry</span>
+                        <span class="fw-bold text-dark">{{ product.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Audit Ledger -->
+    <div class="col-lg-8">
+        <div class="stat-card h-100 p-0 overflow-hidden">
+            <div class="px-4 py-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Institutional Batch Audit Ledger</h6>
+                    <p class="text-muted smaller mb-0" style="font-size: 0.7rem;">Forensic history of specific supply arrivals, tracking expiration and stock depletion by batch.</p>
+                </div>
+                <span class="badge bg-light text-muted border fw-normal">{{ batches.count }} Active Batches</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light-subtle">
+                        <tr class="small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <th class="ps-4">Batch ID / Ref</th>
+                            <th>Date Received</th>
+                            <th>Initial Qty</th>
+                            <th>Remaining</th>
+                            <th class="text-end pe-4">Batch Health</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in batches %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ batch.batch_number|default:"LEGACY_SYNC" }}</div>
+                                <div class="text-muted" style="font-size: 10px;">{{ batch.supplier_name|default:product.supplier.name|default:"General Supplier" }}</div>
+                            </td>
+                            <td>{{ batch.date_received|date:"M d, Y" }}</td>
+                            <td>{{ batch.quantity_initial }}</td>
+                            <td class="fw-bold text-dark">{{ batch.quantity_remaining }}</td>
+                            <td class="text-end pe-4">
+                                {% with percent=batch.quantity_remaining|stringformat:"d" %}
+                                <div class="progress rounded-pill ms-auto" style="height: 6px; width: 80px;">
+                                    <div class="progress-bar bg-success" style="width: 100%;"></div>
+                                </div>
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center text-muted italic">No batch telemetry available for this asset.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Departmental Movement Timeline -->
+    <div class="col-lg-12">
+        <div class="stat-card p-0 overflow-hidden">
+            <div class="px-4 py-3 border-bottom bg-light">
+                <h6 class="fw-bold mb-0">Departmental Consumption Timeline</h6>
+                <p class="text-muted smaller mb-0" style="font-size: 0.7rem;">Sequential record of asset releases, mapping supply flow from SPMO to various campus units.</p>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light-subtle">
+                        <tr class="small text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
+                            <th class="ps-5">Requisition Reference</th>
+                            <th>Target Department</th>
+                            <th>Quantity Released</th>
+                            <th>Status Code</th>
+                            <th class="text-end pe-5">Processed Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for move in movements %}
+                        <tr>
+                            <td class="ps-5">
+                                <span class="fw-bold text-dark">Order #{{ move.order.id }}</span>
+                                <div class="text-muted" style="font-size: 10px;">{{ move.order.employee_name }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-medium text-dark">{{ move.order.department.name }}</div>
+                            </td>
+                            <td><span class="fw-bold text-danger">-{{ move.quantity }}</span> units</td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success rounded-pill px-3">{{ move.order.get_status_display }}</span>
+                            </td>
+                            <td class="text-end pe-5 text-muted small">
+                                {{ move.order.created_at|date:"M d, Y H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-5 text-center text-muted">No institutional movement recorded in this ledger.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-black { font-weight: 950; }
+    .text-emerald { color: #059669; }
+</style>
+{% endblock %}
