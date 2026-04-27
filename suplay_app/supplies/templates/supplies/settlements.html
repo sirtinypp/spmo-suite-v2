@@ -1,79 +1,143 @@
-{% extends "supplies/admin_base.html" %}
+{% extends base_template|default:"supplies/admin_base.html" %}
 {% load static %}
 {% load humanize %}
 
 {% block header_title %}
 <div class="d-flex align-items-center justify-content-between w-100 pe-5">
     <div class="d-flex align-items-center">
-        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
-            <i class="bi bi-bank fs-4 text-success"></i>
+        <div class="bg-primary-subtle p-3 rounded-4 me-3" style="background-color: rgba(13, 148, 136, 0.1) !important;">
+            <i class="bi bi-bank fs-3 text-primary" style="color: #0d9488 !important;"></i>
         </div>
         <div>
-            <h4 class="fw-bold text-dark mb-0">Settlement Tracker</h4>
-            <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Forensic Monitoring of Financial Accountability & Unit Ledgers</span>
+            <h3 class="fw-bold text-dark mb-0" style="letter-spacing: -1px;">Settlement Command Center</h3>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border-0 px-2 py-1" style="font-size: 10px;">PHASE 4 ACTIVE</span>
+                <span class="text-muted small fw-medium" style="font-size: 0.75rem;">Institutional Ledger Audit & Procurement Reconciliation</span>
+            </div>
         </div>
     </div>
-    <a href="{% url 'add_settlement' %}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold border-0">
-        <i class="bi bi-shield-check me-2"></i> Record settlement
-    </a>
+    <div class="d-flex gap-2">
+        <button class="btn btn-light rounded-pill px-4 shadow-sm fw-bold border" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i> Print Ledger
+        </button>
+        <a href="{% url 'add_settlement' %}" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold border-0" style="background: #03040b;">
+            <i class="bi bi-plus-lg me-2"></i> Record Transaction
+        </a>
+    </div>
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="row g-4">
-    <!-- Filter Bar (Stretched) -->
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 mb-2" style="background: rgba(255,255,255,0.6); backdrop-filter: blur(10px);">
-            <div class="card-body py-3 px-4">
-                <div class="d-flex align-items-center gap-4">
-                    <span class="small fw-extrabold text-muted text-uppercase ls-wide" style="font-size: 0.65rem; letter-spacing: 0.1em;">Filter Framework:</span>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'settlement_list' %}" class="btn btn-sm {% if not selected_type %}btn-dark{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">All Records</a>
-                        <a href="?type=OUTGOING" class="btn btn-sm {% if selected_type == 'OUTGOING' %}btn-success{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">Outgoing (Orders)</a>
-                        <a href="?type=INCOMING" class="btn btn-sm {% if selected_type == 'INCOMING' %}btn-success{% else %}btn-light{% endif %} rounded-pill px-4 fw-bold">Incoming (Procurement)</a>
-                    </div>
-                </div>
+    <!-- ANALYTICS STRIP -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
+            <div class="text-muted small fw-extrabold text-uppercase mb-3 ls-wide">Total Settled</div>
+            <h2 class="fw-black mb-1">₱{{ total_settled|default:"0.00"|floatformat:2|intcomma }}</h2>
+            <div class="text-success small fw-bold">
+                <i class="bi bi-graph-up-arrow me-1"></i> Current Fiscal Year
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
+            <div class="text-muted small fw-extrabold text-uppercase mb-3 ls-wide">Incoming (APR)</div>
+            <h2 class="fw-black mb-1">₱{{ total_incoming|default:"0.00"|floatformat:2|intcomma }}</h2>
+            <div class="text-primary small fw-bold" style="color: #0d9488 !important;">
+                <i class="bi bi-cart-check me-1"></i> Supplier Payments
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
+            <div class="text-muted small fw-extrabold text-uppercase mb-3 ls-wide">Outgoing (Dept)</div>
+            <h2 class="fw-black mb-1">₱{{ total_outgoing|default:"0.00"|floatformat:2|intcomma }}</h2>
+            <div class="text-info small fw-bold">
+                <i class="bi bi-building-up me-1"></i> Revenue Recovery
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-4 bg-white">
+            <div class="text-muted small fw-extrabold text-uppercase mb-3 ls-wide">Records Audit</div>
+            <h2 class="fw-black mb-1">{{ settlements.count }}</h2>
+            <div class="text-muted small fw-bold">Verified Transactions</div>
+        </div>
+    </div>
 
-    <!-- Settlements Grid (Stretched) -->
+    <!-- MAIN DATA INTERFACE -->
     <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white w-100">
+            <div class="card-header bg-white border-0 py-4 px-5">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-4">
+                        <span class="small fw-extrabold text-muted text-uppercase ls-wide" style="font-size: 0.65rem; letter-spacing: 0.1em;">Filter Framework:</span>
+                        <div class="nav nav-pills gap-2" id="settlement-filters">
+                            <a href="{% url 'settlement_list' %}" class="nav-link py-2 px-4 rounded-pill fw-bold {% if not selected_type %}active bg-dark{% else %}bg-light text-dark{% endif %}">
+                                All Streams
+                            </a>
+                            <a href="?type=OUTGOING" class="nav-link py-2 px-4 rounded-pill fw-bold {% if selected_type == 'OUTGOING' %}active bg-info{% else %}bg-light text-dark{% endif %}">
+                                <i class="bi bi-arrow-up-right me-1"></i> Outgoing
+                            </a>
+                            <a href="?type=INCOMING" class="nav-link py-2 px-4 rounded-pill fw-bold {% if selected_type == 'INCOMING' %}active bg-success{% else %}bg-light text-dark{% endif %}" style="{% if selected_type == 'INCOMING' %}background-color: #0d9488 !important;{% endif %}">
+                                <i class="bi bi-arrow-down-left me-1"></i> Incoming
+                            </a>
+                        </div>
+                    </div>
+                    <div class="search-box position-relative" style="min-width: 300px;">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" class="form-control rounded-pill ps-5 bg-light border-0" placeholder="Search references, DV#, OR#...">
+                    </div>
+                </div>
+            </div>
+            
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light-subtle">
+                    <thead style="background: #fcfdfe;">
                         <tr>
-                            <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">Settlement Details</th>
-                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Linked Reference</th>
-                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Date Settled</th>
-                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Amount Paid</th>
+                            <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">Stream & Reference</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">System Entity</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Ledger Date</th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Fiscal Amount</th>
                             <th class="pe-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Audit Scan</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
                         {% for st in settlements %}
-                        <tr class="office-row">
+                        <tr class="ledger-row transition-all">
                             <td class="ps-5 py-4">
-                                <span class="badge {% if st.settlement_type == 'OUTGOING' %}bg-info-subtle text-info{% else %}bg-success-subtle text-success{% endif %} border-0 rounded-pill px-3 mb-1" style="font-size: 10px; font-weight: 800;">
-                                    {{ st.settlement_type }}
-                                </span>
-                                <div class="fw-bold text-dark fs-6">{{ st.reference_no }}</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="p-2 rounded-circle {% if st.settlement_type == 'OUTGOING' %}bg-info-subtle text-info{% else %}bg-success-subtle text-success{% endif %}">
+                                        <i class="bi {% if st.settlement_type == 'OUTGOING' %}bi-arrow-up-right{% else %}bi-arrow-down-left{% endif %} fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-black text-dark fs-6">{{ st.reference_no }}</div>
+                                        <span class="text-muted fw-bold" style="font-size: 10px; text-transform: uppercase;">{{ st.get_settlement_type_display }}</span>
+                                    </div>
+                                </div>
                             </td>
                             <td class="py-4">
-                                <div class="badge bg-light text-muted border px-3">REFID #{{ st.order_id|default:"N/A" }}</div>
+                                <div class="d-flex flex-column">
+                                    <span class="badge bg-light text-dark border px-3 mb-1 align-self-start fw-bold" style="font-size: 11px;">
+                                        {% if st.settlement_type == 'OUTGOING' %}ORDER{% else %}APR{% endif %} #{{ st.order_id }}
+                                    </span>
+                                    <span class="text-muted x-small">Audit ID: 00{{ st.id }}</span>
+                                </div>
                             </td>
-                            <td class="py-4 fw-medium">{{ st.date_settled|date:"M d, Y"|default:"---" }}</td>
+                            <td class="py-4">
+                                <div class="fw-medium text-dark">{{ st.date_settled|date:"M d, Y"|default:"---" }}</div>
+                                <div class="text-muted x-small">Recorded: {{ st.created_at|date:"H:i" }}</div>
+                            </td>
                             <td class="text-end py-4">
-                                <div class="fw-black text-dark" style="font-size: 1.1rem;">₱{{ st.amount_paid|floatformat:2|intcomma }}</div>
+                                <div class="fw-black text-dark fs-5">₱{{ st.amount_paid|floatformat:2|intcomma }}</div>
                             </td>
                             <td class="text-center pe-5 py-4">
                                 {% if st.attachment %}
-                                <a href="{{ st.attachment.url }}" class="btn btn-sm btn-light border-0 rounded-circle shadow-sm text-success" target="_blank" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                                <a href="{{ st.attachment.url }}" class="btn btn-sm btn-white border shadow-sm rounded-circle text-primary" target="_blank" style="width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-eye-fill"></i>
                                 </a>
                                 {% else %}
-                                <div class="bg-light-subtle rounded-circle d-inline-flex align-items-center justify-content-center opacity-25" style="width: 40px; height: 40px;">
+                                <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center opacity-25" style="width: 42px; height: 42px;">
                                     <i class="bi bi-slash-circle"></i>
                                 </div>
                                 {% endif %}
@@ -83,9 +147,9 @@
                         <tr>
                             <td colspan="5" class="py-5 text-center text-muted">
                                 <div class="py-5">
-                                    <i class="bi bi-bank d-block fs-1 mb-3 opacity-25"></i>
+                                    <img src="{% static 'empty_state.svg' %}" alt="Empty" style="width: 120px; opacity: 0.1;" class="mb-4">
                                     <h5 class="fw-bold">No Financial Settlements Found</h5>
-                                    <p class="small">Adjust your filters or record a new transaction settlement.</p>
+                                    <p class="small">Adjust your filter framework or record a new fiscal transaction.</p>
                                 </div>
                             </td>
                         </tr>
@@ -98,9 +162,19 @@
 </div>
 
 <style>
-    .ls-wide { letter-spacing: 0.15em; font-size: 0.65rem !important; }
+    .ls-wide { letter-spacing: 0.2em; font-size: 0.6rem !important; }
     .fw-extrabold { font-weight: 800; }
     .fw-black { font-weight: 900; }
-    .office-row:hover { background-color: #fcfdfe !important; }
+    .x-small { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ledger-row { cursor: pointer; border-left: 4px solid transparent; }
+    .ledger-row:hover { 
+        background-color: #f8fafc !important; 
+        border-left-color: #0d9488;
+        transform: scale(1.002);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    }
+    .transition-all { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    .btn-white { background: white; color: #1e293b; }
+    .btn-white:hover { background: #f8fafc; color: #0d9488; }
 </style>
 {% endblock %}

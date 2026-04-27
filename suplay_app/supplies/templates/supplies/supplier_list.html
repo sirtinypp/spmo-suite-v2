@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mt-2">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden w-100 mb-5">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="bg-light-subtle">
@@ -57,13 +57,17 @@
                         {% endif %}
                     </td>
                     <td class="pe-5 text-end py-4">
-                        <a href="{% url 'edit_supplier' supplier.pk %}" 
-                           hx-get="{% url 'edit_supplier' supplier.pk %}" 
-                           hx-target="#admin-panel" 
-                           hx-push-url="true"
-                           class="btn btn-light rounded-circle shadow-sm border-0 d-flex align-items-center justify-content-center ms-auto" style="width: 32px; height: 32px;">
-                            <i class="bi bi-pencil text-success"></i>
-                        </a>
+                        <div class="btn-group rounded-pill overflow-hidden border shadow-sm ms-auto" style="width: fit-content;">
+                            <a href="{% url 'edit_supplier' supplier.pk %}" 
+                               hx-get="{% url 'edit_supplier' supplier.pk %}" 
+                               hx-target="#admin-panel" 
+                               hx-push-url="true"
+                               class="btn btn-white px-3 py-2" title="Edit Supplier"><i class="bi bi-pencil text-success"></i></a>
+                            <form action="{% url 'delete_supplier' supplier.pk %}" method="post" style="display:inline;" onsubmit="return confirm('Archive this vendor?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-white px-3 py-2 border-start" title="Delete Vendor"><i class="bi bi-trash text-danger"></i></button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}

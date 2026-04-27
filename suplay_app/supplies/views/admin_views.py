@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse
+import csv, io
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum, F, Count
 from django.utils import timezone
 from django.contrib.auth.models import User
-from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News
-from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm
+from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord
+from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm, DeliveryRecordForm
 from ..decorators import role_required, scope_required
 
 # ==========================================
@@ -80,6 +82,7 @@ def admin_dashboard(request):
         'top_items': top_items,
         'recent_orders': orders[:8],
         'news_items': News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5],
+        'urgent_news': News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3],
         'category_data': list(category_data),
         'order_velocity': list(order_velocity),
         'dept_spend': list(dept_spend),
@@ -91,7 +94,7 @@ def admin_dashboard(request):
 def reports_dashboard(request):
     """Deep Analytics Hub for Institutional Reporting"""
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     # Aggregate data for top performing departments
@@ -112,7 +115,7 @@ def reports_dashboard(request):
 @user_passes_test(lambda u: u.is_staff)
 def transaction_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     orders = Order.objects.all().order_by('-created_at')
@@ -154,8 +157,22 @@ def transaction_list(request):
     }
     return render(request, 'supplies/transactions.html', context)
 
+@user_passes_test(lambda u: u.is_staff)
+def order_detail(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
+        base_template = "supplies/includes/admin_partial.html"
+    return render(request, 'supplies/inventory_detail.html', {'order': order, 'base_template': base_template}) # Reusing inventory_detail pattern
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_order(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    order.delete()
+    return redirect('transaction_list')
+
 # --- UPDATE STATUS (Includes Stock & APP Deduction) ---
-@scope_required('can_manage_fulfillment')
+@user_passes_test(lambda u: u.is_staff)
 def update_status(request, order_id, new_status):
     order = get_object_or_404(Order, pk=order_id)
     old_status = order.status
@@ -315,10 +332,10 @@ def mark_delivered(request, order_id):
     return redirect('delivery_dashboard')
 
 # --- INVENTORY & BATCH MANAGEMENT ---
-@scope_required('can_manage_fulfillment')
+@user_passes_test(lambda u: u.is_staff)
 def inventory_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     products = Product.objects.all().order_by('name')
@@ -404,27 +421,32 @@ def inventory_detail(request, pk):
     }
     return render(request, 'supplies/inventory_detail.html', context)
 
-@scope_required('can_manage_fulfillment')
+@user_passes_test(lambda u: u.is_staff)
 def receive_delivery(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request') and not request.GET.get('full_page'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     if request.method == 'POST':
         apr_id = request.POST.get('apr_id')
         apr = get_object_or_404(APRRequest, pk=apr_id)
         
-        # 1. Create the Audit Trail 'DeliveryRecord'
-        delivery = DeliveryRecord.objects.create(
-            apr=apr,
-            dr_number=request.POST.get('dr_number'),
-            si_number=request.POST.get('si_number'),
-            dr_scan=request.FILES.get('dr_scan'),
-            si_scan=request.FILES.get('si_scan'),
-            signed_apr_scan=request.FILES.get('signed_apr_scan'),
-            received_by=request.user,
-            remarks=request.POST.get('remarks')
-        )
+        form = DeliveryRecordForm(request.POST, request.FILES)
+        if form.is_valid():
+            # 1. Create the Audit Trail 'DeliveryRecord'
+            delivery = form.save(commit=False)
+            delivery.apr = apr
+            delivery.received_by = request.user
+            delivery.save()
+        else:
+            # Handle error (re-render with form)
+            active_aprs = APRRequest.objects.exclude(status='CLOSED').order_by('-date_prepared')
+            return render(request, 'supplies/receive_delivery.html', {
+                'active_aprs': active_aprs, 
+                'base_template': base_template,
+                'form': form,
+                'error': "Invalid delivery record data. Please check files and numbers."
+            })
         
         # 2. Process Items
         item_ids = request.POST.getlist('item_id')
@@ -487,14 +509,21 @@ def get_apr_manifest(request, apr_id):
         'apr': apr
     })
 
-@scope_required('can_manage_fulfillment')
+@user_passes_test(lambda u: u.is_staff)
 def batch_list(request):
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
+        base_template = "supplies/includes/admin_partial.html"
+        
     batches = StockBatch.objects.all().order_by('-date_received')
-    return render(request, 'supplies/batch_list.html', {'batches': batches})
+    return render(request, 'supplies/batch_list.html', {
+        'batches': batches,
+        'base_template': base_template
+    })
 
 # --- PROCUREMENT (APR) MODULE ---
 
-@scope_required('can_manage_procurement')
+@user_passes_test(lambda u: u.is_staff)
 def apr_list(request):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request'):
@@ -591,13 +620,18 @@ def apr_print(request, pk):
     }
     return render(request, 'supplies/apr_print.html', context)
 
-@scope_required('can_manage_finances')
+@user_passes_test(lambda u: u.is_staff)
 def settlement_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     settlements = Settlement.objects.all().order_by('-created_at')
+    
+    # Financial Analytics
+    total_settled = settlements.aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+    total_incoming = settlements.filter(settlement_type='INCOMING').aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+    total_outgoing = settlements.filter(settlement_type='OUTGOING').aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
     
     type_filter = request.GET.get('type')
     if type_filter:
@@ -606,6 +640,9 @@ def settlement_list(request):
     context = {
         'settlements': settlements,
         'selected_type': type_filter,
+        'total_settled': total_settled,
+        'total_incoming': total_incoming,
+        'total_outgoing': total_outgoing,
         'base_template': base_template,
     }
     return render(request, 'supplies/settlements.html', context)
@@ -632,10 +669,10 @@ def add_settlement(request):
 # 5. CONFIGURATION HUB (SUPPLIERS, CATEGORIES, UNITS)
 # ==========================================
 
-@scope_required('can_manage_system')
+@user_passes_test(lambda u: u.is_staff)
 def supplier_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     suppliers = Supplier.objects.annotate(product_count=Count('product')).order_by('name')
@@ -664,10 +701,16 @@ def edit_supplier(request, pk):
         form = SupplierForm(instance=supplier)
     return render(request, 'supplies/supplier_form.html', {'form': form, 'title': 'Edit Supplier'})
 
-@scope_required('can_manage_system')
+@user_passes_test(lambda u: u.is_staff)
+def delete_supplier(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    supplier.delete()
+    return redirect('supplier_list')
+
+@user_passes_test(lambda u: u.is_staff)
 def category_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     categories = Category.objects.annotate(product_count=Count('product')).order_by('name')
@@ -696,10 +739,16 @@ def edit_category(request, pk):
         form = CategoryForm(instance=category)
     return render(request, 'supplies/category_form.html', {'form': form, 'title': 'Edit Category'})
 
-@scope_required('can_manage_system')
+@user_passes_test(lambda u: u.is_staff)
+def delete_category(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    category.delete()
+    return redirect('category_list')
+
+@user_passes_test(lambda u: u.is_staff)
 def unit_list(request):
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
     units = Department.objects.annotate(staff_count=Count('profiles')).order_by('name')
@@ -720,6 +769,104 @@ def add_unit(request):
     else:
         form = DepartmentForm()
     return render(request, 'supplies/unit_form.html', {'form': form, 'title': 'Add New System Office'})
+
+# ==========================================
+# 5. DATA HUB (BULK IMPORT/EXPORT)
+# ==========================================
+
+@user_passes_test(lambda u: u.is_staff)
+def data_hub(request):
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
+        base_template = "supplies/includes/admin_partial.html"
+    return render(request, 'supplies/data_hub.html', {'base_template': base_template})
+
+@user_passes_test(lambda u: u.is_staff)
+def download_template(request, type):
+    response = HttpResponse(content_type='text/csv')
+    
+    if type == 'incoming':
+        response['Content-Disposition'] = 'attachment; filename="suplay_incoming_template.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['date_received', 'item_code', 'quantity', 'unit_cost', 'supplier_name', 'batch_number'])
+        writer.writerow(['2026-01-15', 'STK-001', '100', '150.50', 'Global Supplies Inc', 'B2026-01'])
+    else:
+        response['Content-Disposition'] = 'attachment; filename="suplay_outgoing_template.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['date_requested', 'employee_name', 'department_name', 'item_code', 'quantity', 'unit_cost', 'status'])
+        writer.writerow(['2026-01-20', 'Juan Dela Cruz', 'Accounting Office', 'STK-001', '5', '165.00', 'delivered'])
+        
+    return response
+
+@user_passes_test(lambda u: u.is_staff)
+def upload_csv(request):
+    if request.method == 'POST' and request.FILES.get('csv_file'):
+        csv_file = request.FILES['csv_file']
+        import_type = request.POST.get('import_type')
+        
+        decoded_file = csv_file.read().decode('utf-8')
+        io_string = io.StringIO(decoded_file)
+        reader = csv.DictReader(io_string)
+        
+        success_count = 0
+        error_count = 0
+        
+        for row in reader:
+            try:
+                if import_type == 'incoming':
+                    product = Product.objects.get(item_code=row['item_code'])
+                    StockBatch.objects.create(
+                        product=product,
+                        supplier_name=row['supplier_name'],
+                        batch_number=row['batch_number'],
+                        quantity_initial=int(row['quantity']),
+                        quantity_remaining=int(row['quantity']),
+                        cost_per_item=float(row['unit_cost']),
+                        date_received=row['date_received']
+                    )
+                    # Update master stock
+                    product.stock += int(row['quantity'])
+                    product.save()
+                
+                elif import_type == 'outgoing':
+                    product = Product.objects.get(item_code=row['item_code'])
+                    dept, _ = Department.objects.get_or_create(name=row['department_name'])
+                    
+                    order = Order.objects.create(
+                        employee_name=row['employee_name'],
+                        department=dept,
+                        total_amount=float(row['unit_cost']) * int(row['quantity']),
+                        status=row['status']
+                    )
+                    order.created_at = row['date_requested']
+                    order.save()
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=int(row['quantity']),
+                        price=float(row['unit_cost'])
+                    )
+                    # Deduct stock if delivered
+                    if row['status'] == 'delivered':
+                        product.stock -= int(row['quantity'])
+                        product.save()
+                
+                success_count += 1
+            except Exception as e:
+                error_count += 1
+                
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Import Complete: {success_count} records added, {error_count} failed.'
+        })
+        
+    return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
+@user_passes_test(lambda u: u.is_staff)
+def delete_unit(request, pk):
+    unit = get_object_or_404(Department, pk=pk)
+    unit.delete()
+    return redirect('unit_list')
 
 @scope_required('can_manage_system')
 def edit_unit(request, pk):
@@ -766,10 +913,11 @@ def unlink_user(request, profile_id):
 @scope_required('can_manage_procurement')
 def broadcast_list(request):
     """List all global announcements in the Broadcast Hub"""
-    news_items = News.objects.all().order_by('-date_posted')
     base_template = "supplies/admin_base.html"
-    if request.headers.get('HX-Request') and not request.GET.get('full_page'):
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
+
+    news_items = News.objects.all().order_by('-date_posted')
         
     return render(request, 'supplies/broadcast_list.html', {
         'news_items': news_items,

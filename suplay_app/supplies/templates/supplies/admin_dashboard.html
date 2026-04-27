@@ -22,6 +22,110 @@
 {% endblock %}
 
 {% block content %}
+<!-- Rapid Control Deck -->
+<div class="row g-3 mb-5">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #03040b 0%, #0d9488 100%);">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div>
+                        <h5 class="text-white fw-bold mb-0">Rapid Control Deck</h5>
+                        <p class="text-white-50 small mb-0">Direct execution of institutional management protocols</p>
+                    </div>
+                    <div class="badge bg-white bg-opacity-10 text-white border-white border-opacity-25 px-3 py-2 rounded-pill">
+                        <i class="bi bi-shield-check me-1"></i> Authoritative Session
+                    </div>
+                </div>
+                <div class="row g-2">
+                    {% if user.profile.can_manage_procurement %}
+                    <div class="col-md-3">
+                        <a href="{% url 'receive_delivery' %}" class="btn btn-glass-teal w-100 py-3 text-start">
+                            <i class="bi bi-box-seam fs-4 d-block mb-1"></i>
+                            <span class="fw-bold d-block">Receive Delivery</span>
+                            <small class="opacity-75">Procurement Log</small>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if user.profile.can_manage_fulfillment %}
+                    <div class="col-md-3">
+                        <a href="{% url 'transaction_list' %}" class="btn btn-glass-emerald w-100 py-3 text-start">
+                            <i class="bi bi-clipboard2-check fs-4 d-block mb-1"></i>
+                            <span class="fw-bold d-block">Fulfillment Queue</span>
+                            <small class="opacity-75">Release Orders</small>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if user.profile.can_manage_finances %}
+                    <div class="col-md-3">
+                        <a href="{% url 'settlement_list' %}" class="btn btn-glass-blue w-100 py-3 text-start">
+                            <i class="bi bi-bank fs-4 d-block mb-1"></i>
+                            <span class="fw-bold d-block">Settlement Tracker</span>
+                            <small class="opacity-75">Financial Audit</small>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if user.profile.can_manage_assets %}
+                    <div class="col-md-3">
+                        <a href="{% url 'add_product' %}" class="btn btn-glass-dark w-100 py-3 text-start">
+                            <i class="bi bi-plus-circle fs-4 d-block mb-1"></i>
+                            <span class="fw-bold d-block">Register Asset</span>
+                            <small class="opacity-75">Inventory Entry</small>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-glass-teal { background: rgba(20, 184, 166, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-glass-emerald { background: rgba(16, 185, 129, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-glass-blue { background: rgba(59, 130, 246, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-glass-dark { background: rgba(0, 0, 0, 0.3); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-glass-teal:hover, .btn-glass-emerald:hover, .btn-glass-blue:hover, .btn-glass-dark:hover { 
+        background: rgba(255,255,255,0.1); 
+        transform: translateY(-2px); 
+        border-color: rgba(255,255,255,0.4);
+        color: #fff;
+    }
+</style>
+
+<!-- System Registry Control Bar -->
+<div class="row g-3 mb-5 mt-n4">
+    <div class="col-12">
+        <div class="p-3 bg-white rounded-4 shadow-sm d-flex align-items-center justify-content-between border border-light">
+            <div class="d-flex align-items-center gap-4">
+                <span class="small fw-extrabold text-muted text-uppercase ls-wide" style="font-size: 0.65rem; letter-spacing: 0.1em;">Registry Management:</span>
+                <div class="d-flex gap-2">
+                    {% if user.profile.can_manage_system %}
+                    <a href="{% url 'supplier_list' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark border shadow-sm" style="font-size: 11px;">
+                        <i class="bi bi-shop me-1 text-success"></i> Suppliers
+                    </a>
+                    <a href="{% url 'category_list' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark border shadow-sm" style="font-size: 11px;">
+                        <i class="bi bi-tags me-1 text-success"></i> Categories
+                    </a>
+                    <a href="{% url 'unit_list' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark border shadow-sm" style="font-size: 11px;">
+                        <i class="bi bi-building me-1 text-success"></i> System Units
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'broadcast_list' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold text-dark border shadow-sm" style="font-size: 11px;">
+                        <i class="bi bi-megaphone me-1 text-primary"></i> Broadcast Hub
+                    </a>
+                </div>
+            </div>
+            <div class="text-muted x-small fw-bold">
+                <i class="bi bi-shield-lock-fill me-1"></i> Registry Lock: <span class="text-success">Active</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mt-n4 { margin-top: -1.5rem !important; }
+</style>
+
 <!-- Dashboard Stats Grid -->
 <div class="row g-4 mb-4">
     <!-- Stat Blocks: Operational -->
@@ -165,7 +269,8 @@
                             <th class="ps-4 py-3">Reference</th>
                             <th>Department</th>
                             <th>Status</th>
-                            <th class="text-end pe-4">Amount</th>
+                            <th class="text-end">Amount</th>
+                            <th class="text-end pe-4">Rapid Action</th>
                         </tr>
                     </thead>
                     <tbody class="border-top-0">
@@ -183,13 +288,24 @@
                                     {{ order.get_status_display|default:order.status }}
                                 </span>
                             </td>
-                            <td class="text-end pe-4 fw-bold text-dark">
+                            <td class="text-end fw-bold text-dark">
                                 ₱{{ order.total_amount|intcomma }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    {% if order.status == 'pending' %}
+                                        <a href="{% url 'update_status' order.id 'approved' %}" class="btn btn-sm btn-success py-1 px-2 fw-bold border-0 shadow-sm" style="font-size: 10px;">VALIDATE</a>
+                                    {% elif order.status == 'approved' %}
+                                        <a href="{% url 'mark_delivered' order.id %}" class="btn btn-sm btn-primary py-1 px-2 fw-bold border-0 shadow-sm" style="font-size: 10px;">RELEASE</a>
+                                    {% else %}
+                                        <span class="text-muted small">N/A</span>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center py-5 text-muted">No pending deployments.</td>
+                            <td colspan="5" class="text-center py-5 text-muted">No pending deployments.</td>
                         </tr>
                         {% endfor %}
                     </tbody>

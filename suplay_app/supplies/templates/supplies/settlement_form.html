@@ -1,4 +1,4 @@
-{% extends "supplies/admin_base.html" %}
+{% extends base_template|default:"supplies/admin_base.html" %}
 {% load static %}
 
 {% block header_title %}
@@ -27,12 +27,12 @@
                     {% csrf_token %}
                     <div class="row g-4">
                         <div class="col-md-12">
-                            <div class="form-check form-switch p-4 bg-success-subtle rounded-4 border border-success-subtle">
+                            <div class="form-check form-switch p-4 rounded-4 border-0 shadow-sm" style="background-color: #15803d;">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <label class="form-check-label fw-bold text-success fs-5">Finalize & Close Transaction</label>
+                                    <label class="form-check-label fw-bold text-white fs-5">Finalize & Close Transaction</label>
                                     {{ form.is_settled }}
                                 </div>
-                                <p class="small text-success opacity-75 mb-0 mt-1">Checking this marks the linked Order or APR as fully paid.</p>
+                                <p class="small text-white opacity-75 mb-0 mt-1">Checking this marks the linked Order or APR as fully paid.</p>
                             </div>
                         </div>
 
@@ -73,7 +73,7 @@
                     </div>
                     
                     <div class="d-grid gap-2 mt-5 pt-3">
-                        <button type="submit" class="btn btn-success btn-lg rounded-4 shadow-sm fw-bold py-3">
+                        <button type="submit" class="btn btn-success btn-lg rounded-4 shadow-sm fw-bold py-3" style="background-color: #15803d; border: none;">
                             <i class="bi bi-shield-lock-fill me-2"></i> Commit Financial Record
                         </button>
                     </div>
@@ -85,8 +85,8 @@
     <!-- RIGHT: SETTLEMENT CONTEXT (EXPLANATORY) -->
     <div class="col-lg-7">
         <div class="h-100 bg-white rounded-5 shadow-sm p-5 border border-light d-flex flex-column align-items-center justify-content-center text-center">
-            <div class="bg-success-subtle p-5 rounded-circle mb-4" style="background-color: rgba(5, 150, 105, 0.05);">
-                <i class="bi bi-journal-check text-success" style="font-size: 5rem;"></i>
+            <div class="p-5 rounded-circle mb-4" style="background-color: #15803d;">
+                <i class="bi bi-journal-check text-white" style="font-size: 5rem;"></i>
             </div>
             <h3 class="fw-bold text-dark">Audit-Ready Settlements</h3>
             <p class="text-muted px-5 mb-0">Record all financial transactions to maintain a perfect audit trail. Ensure that Check Numbers and Official Receipts are accurately captured for COA compliance.</p>

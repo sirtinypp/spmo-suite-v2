@@ -5,11 +5,11 @@
 
 {% block header_title %}
 <div class="d-flex align-items-center">
-    <div class="bg-primary-subtle p-2 rounded-3 me-3" style="background-color: rgba(59, 130, 246, 0.1);">
-        <i class="bi bi-truck fs-4 text-primary"></i>
+    <div class="p-2 rounded-3 me-3" style="background-color: #15803d;">
+        <i class="bi bi-truck fs-4 text-white"></i>
     </div>
     <div>
-        <span class="text-dark d-block">Intake Intelligence</span>
+        <span class="text-dark d-block fw-bold">Intake Intelligence</span>
         <span class="text-muted small fw-normal" style="font-size: 0.75rem;">Fulfillment & Stock Injection Terminal</span>
     </div>
 </div>
@@ -18,6 +18,15 @@
 {% block content %}
 <form method="post" enctype="multipart/form-data" class="row g-5">
     {% csrf_token %}
+    
+    {% if error %}
+    <div class="col-12">
+        <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-0">
+            <div class="fw-bold small mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i> Intake Blocked</div>
+            <p class="mb-0 small">{{ error }}</p>
+        </div>
+    </div>
+    {% endif %}
     
     <!-- LEFT: TRANSACTIONAL METADATA -->
     <div class="col-lg-4">
@@ -86,7 +95,7 @@
                 <div class="h5 fw-bold text-dark">Expected Manifest Verification</div>
             </div>
             <div class="no-print">
-               <button type="button" onclick="autoFillManifest()" class="btn btn-link btn-sm text-decoration-none fw-bold text-primary">
+               <button type="button" onclick="autoFillManifest()" class="btn btn-link btn-sm text-decoration-none fw-bold text-success" style="color: #15803d !important;">
                     <i class="bi bi-magic me-1"></i> Auto-Fill Full Intake
                </button>
             </div>
@@ -106,7 +115,7 @@
 
         <div class="mt-5 d-flex justify-content-end gap-3">
             <a href="{% url 'inventory_list' %}" class="btn btn-light rounded-pill px-4 fw-bold">Cancel Intake</a>
-            <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm fw-bold border-0" style="background-color: #3b82f6;">
+            <button type="submit" class="btn btn-success rounded-pill px-5 shadow-sm fw-bold border-0" style="background-color: #15803d;">
                 <i class="bi bi-box-arrow-in-down me-2"></i> Commit & Inject Stock
             </button>
         </div>

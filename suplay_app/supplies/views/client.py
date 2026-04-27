@@ -9,6 +9,7 @@ from io import BytesIO
 from xhtml2pdf import pisa
 
 from ..models import Product, Category, Order, OrderItem, AnnualProcurementPlan, Supplier, StockBatch, News, Department
+from ..forms import OrderDocumentForm
 
 # ==========================================
 #             CLIENT SIDE VIEWS
@@ -221,6 +222,7 @@ def home(request):
     
     # Latest News
     news_items = News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5]
+    urgent_news = News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3]
 
     context = {
         'products': products_paginated,
@@ -229,6 +231,7 @@ def home(request):
         'suppliers': suppliers,
         'newly_added': newly_added,
         'news_items': news_items,
+        'urgent_news': urgent_news,
         'user_has_department': user_has_department,
         'info_message': info_message
     }
@@ -320,13 +323,15 @@ def search(request):
                 in_cart = current_cart.get(str(p.id), 0)
                 p.personal_stock = max(0, limit - (consumed + in_cart))
         
-        products = products_paginated # Re-assign for context
+        # Latest News
+        urgent_news = News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3]
     
     return render(request, 'supplies/home.html', {
         'products': products, 
         'categories': categories, 
         'search_query': query,
-        'total_count_all': total_count_all
+        'total_count_all': total_count_all,
+        'urgent_news': urgent_news,
     })
 
 # --- PRODUCT DETAIL ---
@@ -502,20 +507,24 @@ def checkout_finalize(request, order_id):
         return redirect('order_success', order_id=order.id)
 
     if request.method == 'POST':
-        if 'document1' in request.FILES:
-            order.document1 = request.FILES['document1']
-        
-        # JUST UPDATE STATUS - DO NOT DEDUCT STOCK OR APP YET
-        # Deduction happens on Admin Approval
-        order.status = 'pending'
-        order.save()
+        form = OrderDocumentForm(request.POST, request.FILES, instance=order)
+        if form.is_valid():
+            # JUST UPDATE STATUS - DO NOT DEDUCT STOCK OR APP YET
+            # Deduction happens on Admin Approval
+            order = form.save(commit=False)
+            order.status = 'pending'
+            order.save()
 
-        # Clear Cart
-        request.session['cart'] = {}
-        request.session.modified = True
-        return redirect('order_success', order_id=order.id)
+            # Clear Cart
+            request.session['cart'] = {}
+            request.session.modified = True
+            return redirect('order_success', order_id=order.id)
+        else:
+            # If form is invalid, re-render with errors
+            return render(request, 'supplies/checkout_finalize.html', {'order': order, 'form': form})
 
-    return render(request, 'supplies/checkout_finalize.html', {'order': order})
+    form = OrderDocumentForm(instance=order)
+    return render(request, 'supplies/checkout_finalize.html', {'order': order, 'form': form})
 
 
 @login_required

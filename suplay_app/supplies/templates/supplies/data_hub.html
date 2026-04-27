@@ -1,0 +1,178 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
+
+{% block title %}Data Hub | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-database-up fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Systems & Data Hub</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Bulk Data Sync & Template Management</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <!-- 1. TEMPLATE DOWNLOAD CENTER -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-body p-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-primary-subtle p-3 rounded-circle me-3">
+                            <i class="bi bi-file-earmark-spreadsheet fs-3 text-primary"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">1. Prepare Your Data</h5>
+                    </div>
+                    <p class="text-muted mb-5">Download these standardized templates for your staff to populate. Ensure all mandatory headers are maintained.</p>
+                    
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'download_template' 'incoming' %}" class="btn btn-outline-primary py-3 rounded-4 fw-bold text-start px-4 d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-download me-2"></i> Replenishment Template
+                                <small class="d-block text-muted fw-normal mt-1">For Incoming Stock & Deliveries</small>
+                            </div>
+                            <i class="bi bi-chevron-right opacity-50"></i>
+                        </a>
+                        
+                        <a href="{% url 'download_template' 'outgoing' %}" class="btn btn-outline-primary py-3 rounded-4 fw-bold text-start px-4 d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-download me-2"></i> Fulfillment Template
+                                <small class="d-block text-muted fw-normal mt-1">For Outgoing Requests & Issues</small>
+                            </div>
+                            <i class="bi bi-chevron-right opacity-50"></i>
+                        </a>
+                    </div>
+
+                    <div class="mt-5 p-4 bg-light rounded-4 border">
+                        <h6 class="fw-bold mb-2 text-dark small text-uppercase ls-wide">Instructions:</h6>
+                        <ul class="small text-muted ps-3 mb-0">
+                            <li>Keep the header row exactly as it is.</li>
+                            <li>Dates must follow <strong>YYYY-MM-DD</strong> format.</li>
+                            <li><strong>Item Code</strong> must match the registry exactly.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. UPLOAD & SYNC INTERFACE -->
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div class="card-body p-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-success-subtle p-3 rounded-circle me-3">
+                            <i class="bi bi-cloud-arrow-up fs-3 text-success"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">2. Upload & Synchronize</h5>
+                    </div>
+                    
+                    <form id="importForm" class="mt-4">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark small text-uppercase ls-wide">Select Stream Type</label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="import_type" id="type_incoming" value="incoming" checked>
+                                    <label class="btn btn-outline-success w-100 py-3 rounded-4 fw-bold" for="type_incoming">
+                                        <i class="bi bi-box-seam me-2"></i> Incoming Deliveries
+                                    </label>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="radio" class="btn-check" name="import_type" id="type_outgoing" value="outgoing">
+                                    <label class="btn btn-outline-success w-100 py-3 rounded-4 fw-bold" for="type_outgoing">
+                                        <i class="bi bi-send me-2"></i> Outgoing Requests
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5 border-2 border-dashed rounded-4 text-center bg-light border-success-subtle mb-4" id="dropZone">
+                            <i class="bi bi-file-earmark-csv fs-1 text-success opacity-50 mb-3 d-block"></i>
+                            <h6 class="fw-bold">Select Populated CSV File</h6>
+                            <p class="small text-muted mb-4">Maximum file size: 5MB</p>
+                            <input type="file" name="csv_file" id="fileInput" class="d-none" accept=".csv">
+                            <button type="button" class="btn btn-success px-5 rounded-pill fw-bold shadow-sm" onclick="document.getElementById('fileInput').click()">
+                                Browse Local Files
+                            </button>
+                            <div id="fileInfo" class="mt-3 fw-bold text-success d-none"></div>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-4 fw-bold shadow-lg mt-3" id="syncBtn">
+                            <i class="bi bi-lightning-charge-fill me-2"></i> Execute Data Synchronization
+                        </button>
+                    </form>
+
+                    <!-- Result Alert -->
+                    <div id="resultAlert" class="mt-4 d-none alert rounded-4 p-4 border-0 shadow-sm d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                        <div id="resultMessage" class="fw-bold"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const importForm = document.getElementById('importForm');
+    const syncBtn = document.getElementById('syncBtn');
+    const resultAlert = document.getElementById('resultAlert');
+    const resultMessage = document.getElementById('resultMessage');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            fileInfo.textContent = 'Ready: ' + this.files[0].name;
+            fileInfo.classList.remove('d-none');
+        }
+    });
+
+    importForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (fileInput.files.length === 0) {
+            alert('Please select a CSV file first.');
+            return;
+        }
+
+        const formData = new FormData(this);
+        syncBtn.disabled = true;
+        syncBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Synchronizing...';
+
+        fetch("{% url 'upload_csv' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i> Execute Data Synchronization';
+            
+            resultAlert.classList.remove('d-none', 'alert-success', 'alert-danger');
+            resultAlert.classList.add(data.status === 'success' ? 'alert-success' : 'alert-danger');
+            resultMessage.textContent = data.message;
+        })
+        .catch(error => {
+            syncBtn.disabled = false;
+            syncBtn.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i> Execute Data Synchronization';
+            alert('An error occurred during synchronization.');
+        });
+    });
+</script>
+
+<style>
+    .ls-wide { letter-spacing: 0.15em; font-size: 0.65rem !important; }
+    .border-dashed { border-style: dashed !important; }
+</style>
+{% endblock %}

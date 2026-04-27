@@ -115,6 +115,15 @@
             font-size: 0.9rem;
             transition: all 0.2s;
         }
+        #admin-panel {
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        #admin-panel .card, #admin-panel .row {
+            width: 100% !important;
+            margin-right: 0 !important;
+            margin-left: 0 !important;
+        }
         .btn-success { background-color: var(--spmo-emerald) !important; border: none !important; }
         .btn-success:hover { background-color: #047857 !important; transform: translateY(-1px); }
         .btn-light { background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
@@ -137,108 +146,64 @@
         </div>
 
         <div class="overflow-y-auto flex-grow-1">
-            <div class="sidebar-category">Operations</div>
-            <a href="{% url 'admin_dashboard' %}" 
-               hx-get="{% url 'admin_dashboard' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i> Dashboard
+            <div class="sidebar-category">⚡ Command & Analytics</div>
+            <a href="{% url 'admin_dashboard' %}" hx-get="{% url 'admin_dashboard' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Command Dashboard
             </a>
-            <a href="{% url 'broadcast_list' %}" 
-               hx-get="{% url 'broadcast_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'broadcast_list' %}active{% endif %}">
+            <a href="{% url 'reports_dashboard' %}" hx-get="{% url 'reports_dashboard' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'reports_dashboard' %}active{% endif %}">
+                <i class="bi bi-graph-up-arrow"></i> Institutional Reports
+            </a>
+            <a href="{% url 'broadcast_list' %}" hx-get="{% url 'broadcast_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'broadcast_list' %}active{% endif %}">
                 <i class="bi bi-megaphone"></i> Broadcast Hub
             </a>
-            
-            {% if user.profile.can_manage_procurement %}
-            <div class="sidebar-category">Procurement (Incoming)</div>
-            <a href="{% url 'apr_list' %}" 
-               hx-get="{% url 'apr_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'apr_list' %}active{% endif %}">
-                <i class="bi bi-file-earmark-plus"></i> APR Requests
-            </a>
-            {% endif %}
-            
-            {% if user.profile.can_manage_fulfillment %}
-            <a href="{% url 'receive_delivery' %}" 
-               hx-get="{% url 'receive_delivery' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'receive_delivery' %}active{% endif %}">
-                <i class="bi bi-box-seam"></i> Receive Deliveries
-            </a>
-            {% endif %}
-            
-            {% if user.profile.can_manage_fulfillment %}
-            <div class="sidebar-category">Distribution (Outgoing)</div>
-            <a href="{% url 'transaction_list' %}" 
-               hx-get="{% url 'transaction_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'transaction_list' %}active{% endif %}">
-                <i class="bi bi-clipboard2-check"></i> Fulfillment Queue
-            </a>
-            <a href="{% url 'order_history' %}" 
-               hx-get="{% url 'order_history' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
-                <i class="bi bi-truck"></i> Releasing Control
-            </a>
-            {% endif %}
 
-            <div class="sidebar-category">Financials & Assets</div>
-            {% if user.profile.can_manage_finances %}
-            <a href="{% url 'settlement_list' %}" 
-               hx-get="{% url 'settlement_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'settlement_list' %}active{% endif %}">
-                <i class="bi bi-bank"></i> Settlement Tracker
+            <div class="sidebar-category">📋 Transaction Streams</div>
+            <a href="{% url 'transaction_list' %}" hx-get="{% url 'transaction_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'transaction_list' %}active{% endif %}">
+                <span><i class="bi bi-clipboard2-data"></i> Department Orders</span>
+                {% if pulse_pending_orders > 0 %}
+                <span class="badge rounded-pill shadow-sm px-2 py-1" style="font-size: 0.6rem; background-color: #15803d !important; color: #fff !important;">{{ pulse_pending_orders }}</span>
+                {% endif %}
             </a>
-            {% endif %}
-            
-            {% if user.profile.can_manage_fulfillment %}
-            <a href="{% url 'inventory_list' %}" 
-               hx-get="{% url 'inventory_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
-                <i class="bi bi-database-check"></i> Master Inventory
+            <a href="{% url 'apr_list' %}" hx-get="{% url 'apr_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'apr_list' %}active{% endif %}">
+                <span><i class="bi bi-cart-check"></i> APR Procurement</span>
+                {% if pulse_open_aprs > 0 %}
+                <span class="badge rounded-pill shadow-sm px-2 py-1" style="font-size: 0.6rem; background-color: #0d9488 !important; color: #fff !important;">{{ pulse_open_aprs }}</span>
+                {% endif %}
             </a>
-            {% endif %}
-            
-            <a href="{% url 'reports_dashboard' %}" class="nav-link" hx-get="{% url 'reports_dashboard' %}" hx-target="#admin-panel" hx-push-url="true"><i class="bi bi-graph-up-arrow"></i> Reports & KPIs</a>
+            <a href="{% url 'receive_delivery' %}" hx-get="{% url 'receive_delivery' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'receive_delivery' %}active{% endif %}">
+                <span><i class="bi bi-truck-flatbed"></i> Delivery Records</span>
+                {% if pulse_incoming_deliveries > 0 %}
+                <span class="badge rounded-pill shadow-sm px-2 py-1" style="font-size: 0.6rem; background-color: #0369a1 !important; color: #fff !important;">{{ pulse_incoming_deliveries }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'settlement_list' %}" hx-get="{% url 'settlement_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'settlement_list' %}active{% endif %}">
+                <i class="bi bi-bank"></i> Settlement Ledger
+            </a>
 
-            {% if user.profile.can_manage_system %}
-            <div class="sidebar-category">System Configuration</div>
-            <a href="{% url 'supplier_list' %}" 
-               hx-get="{% url 'supplier_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}active{% endif %}">
-                <i class="bi bi-shop"></i> Suppliers
+            <div class="sidebar-category">📦 SUPLAY Databases</div>
+            <a href="{% url 'inventory_list' %}" hx-get="{% url 'inventory_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">
+                <span><i class="bi bi-database"></i> Product Inventory</span>
+                {% if pulse_low_stock > 0 %}
+                <span class="badge rounded-pill shadow-sm px-2 py-1" style="font-size: 0.6rem; background-color: #b45309 !important; color: #fff !important;">{{ pulse_low_stock }}</span>
+                {% endif %}
             </a>
-            <a href="{% url 'category_list' %}" 
-               hx-get="{% url 'category_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}">
-                <i class="bi bi-tags"></i> Categories
+            <a href="{% url 'batch_list' %}" hx-get="{% url 'batch_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'batch_list' %}active{% endif %}">
+                <i class="bi bi-layers"></i> Stock Batch Ledger
             </a>
-            <a href="{% url 'unit_list' %}" 
-               hx-get="{% url 'unit_list' %}" 
-               hx-target="#admin-panel" 
-               hx-push-url="true"
-               class="nav-link {% if request.resolver_match.url_name == 'unit_list' %}active{% endif %}">
-                <i class="bi bi-building"></i> System Units
+            <a href="{% url 'supplier_list' %}" hx-get="{% url 'supplier_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'supplier_list' %}active{% endif %}">
+                <i class="bi bi-shop-window"></i> Supplier Directory
             </a>
-            {% endif %}
+            <a href="{% url 'category_list' %}" hx-get="{% url 'category_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}">
+                <i class="bi bi-tags"></i> Category Registry
+            </a>
+            <a href="{% url 'unit_list' %}" hx-get="{% url 'unit_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'unit_list' %}active{% endif %}">
+                <i class="bi bi-building-gear"></i> Department Units
+            </a>
+
+            <div class="sidebar-category">⚙️ Systems & Data</div>
+            <a href="{% url 'data_hub' %}" hx-get="{% url 'data_hub' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'data_hub' %}active{% endif %}">
+                <i class="bi bi-database-up"></i> Data Hub (Import)
+            </a>
         </div>
 
         <div class="mt-auto p-4 border-top bg-light-subtle">
@@ -256,7 +221,9 @@
 
     <!-- Main Content Area -->
     <main class="main-content">
-        <div id="admin-panel">
+        <div id="admin-panel" class="container-fluid px-0">
+            {% include 'supplies/includes/critical_ticker.html' %}
+            
             <!-- Admin Header -->
             <header class="d-flex align-items-center justify-content-between mb-5">
                 <div class="flex-grow-1 d-flex align-items-center">

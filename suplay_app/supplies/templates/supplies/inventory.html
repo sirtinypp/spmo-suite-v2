@@ -132,13 +132,21 @@
                     <td class="pe-5 text-end py-4">
                         <div class="btn-group rounded-pill overflow-hidden border shadow-sm">
                             {% if user.profile.can_manage_assets %}
-                            <a href="{% url 'edit_product' product.pk %}" class="btn btn-white px-3 py-2" title="Edit Item"><i class="bi bi-pencil text-success"></i></a>
+                            <a href="{% url 'edit_product' product.pk %}" 
+                               hx-get="{% url 'edit_product' product.pk %}" 
+                               hx-target="#admin-panel" 
+                               hx-push-url="true"
+                               class="btn btn-white px-3 py-2" title="Edit Item"><i class="bi bi-pencil text-success"></i></a>
+                            <form action="{% url 'delete_product' product.pk %}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this asset?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-white px-3 py-2 border-start" title="Delete Asset"><i class="bi bi-trash text-danger"></i></button>
+                            </form>
                             {% endif %}
                             <a href="{% url 'inventory_detail' product.pk %}" 
                                hx-get="{% url 'inventory_detail' product.pk %}" 
                                hx-target="#admin-panel" 
                                hx-push-url="true" 
-                               class="btn btn-white px-3 py-2" title="View History"><i class="bi bi-clock-history text-primary"></i></a>
+                               class="btn btn-white px-3 py-2 border-start" title="View History"><i class="bi bi-clock-history text-primary"></i></a>
                         </div>
                     </td>
                 </tr>

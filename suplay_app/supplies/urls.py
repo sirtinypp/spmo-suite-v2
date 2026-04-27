@@ -29,7 +29,6 @@ urlpatterns = [
 
     # --- ADMIN ---
     path('console/', views.admin_dashboard, name='admin_dashboard'),
-    path('transactions/', views.transaction_list, name='transaction_list'),
     path('update-status/<int:order_id>/<str:new_status>/', views.update_status, name='update_status'),
     path('return-order/<int:order_id>/', views.return_order, name='return_order'),
     path('inventory/', views.inventory_list, name='inventory_list'),
@@ -42,7 +41,6 @@ urlpatterns = [
     path('delivery/', views.delivery_dashboard, name='delivery_dashboard'),
     path('delivery/confirm/<int:order_id>/', views.mark_delivered, name='mark_delivered'),
     path('delivery/manifest/<int:apr_id>/', views.get_apr_manifest, name='get_apr_manifest'),
-    path('order-history/', views.delivery_dashboard, name='order_history'),
 
     path('requisition-slip/', views.requisition_slip, name='requisition_slip'),
     path('requisition-slip/<int:order_id>/', views.requisition_slip, name='requisition_slip_download'),
@@ -50,6 +48,9 @@ urlpatterns = [
 
     # --- MANAGEMENT CONTROLS ---
     path('apr/', views.apr_list, name='apr_list'),
+    path('orders/', views.transaction_list, name='transaction_list'),
+    path('orders/detail/<int:pk>/', views.order_detail, name='order_detail'),
+    path('orders/delete/<int:pk>/', views.delete_order, name='delete_order'),
     path('apr/add/', views.add_apr, name='add_apr'),
     path('apr/detail/<int:pk>/', views.apr_detail, name='apr_detail'),
     path('apr/add-item/<int:apr_id>/', views.add_apr_item, name='add_apr_item'),
@@ -60,6 +61,9 @@ urlpatterns = [
     path('settlements/add/', views.add_settlement, name='add_settlement'),
 
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
+    path('data-hub/', views.data_hub, name='data_hub'),
+    path('data-hub/template/<str:type>/', views.download_template, name='download_template'),
+    path('data-hub/upload/', views.upload_csv, name='upload_csv'),
 
     path('broadcast/', views.broadcast_list, name='broadcast_list'),
     path('broadcast/add/', views.add_broadcast, name='add_broadcast'),
@@ -70,13 +74,16 @@ urlpatterns = [
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/add/', views.add_supplier, name='add_supplier'),
     path('suppliers/edit/<int:pk>/', views.edit_supplier, name='edit_supplier'),
+    path('suppliers/delete/<int:pk>/', views.delete_supplier, name='delete_supplier'),
 
     path('categories/', views.category_list, name='category_list'),
     path('categories/add/', views.add_category, name='add_category'),
     path('categories/edit/<int:pk>/', views.edit_category, name='edit_category'),
+    path('categories/delete/<int:pk>/', views.delete_category, name='delete_category'),
 
     path('units/', views.unit_list, name='unit_list'),
     path('units/add/', views.add_unit, name='add_unit'),
     path('units/edit/<int:pk>/', views.edit_unit, name='edit_unit'),
+    path('units/delete/<int:pk>/', views.delete_unit, name='delete_unit'),
     path('units/unlink/<int:profile_id>/', views.unlink_user, name='unlink_user'),
 ]

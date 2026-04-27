@@ -1,5 +1,16 @@
 from django import forms
-from .models import Product, StockBatch, APRRequest, Settlement, Supplier, Category, Department, News
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+from .models import Product, StockBatch, APRRequest, Settlement, Supplier, Category, Department, News, Order, DeliveryRecord
+
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB Limit
+
+def validate_file_size(value):
+    if value.size > MAX_FILE_SIZE:
+        raise ValidationError(f"File size exceeds the 5MB limit.")
+
+ALLOWED_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp']
+ALLOWED_DOC_EXTENSIONS = ['pdf', 'jpg', 'jpeg', 'png']
 
 class NewsForm(forms.ModelForm):
     class Meta:
@@ -12,6 +23,13 @@ class NewsForm(forms.ModelForm):
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            validate_file_size(image)
+            FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_EXTENSIONS)(image)
+        return image
 
 class ProductForm(forms.ModelForm):
     class Meta:
@@ -27,7 +45,15 @@ class ProductForm(forms.ModelForm):
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'unit': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., pc, box'}),
             'reorder_point': forms.NumberInput(attrs={'class': 'form-control'}),
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
         }
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image:
+            validate_file_size(image)
+            FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_EXTENSIONS)(image)
+        return image
 
 class StockBatchForm(forms.ModelForm):
     class Meta:
@@ -46,7 +72,7 @@ class StockBatchForm(forms.ModelForm):
 class APRRequestForm(forms.ModelForm):
     class Meta:
         model = APRRequest
-        fields = ['apr_no', 'control_no', 'supplier', 'mode_of_delivery', 'insufficient_fund_action', 'total_amount', 'remarks']
+        fields = ['apr_no', 'control_no', 'supplier', 'mode_of_delivery', 'insufficient_fund_action', 'remarks']
         widgets = {
             'apr_no': forms.TextInput(attrs={'class': 'form-control'}),
             'control_no': forms.TextInput(attrs={'class': 'form-control'}),
@@ -60,15 +86,24 @@ class APRRequestForm(forms.ModelForm):
 class SettlementForm(forms.ModelForm):
     class Meta:
         model = Settlement
-        fields = ['settlement_type', 'order_id', 'reference_no', 'amount_paid', 'attachment', 'remarks']
+        fields = ['settlement_type', 'order_id', 'is_settled', 'date_settled', 'reference_no', 'amount_paid', 'attachment', 'remarks']
         widgets = {
             'settlement_type': forms.Select(attrs={'class': 'form-select'}),
             'order_id': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Order/APR ID'}),
+            'is_settled': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'date_settled': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'reference_no': forms.TextInput(attrs={'class': 'form-control'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-control'}),
             'attachment': forms.FileInput(attrs={'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         }
+
+    def clean_attachment(self):
+        attachment = self.cleaned_data.get('attachment')
+        if attachment:
+            validate_file_size(attachment)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(attachment)
+        return attachment
 
 class SupplierForm(forms.ModelForm):
     class Meta:
@@ -89,6 +124,71 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }
+
+class OrderDocumentForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['document1', 'document2', 'document3']
+        widgets = {
+            'document1': forms.FileInput(attrs={'class': 'form-control'}),
+            'document2': forms.FileInput(attrs={'class': 'form-control'}),
+            'document3': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_document1(self):
+        doc = self.cleaned_data.get('document1')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
+
+    def clean_document2(self):
+        doc = self.cleaned_data.get('document2')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
+
+    def clean_document3(self):
+        doc = self.cleaned_data.get('document3')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
+
+class DeliveryRecordForm(forms.ModelForm):
+    class Meta:
+        model = DeliveryRecord
+        fields = ['dr_number', 'si_number', 'dr_scan', 'si_scan', 'signed_apr_scan', 'remarks']
+        widgets = {
+            'dr_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'si_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'dr_scan': forms.FileInput(attrs={'class': 'form-control'}),
+            'si_scan': forms.FileInput(attrs={'class': 'form-control'}),
+            'signed_apr_scan': forms.FileInput(attrs={'class': 'form-control'}),
+            'remarks': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+        }
+
+    def clean_dr_scan(self):
+        doc = self.cleaned_data.get('dr_scan')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
+
+    def clean_si_scan(self):
+        doc = self.cleaned_data.get('si_scan')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
+
+    def clean_signed_apr_scan(self):
+        doc = self.cleaned_data.get('signed_apr_scan')
+        if doc:
+            validate_file_size(doc)
+            FileExtensionValidator(allowed_extensions=ALLOWED_DOC_EXTENSIONS)(doc)
+        return doc
 
 class DepartmentForm(forms.ModelForm):
     class Meta:

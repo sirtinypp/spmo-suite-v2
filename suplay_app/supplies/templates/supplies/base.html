@@ -33,12 +33,12 @@
         style="position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:opacity .4s ease;">
         <img src="{% static 'up_logo_official.png' %}" alt="UP" style="width:60px;height:60px;object-fit:contain;">
         <span
-            style="font-family:'Inter',sans-serif;font-weight:700;font-size:22px;color:#7b1113;letter-spacing:-0.5px;">SSPMO</span>
+            style="font-family:'Inter',sans-serif;font-weight:700;font-size:22px;color:#059669;letter-spacing:-0.5px;">SSPMO</span>
         <span
             style="font-family:'Inter',sans-serif;font-weight:500;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:3px;text-align:center;">System
             Supply &amp; Property Management Office</span>
         <div
-            style="margin-top:12px;width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#7b1113;border-radius:50%;animation:sspmo-spin .7s linear infinite;">
+            style="margin-top:12px;width:28px;height:28px;border:3px solid #e2e8f0;border-top-color:#059669;border-radius:50%;animation:sspmo-spin .7s linear infinite;">
         </div>
     </div>
     <style>
@@ -49,22 +49,18 @@
         }
     </style>
     <script>!function () { var s = Date.now(), h = function () { var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
-    <!-- Green Theme Navbar -->
+    <!-- Solid Emerald Navbar -->
     {% block navbar %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success sticky-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm" style="background-color: #15803d !important;">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-3" href="{% url 'home' %}">
                 <img src="{% static 'up_logo_official.png' %}" alt="UP Logo" width="55" height="55"
-                    class="d-inline-block align-text-top">
+                    class="d-inline-block align-text-top" style="filter: brightness(1.2);">
                 <div class="d-flex flex-column justify-content-center" style="line-height: 1.1;">
                     <span class="fw-bold fs-5" style="letter-spacing: -0.5px;">SUPLAY</span>
                     <span class="fw-light text-white text-uppercase"
-                        style="font-size: 0.65rem; letter-spacing: 0.5px; opacity: 0.9;">System Supply & Property
+                        style="font-size: 0.65rem; letter-spacing: 0.5px; opacity: 0.8;">System Supply & Property
                         Management Office</span>
-                    <span class="d-none d-lg-block text-white mt-1"
-                        style="font-size: 0.65rem; font-style: italic; letter-spacing: 0.3px; opacity: 0.95;">
-                        Streamlining supplies management. Efficient. Transparent. Sustainable.
-                    </span>
                 </div>
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -75,21 +71,17 @@
 
                     <!-- Common Links -->
                     <li class="nav-item me-2">
-                        <a class="nav-link text-white" href="{% url 'home' %}"><i class="bi bi-grid me-1"></i>
+                        <a class="nav-link text-white opacity-75 hover-opacity-100" href="{% url 'home' %}"><i class="bi bi-grid me-1"></i>
                             Catalog</a>
                     </li>
-
-
-
-                    <!-- Management controls removed from client homepage per user request -->
 
                     <!-- Cart -->
                     <li class="nav-item me-3">
                         <a class="nav-link text-white position-relative" href="{% url 'view_cart' %}">
                             <i class="bi bi-cart3 fs-5"></i>
                             <span
-                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light"
-                                style="font-size: 0.6rem;">
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success border border-white border-opacity-25"
+                                style="font-size: 0.6rem; background: #10b981 !important;">
                                 {{ request.session.cart|length|default:"0" }}
                             </span>
                         </a>

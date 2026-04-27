@@ -4,6 +4,8 @@
 
 {% block content %}
 <div class="container py-4">
+    {% include 'supplies/includes/critical_ticker.html' %}
+    
     {% if debug_info %}
     <div class="alert alert-info">
         <strong>DEBUG DIAGNOSTIC:</strong> {{ debug_info }}
@@ -245,7 +247,7 @@
                                 </a>
                                 <a href="?stock=out_of_stock{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}"
                                     class="list-group-item list-group-item-action border-0 px-2 py-1 small {% if request.GET.stock == 'out_of_stock' %}fw-bold text-danger{% endif %}">
-                                    Out of Stock
+                                    <i class="bi bi-exclamation-circle me-1"></i> Out of Stock
                                 </a>
                             </div>
                         </div>
@@ -279,16 +281,16 @@
                                 <i class="bi bi-shop"></i> {{ product.supplier.name }}
                             </span>
                             {% else %}
-                            <span class="badge text-white border border-white shadow-sm me-auto"
-                                style="background-color: #800000;">
+                            <span class="badge text-white border border-white border-opacity-25 shadow-sm me-auto"
+                                style="background-color: #1e293b; backdrop-filter: blur(4px);">
                                 <i class="bi bi-shop"></i> {{ product.supplier.name }}
                             </span>
                             {% endif %}
                             {% endif %}
 
                             <span
-                                class="badge {% if product.stock > 0 %}bg-white text-success border{% else %}bg-danger text-white{% endif %} shadow-sm">
-                                <i class="bi bi-box-seam"></i> {{ product.stock }} Left
+                                class="badge {% if product.stock > 0 %}bg-white text-success border{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %} shadow-sm">
+                                <i class="bi bi-box-seam"></i> {{ product.stock }}
                             </span>
                         </div>
 
