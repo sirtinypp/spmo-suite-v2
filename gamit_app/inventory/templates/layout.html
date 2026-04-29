@@ -275,6 +275,55 @@
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
+        /* Glossary Styles */
+        .glossary-trigger {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            z-index: 1000;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7b1113;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(123, 17, 19, 0.1);
+        }
+        .glossary-trigger:hover {
+            transform: scale(1.1) rotate(15deg);
+            background: #7b1113;
+            color: white;
+            box-shadow: 0 6px 16px rgba(123, 17, 19, 0.3);
+        }
+        .offcanvas-glossary {
+            width: 350px !important;
+            border-left: none !important;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+        }
+        .glossary-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: rgba(123, 17, 19, 0.02);
+            border-left: 3px solid #7b1113;
+        }
+        .glossary-term {
+            font-weight: 700;
+            color: #7b1113;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .glossary-def {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
     </style>
 </head>
 
@@ -302,7 +351,44 @@
             }
         }
     </style>
-    <script>!function () { var s = Date.now(), h = function () { if (window.suppressSspmoLoader) return; var e = Date.now() - s, w = Math.max(0, 1000 - e), l = document.getElementById('sspmo-loader'); if (l && l.style.display !== 'none') setTimeout(function () { l.style.opacity = '0'; setTimeout(function () { l.style.display = 'none' }, 400) }, w) }; window.addEventListener('DOMContentLoaded', h); window.addEventListener('load', h); setTimeout(h, 5000); }();</script>
+    <script>
+        !function () {
+            var s = Date.now();
+            var params = new URLSearchParams(window.location.search);
+            // Suppress loader for basic functions: filters, search, pagination
+            var isBasicFunction = params.has('search') || params.has('asset_class') || params.has('asset_nature') || 
+                                 params.has('status') || params.has('department') || params.has('page') || 
+                                 params.has('per_page');
+            
+            if (isBasicFunction) {
+                var loader = document.getElementById('sspmo-loader');
+                if (loader) loader.style.display = 'none';
+                return;
+            }
+
+            var h = function () {
+                var l = document.getElementById('sspmo-loader');
+                if (!l) return;
+
+                if (window.suppressSspmoLoader) {
+                    l.style.display = 'none';
+                    return;
+                }
+
+                var e = Date.now() - s;
+                var w = Math.max(0, 1000 - e);
+                if (l.style.display !== 'none') {
+                    setTimeout(function () {
+                        l.style.opacity = '0';
+                        setTimeout(function () { l.style.display = 'none' }, 400);
+                    }, w);
+                }
+            };
+            window.addEventListener('DOMContentLoaded', h);
+            window.addEventListener('load', h);
+            setTimeout(h, 5000);
+        }();
+    </script>
 
     {% include 'inventory/snippets/sidebar_nav.html' with show_theme_toggle=True %}
 
@@ -312,6 +398,138 @@
             {% endblock %}
         </div>
     </main>
+
+    <!-- Knowledge Base Side-Peek -->
+    <div class="offcanvas offcanvas-end offcanvas-glossary" tabindex="-1" id="knowledgeBase" aria-labelledby="knowledgeBaseLabel">
+        <div class="offcanvas-header border-bottom py-3">
+            <h5 class="offcanvas-title fw-bold text-primary" id="knowledgeBaseLabel">
+                <i class="fas fa-lightbulb me-2"></i>System Knowledge Base
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <p class="small text-muted mb-3">A contextual guide to GAMIT terminology and reporting standards.</p>
+            
+            <!-- Category Filters -->
+            <div class="d-flex flex-wrap gap-2 mb-4" id="glossaryFilters">
+                <button class="btn btn-sm btn-primary rounded-pill px-3 filter-pill active" data-filter="all">All</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-pill" data-filter="general">General</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-pill" data-filter="property">Property</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-pill" data-filter="finance">Finance</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 filter-pill" data-filter="policies">Policies</button>
+            </div>
+
+            <div id="glossaryContainer">
+                <div class="glossary-item" data-category="general">
+                    <span class="glossary-term">RPCPPE</span>
+                    <span class="glossary-def">Report on the Physical Count of Property, Plant and Equipment. The primary annual audit report.</span>
+                </div>
+
+                <div class="glossary-item" data-category="property">
+                    <span class="glossary-term">PPE</span>
+                    <span class="glossary-def">Property, Plant and Equipment. Tangible assets with high value (typically >₱50,000).</span>
+                </div>
+
+                <div class="glossary-item" data-category="property">
+                    <span class="glossary-term">Serviceable</span>
+                    <span class="glossary-def">Items in good working condition and officially ready for use in university operations.</span>
+                </div>
+
+                <div class="glossary-item" data-category="property">
+                    <span class="glossary-term">Custodian</span>
+                    <span class="glossary-def">The specific personnel or officer officially accountable for the physical asset.</span>
+                </div>
+
+                <div class="glossary-item" data-category="general">
+                    <span class="glossary-term">Property Number</span>
+                    <span class="glossary-def">The unique university-assigned tracking identifier used for all audit and movement logs.</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Book Value</span>
+                    <span class="glossary-def">The original acquisition cost minus accumulated depreciation (the current accounting net worth).</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Acquisition Cost</span>
+                    <span class="glossary-def">The total original price paid to purchase the asset, including taxes, delivery, and installation.</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Salvage Value</span>
+                    <span class="glossary-def">The estimated residual value of an asset at the end of its useful life (standard: 5% of cost).</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Depreciation</span>
+                    <span class="glossary-def">The systematic allocation of an asset's cost over its estimated useful life.</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Depreciation Method</span>
+                    <span class="glossary-def">The formula used to calculate loss of value (Standard University practice: Straight-Line Method).</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Estimated Useful Life</span>
+                    <span class="glossary-def">The period over which an asset is expected to be functional (e.g., ICT Equipment = 5 years).</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Fair Market Value</span>
+                    <span class="glossary-def">The estimated price the asset would sell for on the open market in its current condition.</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Fund Source</span>
+                    <span class="glossary-def">The specific budget source used for procurement (e.g., GAA, Trust Fund, or Grants).</span>
+                </div>
+
+                <div class="glossary-item" data-category="finance">
+                    <span class="glossary-term">Appraisal Value</span>
+                    <span class="glossary-def">The expert-estimated worth of an asset. 
+                        <br><strong>Formula:</strong> (Replacement Cost New - Total Depreciation) + Adjustments.
+                    </span>
+                </div>
+
+                <div class="glossary-item" data-category="property">
+                    <span class="glossary-term">Semi-Expendable</span>
+                    <span class="glossary-def">Assets valued between ₱15,000 and ₱50,000; monitored but not fully capitalized.</span>
+                </div>
+
+                <div class="glossary-item" data-category="general">
+                    <span class="glossary-term">Status (General)</span>
+                    <span class="glossary-def">The current operational state of the asset (Serviceable, Unserviceable, Lost, or For Disposal).</span>
+                </div>
+
+                <!-- Policies & Guidelines -->
+                <div class="glossary-item" data-category="policies">
+                    <span class="glossary-term">Capitalization Threshold Policy</span>
+                    <span class="glossary-def">All tangible assets with an acquisition cost of ₱50,000 and above must be recorded as Property, Plant and Equipment (PPE) and issued a PAR. Items below ₱50,000 are classified as Semi-Expendable Property and issued an ICS.</span>
+                </div>
+
+                <div class="glossary-item" data-category="policies">
+                    <span class="glossary-term">Property Transfer Policy</span>
+                    <span class="glossary-def">Accountability transfer between officers requires an approved Property Transfer Report (PTR). The receiving officer assumes full responsibility upon signing.</span>
+                </div>
+
+                <div class="glossary-item" data-category="policies">
+                    <span class="glossary-term">Loss of Property Protocol</span>
+                    <span class="glossary-def">Accountable officers must submit a Notice of Loss and a Notarized Affidavit of Loss within 30 days of the incident to initiate relief from accountability.</span>
+                </div>
+
+                <div class="glossary-item" data-category="policies">
+                    <span class="glossary-term">Disposal & Condemnation Guidelines</span>
+                    <span class="glossary-def">Unserviceable property must undergo Pre-repair Inspection and be officially condemned via an IIRUP before physical disposal or public auction.</span>
+                </div>
+            </div>
+
+            <div class="mt-4 p-3 rounded-3 bg-light text-center">
+                <i class="fas fa-circle-info text-secondary mb-2"></i>
+                <div class="small text-muted">For further assistance, contact the SPMO Helpdesk.</div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -347,6 +565,31 @@
             htmlElement.setAttribute('data-bs-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             setIcon(newTheme);
+        });
+
+        // 🧠 Glossary Filtering Logic
+        document.querySelectorAll('.filter-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                const category = this.getAttribute('data-filter');
+                
+                // Update active pill UI
+                document.querySelectorAll('.filter-pill').forEach(p => {
+                    p.classList.remove('btn-primary', 'active');
+                    p.classList.add('btn-outline-secondary');
+                });
+                this.classList.remove('btn-outline-secondary');
+                this.classList.add('btn-primary', 'active');
+
+                // Filter items with transition
+                document.querySelectorAll('.glossary-item').forEach(item => {
+                    if (category === 'all' || item.getAttribute('data-category') === category) {
+                        item.style.display = 'block';
+                        setTimeout(() => { item.style.opacity = '1'; }, 10);
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
         });
     </script>
 

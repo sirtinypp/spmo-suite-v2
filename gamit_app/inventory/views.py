@@ -209,8 +209,8 @@ def asset_list(request):
         assets = assets.filter(search_filter)
 
     # 4. Sorting logic
-    sort_by = request.GET.get('sort', 'name')
-    direction = request.GET.get('dir', 'asc')
+    sort_by = request.GET.get('sort', 'prop')
+    direction = request.GET.get('dir', 'desc')
     
     allowed_sort_fields = {
         'name': 'name',
@@ -1372,6 +1372,14 @@ def loss_detail(request, pk):
     })
 
 @login_required
+def print_rlsddp(request, pk):
+    req = get_object_or_404(AssetLossReport, pk=pk)
+    return render(request, 'inventory/print_rlsddp.html', {
+        'req': req,
+        'asset': req.asset
+    })
+
+@login_required
 def approve_loss_workflow(request, pk, target_state):
     req = get_object_or_404(AssetLossReport, pk=pk)
     if request.method == 'POST':
@@ -1426,6 +1434,13 @@ def approve_clearance_workflow(request, pk, target_state):
     return redirect('clearance_detail', pk=pk)
 
 # ==========================================
+# 12. IIRUP (Under Development Placeholder)
+# ==========================================
+@login_required
+def create_iirup_request(request):
+    return render(request, 'inventory/transaction_iirup.html')
+
+# ==========================================
 # 21. ADMINISTRATION: ACTIVITY LOG (NEW)
 # ==========================================
 @login_required
@@ -1466,6 +1481,42 @@ def activity_log(request):
             all_logs = all_logs.filter(persona__department_id=selected_department)
         except (ValueError, TypeError):
             pass
+
+    # Date Range Filters
+    start_date = request.GET.get('start_date', '')
+    end_date = request.GET.get('end_date', '')
+    from datetime import datetime, time
+    from django.utils import timezone
+
+    if start_date:
+        try:
+            dt_start = timezone.make_aware(datetime.strptime(start_date, '%Y-%m-%d'))
+            all_logs = all_logs.filter(timestamp__gte=dt_start)
+        except ValueError:
+            pass
+
+    if end_date:
+        try:
+            dt_end = timezone.make_aware(datetime.combine(datetime.strptime(end_date, '%Y-%m-%d'), time.max))
+            all_logs = all_logs.filter(timestamp__lte=dt_end)
+        except ValueError:
+            pass
+
+    # Process Type Filter
+    process_type = request.GET.get('process_type', '')
+    if process_type:
+        if process_type == 'BATCH':
+            all_logs = all_logs.filter(batch__isnull=False)
+        elif process_type == 'TRANSFER':
+            all_logs = all_logs.filter(transfer__isnull=False)
+        elif process_type == 'INSPECT':
+            all_logs = all_logs.filter(inspection__isnull=False)
+        elif process_type == 'RETURN':
+            all_logs = all_logs.filter(return_request__isnull=False)
+        elif process_type == 'LOSS':
+            all_logs = all_logs.filter(loss_report__isnull=False)
+        elif process_type == 'CLEARANCE':
+            all_logs = all_logs.filter(clearance__isnull=False)
 
     # 4. DATA GROUPING (Process Monitor Logic)
     # We want to group logs by their parent transaction
@@ -1570,7 +1621,10 @@ def activity_log(request):
         'grouped_transactions': groups_paginated,
         'live_feed': live_feed,
         'all_departments': all_departments,
-        'selected_department': selected_department
+        'selected_department': selected_department,
+        'start_date': start_date,
+        'end_date': end_date,
+        'process_type': process_type
     })
 
 # ==========================================

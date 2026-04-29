@@ -5,9 +5,15 @@
 <div class="container-fluid fade-in">
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 border-bottom pb-3">
-        <div>
-            <h2 class="text-primary mb-0 fw-bold">Dashboard</h2>
-            <span class="text-muted small">Real-time Inventory Analytics</span>
+        <div class="d-flex align-items-center">
+            <div>
+                <h2 class="text-primary mb-0 fw-bold d-inline-block">Dashboard</h2>
+                <button class="btn btn-sm btn-outline-primary rounded-pill ms-2 py-0 px-2" style="font-size: 0.7rem; vertical-align: middle;" 
+                    data-bs-toggle="offcanvas" data-bs-target="#knowledgeBase">
+                    <i class="fas fa-lightbulb me-1"></i>System Guide
+                </button>
+                <span class="text-muted d-block small">Real-time Inventory Analytics</span>
+            </div>
         </div>
 
         <form method="GET" class="d-flex gap-2 mt-3 mt-md-0">
@@ -46,7 +52,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-primary border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Visible Assets</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Visible Assets</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Total items matching current filters.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="fw-bold text-primary mb-0">{{ total_count|intcomma }}</h3>
                         <i class="fas fa-cubes text-primary opacity-25 fs-2"></i>
@@ -59,7 +66,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-success border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Total Valuation</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Total Valuation</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Aggregated acquisition cost of all items.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <h3 class="fw-bold text-success mb-0">₱{{ total_value }}</h3>
                         <i class="fas fa-coins text-success opacity-25 fs-2"></i>
@@ -72,7 +80,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-warning border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Highest Value</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Highest Value</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Single most expensive asset in this view.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="fw-bold text-warning mb-0">₱{{ highest_val }}</h5>
@@ -88,7 +97,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-info border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Asset Status</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Asset Status</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Percentage of items in active service.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h3 class="fw-bold text-info mb-0">{{ active_count }}</h3>
@@ -107,7 +117,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-danger border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Aging Assets</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Aging Assets</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Items that have exceeded a 5-year lifecycle.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h3 class="fw-bold text-danger mb-0">{{ aging_assets_count }}</h3>
@@ -123,7 +134,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-secondary border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Annual Maintenance</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Annual Maintenance</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Year-to-date repair and servicing expenditure.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="fw-bold text-secondary mb-0">₱{{ maintenance_cost }}</h5>
@@ -139,7 +151,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-dark border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">Top Office</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">Top Office</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Department with the highest asset concentration.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="fw-bold text-dark mb-0">{{ top_office_count }}</h5>
@@ -155,7 +168,8 @@
         <div class="col-md-6 col-xl-3">
             <div class="card stat-card shadow-sm border-0 border-start border-primary border-4 h-100">
                 <div class="card-body">
-                    <h6 class="text-muted text-uppercase small">New (30 days)</h6>
+                    <h6 class="text-muted text-uppercase small mb-1">New (30 days)</h6>
+                    <small class="text-muted d-block mb-2" style="font-size: 0.7rem; line-height: 1.1; opacity: 0.8;">Assets encoded or acquired in the last month.</small>
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="fw-bold text-primary mb-0">{{ recent_acquisitions_count }}</h5>

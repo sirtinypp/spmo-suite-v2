@@ -31,6 +31,7 @@ urlpatterns = [
     path('transaction/return/', views.create_return_request, name='create_return_request'),
     path('transaction/loss/', views.create_loss_report, name='create_loss_report'),
     path('transaction/clearance/', views.create_clearance_request, name='create_clearance_request'),
+    path('transaction/iirup/', views.create_iirup_request, name='create_iirup_request'),
 
     # --- TRANSACTION HISTORY & MANAGEMENT ---
     path('transactions/history/', views.transaction_history, name='transaction_history'), 
@@ -59,6 +60,7 @@ urlpatterns = [
     path('return/<int:pk>/', views.return_detail, name='return_detail'),
     path('return/<int:pk>/workflow/<str:target_state>/', views.approve_return_workflow, name='approve_return_workflow'),
     path('loss/<int:pk>/', views.loss_detail, name='loss_detail'),
+    path('loss/<int:pk>/print/', views.print_rlsddp, name='print_rlsddp'),
     path('loss/<int:pk>/workflow/<str:target_state>/', views.approve_loss_workflow, name='approve_loss_workflow'),
     path('clearance/<int:pk>/', views.clearance_detail, name='clearance_detail'),
     path('clearance/<int:pk>/workflow/<str:target_state>/', views.approve_clearance_workflow, name='approve_clearance_workflow'),

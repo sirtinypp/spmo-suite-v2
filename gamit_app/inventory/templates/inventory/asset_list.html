@@ -6,9 +6,20 @@
 <div class="container-fluid fade-in">
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-        <h2 class="h4 fw-bold text-body-emphasis mb-3 mb-md-0">
-            <i class="fas fa-box-archive text-primary me-2"></i>Asset Inventory
-        </h2>
+        <div class="d-flex align-items-center">
+            <div>
+                <div class="d-flex align-items-center mb-1">
+                    <h2 class="text-primary mb-0 fw-bold">
+                        <i class="fas fa-box-archive text-primary me-2"></i>Asset Inventory
+                    </h2>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill ms-2 py-0 px-2" style="font-size: 0.65rem; vertical-align: middle;" 
+                        data-bs-toggle="offcanvas" data-bs-target="#knowledgeBase">
+                        <i class="fas fa-lightbulb me-1"></i>System Guide
+                    </button>
+                </div>
+                <span class="text-muted small d-block">PAR PPE Registry — Properties valued at ₱50,000.00 and above</span>
+            </div>
+        </div>
 
         {% if user.is_staff %}
         <a href="{% url 'add_asset' %}" class="btn btn-primary shadow-sm">
@@ -357,7 +368,20 @@
             const searchForm = searchInput.closest('form');
             let debounceTimer;
 
+            // 🧠 SEARCH MEMORY: Restore on load if current input is empty
+            const savedSearch = sessionStorage.getItem('gamit_search_memory');
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Only auto-restore if the URL is "clean" and we have a saved term
+            if (!searchInput.value && savedSearch && !urlParams.has('search')) {
+                searchInput.value = savedSearch;
+                searchForm.submit(); // Auto-trigger search to match the UI
+            }
+
             searchInput.addEventListener('input', function () {
+                // Save to memory
+                sessionStorage.setItem('gamit_search_memory', searchInput.value);
+                
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => {
                     showFilterProgress();
@@ -368,6 +392,14 @@
             if (searchInput.value) {
                 const len = searchInput.value.length;
                 searchInput.setSelectionRange(len, len);
+            }
+
+            // Clear memory if "Reset All Filters" or "Clear" button is clicked
+            const resetBtn = document.querySelector('a[href*="asset_list"]');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    sessionStorage.removeItem('gamit_search_memory');
+                });
             }
         }
     });

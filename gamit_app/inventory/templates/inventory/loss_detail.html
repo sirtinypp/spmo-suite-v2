@@ -8,6 +8,9 @@
             <span class="badge bg-danger fs-6">{{ req.current_step.label|default:req.status }}</span>
         </div>
         <div>
+            <a href="{% url 'print_rlsddp' req.pk %}" target="_blank" class="btn btn-outline-primary me-2">
+                <i class="fas fa-print me-1"></i> Print RLSDDP Form
+            </a>
             <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to List</a>
         </div>
     </div>

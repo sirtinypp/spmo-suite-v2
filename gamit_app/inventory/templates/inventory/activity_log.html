@@ -5,18 +5,24 @@
 {% block content %}
 <div class="container-fluid fade-in">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="h4 fw-bold text-body-emphasis mb-0">
-                <i class="fas fa-tower-observation text-primary me-2"></i>Administration Command Center
-            </h2>
-            <div class="text-secondary small mt-1">
-                Unified process monitoring and real-time activity pulse
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <div class="d-flex align-items-center">
+            <div>
+                <div class="d-flex align-items-center mb-1">
+                    <h2 class="text-primary mb-0 fw-bold">
+                        <i class="fas fa-tower-observation me-2"></i>Administration Command Center
+                    </h2>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill ms-2 py-0 px-2" style="font-size: 0.65rem; vertical-align: middle;" 
+                        data-bs-toggle="offcanvas" data-bs-target="#knowledgeBase">
+                        <i class="fas fa-lightbulb me-1"></i>System Guide
+                    </button>
+                </div>
+                <span class="text-muted small d-block">Unified process monitoring and real-time activity pulse.</span>
             </div>
         </div>
-        <div class="text-end">
-            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2">
-                <i class="fas fa-shield-halved me-2"></i>Suite-wide Oversight
+        <div class="mt-3 mt-md-0">
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill shadow-sm">
+                <i class="fas fa-shield-halved me-1"></i> Suite-wide Oversight
             </span>
         </div>
     </div>
@@ -26,19 +32,39 @@
         <div class="card-body py-3">
             <form method="GET" class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Filter by Office</label>
-                    <select name="department" class="form-select form-select-sm mt-1" style="min-width: 200px;">
-                        <option value="">All Departments</option>
+                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Office / Dept</label>
+                    <select name="department" class="form-select form-select-sm mt-1" style="min-width: 180px;">
+                        <option value="">All Offices</option>
                         {% for dept in all_departments %}
                         <option value="{{ dept.id }}" {% if selected_department == dept.id %}selected{% endif %}>{{ dept.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-auto">
+                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Process Type</label>
+                    <select name="process_type" class="form-select form-select-sm mt-1" style="min-width: 150px;">
+                        <option value="">All Processes</option>
+                        <option value="BATCH" {% if process_type == 'BATCH' %}selected{% endif %}>Acquisition</option>
+                        <option value="INSPECT" {% if process_type == 'INSPECT' %}selected{% endif %}>Inspection</option>
+                        <option value="TRANSFER" {% if process_type == 'TRANSFER' %}selected{% endif %}>Transfer</option>
+                        <option value="RETURN" {% if process_type == 'RETURN' %}selected{% endif %}>Return</option>
+                        <option value="LOSS" {% if process_type == 'LOSS' %}selected{% endif %}>Loss Report</option>
+                        <option value="CLEARANCE" {% if process_type == 'CLEARANCE' %}selected{% endif %}>Clearance</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Start Date</label>
+                    <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm mt-1" style="width: 130px;">
+                </div>
+                <div class="col-auto">
+                    <label class="small fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">End Date</label>
+                    <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm mt-1" style="width: 130px;">
+                </div>
                 <div class="col-auto align-self-end">
-                    <button type="submit" class="btn btn-sm btn-primary px-3">
+                    <button type="submit" class="btn btn-sm btn-primary px-3 mt-1 shadow-sm">
                         <i class="fas fa-filter me-1"></i> Apply
                     </button>
-                    <a href="{% url 'activity_log' %}" class="btn btn-sm btn-link text-secondary text-decoration-none">
+                    <a href="{% url 'activity_log' %}" class="btn btn-sm btn-outline-secondary px-3 mt-1 ms-1">
                         <i class="fas fa-undo me-1"></i> Reset
                     </a>
                 </div>
@@ -51,13 +77,13 @@
         
         <!-- LEFT: PROCESS MONITOR (70%) -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm overflow-hidden bg-white">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-list-check me-2 text-primary"></i>Active Process Monitor</h6>
+            <div class="card border-0 shadow-sm overflow-hidden bg-body-tertiary">
+                <div class="card-header bg-body-tertiary border-bottom py-3">
+                    <h6 class="mb-0 fw-bold text-body-emphasis"><i class="fas fa-list-check me-2 text-primary"></i>Active Process Monitor</h6>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive" style="height: calc(100vh - 280px); overflow-y: auto;">
                     <table class="table table-hover align-middle mb-0 text-body">
-                        <thead class="bg-light text-uppercase small fw-bold text-body-secondary" style="font-size: 0.7rem;">
+                        <thead class="bg-body-tertiary text-uppercase small fw-bold text-body-secondary position-sticky top-0 shadow-sm" style="font-size: 0.7rem; z-index: 10;">
                             <tr>
                                 <th class="ps-4">Transaction</th>
                                 <th>Latest Status</th>
@@ -69,9 +95,9 @@
                         <tbody style="font-size: 0.85rem;">
                             {% for group in grouped_transactions %}
                             {% with log=group.latest %}
-                            <tr class="text-body-emphasis border-bottom bg-white">
+                            <tr class="text-body-emphasis border-bottom bg-body-tertiary">
                                 <td class="ps-4">
-                                    <div class="badge bg-light text-dark border shadow-xs px-2 py-1 mb-1">
+                                    <div class="badge bg-body text-body-emphasis border shadow-xs px-2 py-1 mb-1">
                                         {% if log.batch %}
                                             <i class="fas fa-boxes-packing text-success me-1"></i>{{ log.batch.transaction_id }}
                                         {% elif log.transfer %}
@@ -130,12 +156,12 @@
                                             <div class="d-flex mb-3 position-relative">
                                                 <div class="bg-primary rounded-circle mt-1 shadow-sm" style="width: 10px; height: 10px; z-index: 2;"></div>
                                                 <div class="ms-3">
-                                                    <div class="fw-bold text-dark d-flex align-items-center">
+                                                    <div class="fw-bold text-body-emphasis d-flex align-items-center">
                                                         {{ log.action_taken }}
                                                         <span class="ms-2 badge bg-success p-1" style="font-size: 0.6rem;">LATEST</span>
                                                     </div>
                                                     <div class="small text-secondary">{{ log.timestamp|date:"M d, H:i" }} — <strong>{{ log.user.username }}</strong> ({{ log.role_name }})</div>
-                                                    {% if log.remarks %}<div class="bg-white p-2 border rounded mt-1 small fst-italic">"{{ log.remarks }}"</div>{% endif %}
+                                                    {% if log.remarks %}<div class="bg-body p-2 border border-secondary-subtle rounded mt-1 small fst-italic">"{{ log.remarks }}"</div>{% endif %}
                                                 </div>
                                             </div>
                                             <!-- Historical ones -->
@@ -168,7 +194,7 @@
                 
                 <!-- Pagination -->
                 {% if grouped_transactions.has_other_pages %}
-                <div class="card-footer bg-white py-3 border-top">
+                <div class="card-footer bg-body-tertiary py-3 border-top">
                     <nav aria-label="Activity log pagination">
                         <ul class="pagination pagination-sm justify-content-center mb-0">
                             {% if grouped_transactions.has_previous %}
@@ -180,7 +206,7 @@
                             </li>
                             {% endif %}
 
-                            <li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold">Process {{ grouped_transactions.number }} of {{ grouped_transactions.paginator.num_pages }}</span></li>
+                            <li class="page-item disabled"><span class="page-link border-0 text-body-emphasis fw-bold">Process {{ grouped_transactions.number }} of {{ grouped_transactions.paginator.num_pages }}</span></li>
 
                             {% if grouped_transactions.has_next %}
                             <li class="page-item">
@@ -199,12 +225,12 @@
 
         <!-- RIGHT: LIVE FEED PULSE (30%) -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm bg-white h-100">
-                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold text-dark"><i class="fas fa-bolt-lightning me-2 text-warning"></i>Live Activity Pulse</h6>
+            <div class="card border-0 shadow-sm bg-body-tertiary h-100">
+                <div class="card-header bg-body-tertiary border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-body-emphasis"><i class="fas fa-bolt-lightning me-2 text-warning"></i>Live Activity Pulse</h6>
                     <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1" style="font-size: 0.6rem;">REAL-TIME</span>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="height: calc(100vh - 280px); overflow-y: auto;">
                     <div class="list-group list-group-flush">
                         {% for log in live_feed %}
                         <div class="list-group-item border-0 py-3 ps-4 position-relative hover-pulse">
@@ -214,7 +240,7 @@
                                 {% elif log.type == 'SERVICE' %}bg-info
                                 {% else %}bg-primary{% endif %} opacity-10" style="width: 4px;"></div>
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <div class="fw-bold text-truncate" style="max-width: 180px; font-size: 0.8rem;">
+                                <div class="fw-bold text-truncate text-body-emphasis" style="max-width: 180px; font-size: 0.8rem;">
                                     {% if log.user %}
                                         {{ log.user.get_full_name|default:log.user.username }}
                                     {% else %}
@@ -223,7 +249,7 @@
                                 </div>
                                 <small class="text-secondary" style="font-size: 0.65rem;">{{ log.timestamp|timesince }} ago</small>
                             </div>
-                            <div class="text-dark mb-1" style="font-size: 0.75rem;">
+                            <div class="text-body-emphasis mb-1" style="font-size: 0.75rem;">
                                 {{ log.action }}
                             </div>
                             <div class="d-flex align-items-center">
@@ -244,7 +270,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="card-footer bg-light py-2 text-center">
+                <div class="card-footer bg-body-tertiary border-top py-2 text-center">
                     <small class="text-secondary" style="font-size: 0.65rem;">Auto-refreshes on page reload</small>
                 </div>
             </div>
