@@ -118,7 +118,7 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary rounded-pill px-2" style="font-size: 0.7rem;">
-                                        {{ log.status_label }}
+                                        {{ log.status_label|title }}
                                     </span>
                                 </td>
                                 <td>
@@ -258,7 +258,7 @@
                                     {% elif log.type == 'CREATION' %}bg-success
                                     {% elif log.type == 'SERVICE' %}bg-info
                                     {% else %}bg-light text-secondary{% endif %} bg-opacity-10 border px-1 py-0" style="font-size: 0.65rem;">
-                                    {{ log.category }}
+                                    {{ log.category|title }}
                                 </span>
                                 <small class="{% if log.type == 'REVISION' %}text-warning{% elif log.type == 'CREATION' %}text-success{% elif log.type == 'SERVICE' %}text-info{% else %}text-primary{% endif %} ms-2 fw-bold" style="font-size: 0.65rem;">
                                     {{ log.target_id }}

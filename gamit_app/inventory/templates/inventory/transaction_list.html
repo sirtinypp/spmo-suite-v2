@@ -186,9 +186,9 @@
                                     <div class="small text-body-secondary">{{ item.requestor.userprofile.office|default:"N/A" }}</div>
                                 </td>
                                 <td>
-                                    {% if item.status == 'Approved' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
-                                    {% elif item.status == 'Returned' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
-                                    {% elif item.status == 'Rejected' %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3">Rejected</span>
+                                    {% if item.status|upper == 'APPROVED' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
+                                    {% elif item.status|upper == 'RETURNED' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
+                                    {% elif item.status|upper == 'REJECTED' %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3">Rejected</span>
                                     {% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">Pending</span>{% endif %}
                                 </td>
                                 <td class="text-center">
@@ -269,9 +269,9 @@
                                 <td class="text-body-secondary small">{{ item.current_officer }}</td>
                                 <td class="fw-bold text-body-emphasis small">{{ item.new_officer_firstname }} {{ item.new_officer_surname }}</td>
                                 <td>
-                                    {% if item.status == 'APPROVED' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
-                                    {% elif item.status == 'RETURNED' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
-                                    {% elif item.status == 'REJECTED' %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3">Rejected</span>
+                                    {% if item.status|upper == 'APPROVED' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
+                                    {% elif item.status|upper == 'RETURNED' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
+                                    {% elif item.status|upper == 'REJECTED' %}<span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-3">Rejected</span>
                                     {% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">Pending</span>{% endif %}
                                 </td>
                                 <td class="text-center">
@@ -356,8 +356,8 @@
                                     <div class="small text-body-secondary">{{ batch.requesting_unit|default:batch.requestor.userprofile.office }}</div>
                                 </td>
                                 <td>
-                                    {% if batch.status == 'APPROVED' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
-                                    {% elif batch.status == 'RETURNED' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
+                                    {% if batch.status|upper == 'APPROVED' %}<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">Approved</span>
+                                    {% elif batch.status|upper == 'RETURNED' %}<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-3">Returned</span>
                                     {% else %}<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">Pending</span>{% endif %}
                                 </td>
                                 
@@ -472,7 +472,7 @@
                                 </td>
                                 <td>{{ item.created_at|date:"M d, Y" }}</td>
                                 <td>{{ item.requestor.get_full_name|default:item.requestor.username }}</td>
-                                <td><span class="badge bg-secondary">{% if item.status %}{{ item.status }}{% elif item.current_step %}{{ item.current_step.label }}{% else %}Pending{% endif %}</span></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">{% if item.status %}{{ item.status|title }}{% elif item.current_step %}{{ item.current_step.label|title }}{% else %}Pending{% endif %}</span></td>
                                 <td class="text-center">
                                     <a href="{% url 'return_detail' pk=item.id %}" class="btn btn-sm btn-light border"><i class="fas fa-eye text-primary"></i> View</a>
                                 </td>
@@ -511,7 +511,7 @@
                                 </td>
                                 <td>{{ item.created_at|date:"M d, Y" }}</td>
                                 <td>{{ item.requestor.get_full_name|default:item.requestor.username }}</td>
-                                <td><span class="badge bg-secondary">{% if item.status %}{{ item.status }}{% elif item.current_step %}{{ item.current_step.label }}{% else %}Pending{% endif %}</span></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">{% if item.status %}{{ item.status|title }}{% elif item.current_step %}{{ item.current_step.label|title }}{% else %}Pending{% endif %}</span></td>
                                 <td class="text-center">
                                     <a href="{% url 'loss_detail' pk=item.id %}" class="btn btn-sm btn-light border"><i class="fas fa-eye text-primary"></i> View</a>
                                 </td>
@@ -550,7 +550,7 @@
                                 </td>
                                 <td>{{ item.created_at|date:"M d, Y" }}</td>
                                 <td>{{ item.purpose|truncatechars:30 }}</td>
-                                <td><span class="badge bg-secondary">{% if item.status %}{{ item.status }}{% elif item.current_step %}{{ item.current_step.label }}{% else %}Pending{% endif %}</span></td>
+                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">{% if item.status %}{{ item.status|title }}{% elif item.current_step %}{{ item.current_step.label|title }}{% else %}Pending{% endif %}</span></td>
                                 <td class="text-center">
                                     <a href="{% url 'clearance_detail' pk=item.id %}" class="btn btn-sm btn-light border"><i class="fas fa-eye text-primary"></i> View</a>
                                 </td>
