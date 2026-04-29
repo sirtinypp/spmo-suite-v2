@@ -202,7 +202,6 @@ def asset_list(request):
             Q(property_number__icontains=search_term) |
             Q(name__icontains=search_term) |
             Q(description__icontains=search_term) |
-            Q(serial_number__icontains=search_term) |
             Q(accountable_firstname__icontains=search_term) |
             Q(accountable_surname__icontains=search_term) |
             Q(department__name__icontains=search_term) 
@@ -712,8 +711,7 @@ def transaction_ledger(request):
 
             if has_asset:
                 q_s |= (Q(asset__name__icontains=search) |
-                        Q(asset__property_number__icontains=search) |
-                        Q(asset__serial_number__icontains=search))
+                        Q(asset__property_number__icontains=search))
             elif code == 'BATCH':
                 q_s |= (Q(supplier_name__icontains=search) |
                         Q(requesting_unit__icontains=search) |
