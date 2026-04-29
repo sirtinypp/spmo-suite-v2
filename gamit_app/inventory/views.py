@@ -202,10 +202,16 @@ def asset_list(request):
             Q(property_number__icontains=search_term) |
             Q(name__icontains=search_term) |
             Q(description__icontains=search_term) |
+            Q(serial_number__icontains=search_term) |
             Q(accountable_firstname__icontains=search_term) |
             Q(accountable_surname__icontains=search_term) |
             Q(department__name__icontains=search_term) 
         )
+        # Support full-name search
+        if " " in search_term:
+            parts = search_term.split()
+            search_filter |= (Q(accountable_firstname__icontains=parts[0]) & Q(accountable_surname__icontains=parts[-1]))
+            
         assets = assets.filter(search_filter)
 
     # 4. Sorting logic
@@ -247,7 +253,7 @@ def asset_list(request):
     # 5. Context Data for Dropdowns
     all_classes = [c[1] for c in Asset.CLASS_CHOICES]
     all_natures = [n[1] for n in Asset.ASSET_TYPE_CHOICES]
-    all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
+    all_statuses = Asset.STATUS_CHOICES # Pass full tuples for (code, label)
     
     # Get Departments for the dropdown
     from .models import Department # Ensure Department is imported locally or at top

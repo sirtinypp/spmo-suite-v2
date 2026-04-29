@@ -58,8 +58,8 @@
                     <select name="status" class="form-select form-select-sm border-0 shadow-sm"
                         onchange="this.form.submit()">
                         <option value="">All Statuses</option>
-                        {% for s in all_statuses %}
-                        <option value="{{ s }}" {% if selected_status == s %}selected{% endif %}>{{ s }}
+                        {% for s_code, s_label in all_statuses %}
+                        <option value="{{ s_code }}" {% if selected_status == s_code %}selected{% endif %}>{{ s_label }}
                         </option>
                         {% endfor %}
                     </select>
