@@ -66,9 +66,21 @@ class InspectionRequestForm(forms.ModelForm):
         fields = ['asset', 'notes', 'document_1', 'document_2']
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if user and not user.is_staff and hasattr(user, 'userprofile'):
-            try: self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
-            except: pass
+        # --- PERSONA-AWARE FILTERING (SEP) ---
+        demo_role = getattr(user, 'active_demo_role', None)
+        persona = getattr(user, 'demo_persona', None)
+        
+        if demo_role and demo_role.startswith('UNIT_'):
+            if persona and persona.department:
+                self.fields['asset'].queryset = Asset.objects.filter(department=persona.department)
+            else:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            try:
+                self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+            except:
+                pass
+        # -------------------------------------
         for field in self.fields.values(): field.widget.attrs.update({'class': 'form-control'})
 
 # ==========================================
@@ -157,9 +169,18 @@ class AssetTransferRequestForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter assets: Users only see assets in their office
-        if user and not user.is_staff and hasattr(user, 'userprofile'):
+        # --- PERSONA-AWARE FILTERING (SEP) ---
+        demo_role = getattr(user, 'active_demo_role', None)
+        persona = getattr(user, 'demo_persona', None)
+        
+        if demo_role and demo_role.startswith('UNIT_'):
+            if persona and persona.department:
+                self.fields['asset'].queryset = Asset.objects.filter(department=persona.department)
+            else:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
             self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 5. ADMIN BATCH PROCESS FORM
@@ -333,6 +354,20 @@ class AssetReturnRequestForm(forms.ModelForm):
             'reason': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Reason for returning the asset to the SPMO pool...'}),
             'original_par_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
         }
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # --- PERSONA-AWARE FILTERING (SEP) ---
+        demo_role = getattr(user, 'active_demo_role', None)
+        persona = getattr(user, 'demo_persona', None)
+        
+        if demo_role and demo_role.startswith('UNIT_'):
+            if persona and persona.department:
+                self.fields['asset'].queryset = Asset.objects.filter(department=persona.department)
+            else:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 10. ASSET LOSS REPORT FORM
@@ -349,6 +384,20 @@ class AssetLossReportForm(forms.ModelForm):
             'affidavit_of_loss': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
             'police_report': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
         }
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # --- PERSONA-AWARE FILTERING (SEP) ---
+        demo_role = getattr(user, 'active_demo_role', None)
+        persona = getattr(user, 'demo_persona', None)
+        
+        if demo_role and demo_role.startswith('UNIT_'):
+            if persona and persona.department:
+                self.fields['asset'].queryset = Asset.objects.filter(department=persona.department)
+            else:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 11. PROPERTY CLEARANCE FORM

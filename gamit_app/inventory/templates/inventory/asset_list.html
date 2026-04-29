@@ -21,10 +21,12 @@
             </div>
         </div>
 
-        {% if user.is_staff %}
-        <a href="{% url 'add_asset' %}" class="btn btn-primary shadow-sm">
-            <i class="fas fa-plus me-2"></i>Add New Asset
-        </a>
+        {% if not active_demo_role or not active_demo_role|slice:":5" == "UNIT_" %}
+            {% if user.is_staff %}
+            <a href="{% url 'add_asset' %}" class="btn btn-primary shadow-sm">
+                <i class="fas fa-plus me-2"></i>Add New Asset
+            </a>
+            {% endif %}
         {% endif %}
     </div>
 

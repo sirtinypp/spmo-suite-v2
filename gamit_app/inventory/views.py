@@ -26,16 +26,30 @@ def dashboard(request):
     # 1. INITIAL QUERYSET
     assets = Asset.objects.all()
     
-    # PERMISSION FILTER: Non-staff users only see their Department's assets
-    if not request.user.is_staff:
+    # --- PERSONA-AWARE FILTERING (SEP) ---
+    demo_role = getattr(request.user, 'active_demo_role', None)
+    
+    if request.user.is_superuser and not demo_role:
+        # Superuser God View
+        pass
+    elif demo_role and (demo_role.startswith('UNIT_')):
+        # Unit Persona View: Filter by the persona's explicit department
+        persona = getattr(request.user, 'demo_persona', None)
+        if persona and persona.department:
+            assets = assets.filter(department=persona.department)
+        else:
+            assets = Asset.objects.none()
+    elif not request.user.is_staff and not demo_role:
+        # Standard User View
         try:
-            profile = request.user.userprofile
-            if profile.department:
-                assets = assets.filter(department=profile.department)
+            dept = request.user.userprofile.department
+            if dept:
+                assets = assets.filter(department=dept)
             else:
                 assets = Asset.objects.none()
-        except UserProfile.DoesNotExist:
+        except Exception:
             assets = Asset.objects.none()
+    # -------------------------------------
 
     # 2. SLICERS / FILTERS
     selected_class = request.GET.get('asset_class', '')
@@ -165,18 +179,32 @@ def dashboard(request):
 def asset_list(request):
     assets = Asset.objects.all()
     
-    # 1. Permission Filter: Non-staff users only see their Department's assets
+    # --- PERSONA-AWARE FILTERING (SEP) ---
+    demo_role = getattr(request.user, 'active_demo_role', None)
     user_department = None
-    if not request.user.is_staff:
+    
+    if request.user.is_superuser and not demo_role:
+        # Superuser God View
+        pass
+    elif demo_role and (demo_role.startswith('UNIT_')):
+        # Unit Persona View
+        persona = getattr(request.user, 'demo_persona', None)
+        if persona and persona.department:
+            user_department = persona.department
+            assets = assets.filter(department=user_department)
+        else:
+            assets = Asset.objects.none()
+    elif not request.user.is_staff and not demo_role:
+        # Standard User View
         try:
-            profile = request.user.userprofile
-            user_department = profile.department
+            user_department = request.user.userprofile.department
             if user_department:
                 assets = assets.filter(department=user_department)
             else:
                 assets = Asset.objects.none()
-        except (UserProfile.DoesNotExist, AttributeError):
+        except Exception:
             assets = Asset.objects.none()
+    # -------------------------------------
 
     # 2. Slicer Filters (Dropdowns)
     selected_class = request.GET.get('asset_class', '')
@@ -317,9 +345,24 @@ def get_user_tab_permissions(user):
     perms = {'property': False, 'finance': False, 'lifecycle': False, 'government': False}
     if not user.is_authenticated:
         return perms
-    # Superusers can edit everything
+    # --- PERSONA-AWARE OVERRIDE (SEP) ---
+    demo_role = getattr(user, 'active_demo_role', None)
+    if demo_role:
+        # Unit Personas are READ-ONLY for Asset Master Records
+        if demo_role.startswith('UNIT_'):
+            return perms
+        # SPMO Staff have their own specific perms (can add later if needed)
+        # For now, let's allow SPMO Admin demo roles to edit
+        if demo_role in ('SPMO_ADMIN_OFFICER', 'SPMO_ADMIN_SUPERVISOR', 'SPMO_INSPECTION_SUPERVISOR'):
+             perms['property'] = True
+             perms['lifecycle'] = True
+             perms['government'] = True
+             return perms
+
+    # Superusers can edit everything (unless in demo mode)
     if user.is_superuser:
         return {k: True for k in perms}
+    
     try:
         role = user.userprofile.role
     except (UserProfile.DoesNotExist, AttributeError):
@@ -390,14 +433,29 @@ def _create_cross_office_notification(asset, user, tab_name, changed_fields):
 @login_required
 def asset_detail(request, pk):
     asset = get_object_or_404(Asset, pk=pk)
-    if not request.user.is_staff:
+    # --- PERSONA-AWARE ACCESS CHECK ---
+    demo_role = getattr(request.user, 'active_demo_role', None)
+    persona = getattr(request.user, 'demo_persona', None)
+    
+    if request.user.is_superuser and not demo_role:
+        # Superuser God View
+        pass
+    elif demo_role and demo_role.startswith('UNIT_'):
+        # Unit Persona: Strict Department Isolation
+        if persona and persona.department:
+            if asset.department != persona.department:
+                raise Http404("You are not authorized to view this asset.")
+        else:
+            raise Http404("Persona department configuration error.")
+    elif not request.user.is_staff and not demo_role:
+        # Standard User
         try:
-            user_office = request.user.userprofile.office
-            # Secure check: Verify user has access to this asset's department
-            if asset.department != user.userprofile.department:
+            profile = request.user.userprofile
+            if asset.department != profile.department:
                 raise Http404("You are not authorized to view this asset.")
         except (UserProfile.DoesNotExist, AttributeError):
             raise Http404("User profile not found.")
+    # ----------------------------------
 
     # Role permissions
     tab_perms = get_user_tab_permissions(request.user)
@@ -541,9 +599,12 @@ def create_batch_request(request):
 def transaction_history(request):
     from workflow.models import Persona
     
-    active_roles = Persona.objects.filter(user=request.user, is_active=True).values_list('role', flat=True)
+    # --- PERSONA-AWARE FILTERING (SEP) ---
+    demo_role_code = getattr(request.user, 'active_demo_role', None)
+    demo_persona = getattr(request.user, 'demo_persona', None)
     
-    if request.user.is_superuser:
+    if request.user.is_superuser and not demo_role_code:
+        # Superuser God View: All transactions
         inspections = InspectionRequest.objects.all()
         batches = AssetBatch.objects.all()
         transfers = AssetTransferRequest.objects.all()
@@ -551,36 +612,58 @@ def transaction_history(request):
         losses = AssetLossReport.objects.all()
         clearances = PropertyClearanceRequest.objects.all()
     else:
-        # My Requests
-        my_i = InspectionRequest.objects.filter(requestor=request.user)
-        my_b = AssetBatch.objects.filter(requestor=request.user)
-        my_t = AssetTransferRequest.objects.filter(requestor=request.user)
-        my_r = AssetReturnRequest.objects.filter(requestor=request.user)
-        my_l = AssetLossReport.objects.filter(requestor=request.user)
-        my_c = PropertyClearanceRequest.objects.filter(requestor=request.user)
-        
-        if active_roles:
-            # My Persona Tasks
-            as_i = InspectionRequest.objects.filter(current_step__required_persona_role__in=active_roles)
-            as_b = AssetBatch.objects.filter(current_step__required_persona_role__in=active_roles)
-            as_t = AssetTransferRequest.objects.filter(current_step__required_persona_role__in=active_roles)
-            as_r = AssetReturnRequest.objects.filter(current_step__required_persona_role__in=active_roles)
-            as_l = AssetLossReport.objects.filter(current_step__required_persona_role__in=active_roles)
-            as_c = PropertyClearanceRequest.objects.filter(current_step__required_persona_role__in=active_roles)
-            
-            inspections = (my_i | as_i).distinct()
-            batches = (my_b | as_b).distinct()
-            transfers = (my_t | as_t).distinct()
-            returns = (my_r | as_r).distinct()
-            losses = (my_l | as_l).distinct()
-            clearances = (my_c | as_c).distinct()
+        # Determine effective roles (demo role takes precedence)
+        if demo_role_code:
+            effective_roles = [demo_persona.role.id] if demo_persona and demo_persona.role else []
+            effective_user = demo_persona.user if demo_persona else request.user
         else:
-            inspections = my_i
-            batches = my_b
-            transfers = my_t
-            returns = my_r
-            losses = my_l
-            clearances = my_c
+            effective_roles = Persona.objects.filter(user=request.user, is_active=True).values_list('role', flat=True)
+            effective_user = request.user
+
+        # Base queries (transactions involving the effective user)
+        inspections = InspectionRequest.objects.filter(requestor=effective_user)
+        batches = AssetBatch.objects.filter(requestor=effective_user)
+        transfers = AssetTransferRequest.objects.filter(requestor=effective_user)
+        returns = AssetReturnRequest.objects.filter(requestor=effective_user)
+        losses = AssetLossReport.objects.filter(requestor=effective_user)
+        clearances = PropertyClearanceRequest.objects.filter(requestor=effective_user)
+        
+        if effective_roles:
+            # Add tasks where the persona role is required
+            as_i = InspectionRequest.objects.filter(current_step__required_persona_role__in=effective_roles)
+            as_b = AssetBatch.objects.filter(current_step__required_persona_role__in=effective_roles)
+            as_t = AssetTransferRequest.objects.filter(current_step__required_persona_role__in=effective_roles)
+            as_r = AssetReturnRequest.objects.filter(current_step__required_persona_role__in=effective_roles)
+            as_l = AssetLossReport.objects.filter(current_step__required_persona_role__in=effective_roles)
+            as_c = PropertyClearanceRequest.objects.filter(current_step__required_persona_role__in=effective_roles)
+            
+            inspections = (inspections | as_i).distinct()
+            batches = (batches | as_b).distinct()
+            transfers = (transfers | as_t).distinct()
+            returns = (returns | as_r).distinct()
+            losses = (losses | as_l).distinct()
+            clearances = (clearances | as_c).distinct()
+
+        # UNIT FILTERING: If acting as a unit role, restrict by department
+        if demo_role_code and demo_role_code.startswith('UNIT_'):
+            persona = getattr(request.user, 'demo_persona', None)
+            if persona and persona.department:
+                dept = persona.department
+                inspections = inspections.filter(requestor__userprofile__department=dept)
+                batches = batches.filter(requestor__userprofile__department=dept)
+                transfers = transfers.filter(requestor__userprofile__department=dept)
+                returns = returns.filter(requestor__userprofile__department=dept)
+                losses = losses.filter(requestor__userprofile__department=dept)
+                clearances = clearances.filter(requestor__userprofile__department=dept)
+            else:
+                # If no department is found for the Unit role, show nothing (fail-safe)
+                inspections = Asset.objects.none()
+                batches = Asset.objects.none()
+                transfers = Asset.objects.none()
+                returns = Asset.objects.none()
+                losses = Asset.objects.none()
+                clearances = Asset.objects.none()
+    # -------------------------------------
 
     # Calculate real-time metrics for the Smart Dashboard
     total_count = inspections.count() + batches.count() + transfers.count() + returns.count() + losses.count() + clearances.count()
@@ -642,20 +725,46 @@ def transaction_ledger(request):
     sort_by = request.GET.get('sort', 'date')
     direction = request.GET.get('dir', 'desc')
 
-    is_admin = request.user.is_superuser
-    active_roles = list(Persona.objects.filter(
-        user=request.user, is_active=True
-    ).values_list('role', flat=True)) if not is_admin else []
+    # --- PERSONA-AWARE FILTERING (SEP) ---
+    demo_role = getattr(request.user, 'active_demo_role', None)
+    persona = getattr(request.user, 'demo_persona', None)
+    
+    # Global Admin is ONLY the real Superuser NOT in demo mode
+    is_global_admin = request.user.is_superuser and not demo_role
 
     def base_qs(model, related=None):
-        if is_admin:
+        if is_global_admin:
             qs = model.objects.all()
         else:
-            qs = model.objects.filter(requestor=request.user)
+            # Identify department context for Unit Personas or Standard Users
+            dept = None
+            if demo_role and demo_role.startswith('UNIT_'):
+                dept = persona.department if persona else None
+            elif not request.user.is_staff and not request.user.is_superuser:
+                from .models import UserProfile
+                try:
+                    dept = request.user.userprofile.department
+                except (UserProfile.DoesNotExist, AttributeError):
+                    pass
+            
+            if dept:
+                # Department Isolation: See all transactions in the office
+                qs = model.objects.filter(requestor__userprofile__department=dept)
+            else:
+                # Individual Isolation: See only own transactions
+                qs = model.objects.filter(requestor=request.user)
+            
+            # Plus items where the current persona is required for the next step (Inbox)
+            from workflow.models import Persona
+            active_roles = list(Persona.objects.filter(
+                user=request.user, is_active=True
+            ).values_list('role', flat=True)) if not is_global_admin else []
+            
             if active_roles:
-                qs = qs | model.objects.filter(
-                    current_step__required_persona_role__in=active_roles)
+                qs = (qs | model.objects.filter(current_step__required_persona_role__in=active_roles)).distinct()
+            
             qs = qs.distinct()
+            
         if related:
             qs = qs.select_related(*related)
         return qs
@@ -1311,7 +1420,7 @@ def approve_batch_workflow(request, pk, target_state):
 @login_required
 def create_return_request(request):
     if request.method == 'POST':
-        form = AssetReturnRequestForm(request.POST, request.FILES)
+        form = AssetReturnRequestForm(request.user, request.POST, request.FILES)
         if form.is_valid():
             req = form.save(commit=False)
             req.requestor = request.user
@@ -1320,7 +1429,7 @@ def create_return_request(request):
             messages.success(request, f"Return Request {req.transaction_id} submitted.")
             return redirect('dashboard')
     else:
-        form = AssetReturnRequestForm()
+        form = AssetReturnRequestForm(request.user)
     return render(request, 'inventory/transaction_return.html', {'form': form})
 
 @login_required
@@ -1354,7 +1463,7 @@ def approve_return_workflow(request, pk, target_state):
 @login_required
 def create_loss_report(request):
     if request.method == 'POST':
-        form = AssetLossReportForm(request.POST, request.FILES)
+        form = AssetLossReportForm(request.user, request.POST, request.FILES)
         if form.is_valid():
             req = form.save(commit=False)
             req.requestor = request.user
@@ -1363,7 +1472,7 @@ def create_loss_report(request):
             messages.success(request, f"Loss Report {req.transaction_id} submitted.")
             return redirect('dashboard')
     else:
-        form = AssetLossReportForm()
+        form = AssetLossReportForm(request.user)
     return render(request, 'inventory/transaction_loss.html', {'form': form})
 
 @login_required
@@ -1650,9 +1759,26 @@ def rpcppe_report(request):
     COA-Compliant Report on Physical Count of Property, Plant & Equipment (RPCPPE).
     Grouped by Department with totals.
     """
-    # Filter by Serviceable PPE assets (excluding semi-expandable/expendable if needed)
-    # The requirement is "reflect all assets grouped by department"
-    assets_qs = Asset.objects.filter(status='SERVICEABLE').select_related('department').order_by('department__name', 'asset_class', 'name')
+    # --- PERSONA-AWARE FILTERING (SEP) ---
+    demo_role = getattr(request.user, 'active_demo_role', None)
+    persona = getattr(request.user, 'demo_persona', None)
+    
+    assets_qs = Asset.objects.filter(status='SERVICEABLE').select_related('department')
+    
+    if demo_role and demo_role.startswith('UNIT_'):
+        # Unit Persona: Strict Department Isolation
+        if persona and persona.department:
+            assets_qs = assets_qs.filter(department=persona.department)
+        else:
+            assets_qs = assets_qs.none()
+    elif not request.user.is_staff and not request.user.is_superuser:
+        # Standard User
+        try:
+            assets_qs = assets_qs.filter(department=request.user.userprofile.department)
+        except (UserProfile.DoesNotExist, AttributeError):
+            assets_qs = assets_qs.none()
+
+    assets_qs = assets_qs.order_by('department__name', 'asset_class', 'name')
     
     grouped_data = {}
     grand_total_cost = 0
@@ -1681,11 +1807,19 @@ def rpcppe_report(request):
         grand_total_cost += total_price
         total_assets_count += qty_physical
 
+    # Get department name for persona-specific watermarking
+    dept_name = "ALL DEPARTMENTS"
+    if demo_role and demo_role.startswith('UNIT_'):
+        if persona and persona.department:
+            dept_name = persona.department.name
+
     context = {
         'grouped_data': grouped_data,
         'grand_total_cost': grand_total_cost,
         'total_assets_count': total_assets_count,
         'dept_count': len(grouped_data),
         'report_date': timezone.now().date(),
+        'active_demo_role': demo_role,
+        'department_name': dept_name,
     }
     return render(request, 'inventory/rpcppe_report.html', context)

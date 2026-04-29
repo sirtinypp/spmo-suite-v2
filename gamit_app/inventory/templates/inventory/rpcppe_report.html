@@ -61,6 +61,7 @@
             box-sizing: border-box;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             position: relative;
+            overflow: hidden; /* Prevent watermark overflow */
         }
 
         .header {
@@ -194,6 +195,34 @@
             }
             * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        .watermark {
+            position: fixed; /* Repeat on every page when printing */
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 65pt;
+            color: rgba(220, 53, 69, 0.07); 
+            font-weight: 900;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1000; /* High enough to be visible, but subtle color */
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .disclosure-note {
+            margin-top: 40px;
+            padding: 15px;
+            border: 1px dashed #adb5bd;
+            border-radius: 6px;
+            font-size: 8pt;
+            color: #495057;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -202,6 +231,10 @@
     <button class="btn-print" onclick="window.print()">PRINT MASTER RPCPPE</button>
     <a href="{% url 'reports_home' %}" style="margin-left: 10px; font-size: 9pt; color: #666;">Back to Reports</a>
 </div>
+
+{% if active_demo_role and active_demo_role|slice:":5" == "UNIT_" %}
+<div class="watermark">DRAFT - NOT OFFICIAL</div>
+{% endif %}
 
 <div class="report-wrapper">
     <div class="header">
@@ -317,6 +350,16 @@
             </div>
         </div>
     </div>
+
+    {% if active_demo_role and active_demo_role|slice:":5" == "UNIT_" %}
+    <div class="disclosure-note">
+        <i class="fas fa-circle-exclamation me-2"></i>
+        <strong>DISCLOSURE NOTICE:</strong> This document is a digitally generated draft for internal unit verification purposes only. 
+        It shall not be deemed an official or certified university record without the original wet-ink signatures of all authorized personas listed above. 
+        For official, certified RPCPPE reports for audit or clearance purposes, please coordinate directly with the 
+        <strong>System Supply & Property Management Office (SSPMO)</strong>.
+    </div>
+    {% endif %}
 </div>
 
 </body>
