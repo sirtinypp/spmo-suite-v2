@@ -20,24 +20,24 @@
             <select name="asset_class" class="form-select form-select-sm shadow-sm border-primary"
                 onchange="this.form.submit()">
                 <option value="">All PPE Categories</option>
-                {% for c in all_classes %}
-                <option value="{{ c }}" {% if selected_class  ==  c %}selected{% endif %}>{{ c }}</option>
+                {% for c_code, c_label in all_classes %}
+                <option value="{{ c_code }}" {% if selected_class == c_code %}selected{% endif %}>{{ c_label }}</option>
                 {% endfor %}
             </select>
 
             <select name="asset_nature" class="form-select form-select-sm shadow-sm border-primary"
                 onchange="this.form.submit()">
                 <option value="">All Asset Types</option>
-                {% for n in all_natures %}
-                <option value="{{ n }}" {% if selected_nature  ==  n %}selected{% endif %}>{{ n }}</option>
+                {% for n_code, n_label in all_natures %}
+                <option value="{{ n_code }}" {% if selected_nature == n_code %}selected{% endif %}>{{ n_label }}</option>
                 {% endfor %}
             </select>
 
             <select name="status" class="form-select form-select-sm shadow-sm border-primary"
                 onchange="this.form.submit()">
                 <option value="">All Statuses</option>
-                {% for s in all_statuses %}
-                <option value="{{ s }}" {% if selected_status  ==  s %}selected{% endif %}>{{ s }}</option>
+                {% for s_code, s_label in all_statuses %}
+                <option value="{{ s_code }}" {% if selected_status == s_code %}selected{% endif %}>{{ s_label }}</option>
                 {% endfor %}
             </select>
 

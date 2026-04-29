@@ -36,8 +36,8 @@
                     <select name="asset_class" class="form-select form-select-sm border-0 shadow-sm"
                         onchange="this.form.submit()">
                         <option value="">All PPE Categories</option>
-                        {% for c in all_classes %}
-                        <option value="{{ c }}" {% if selected_class == c %}selected{% endif %}>{{ c }}
+                        {% for c_code, c_label in all_classes %}
+                        <option value="{{ c_code }}" {% if selected_class == c_code %}selected{% endif %}>{{ c_label }}
                         </option>
                         {% endfor %}
                     </select>
@@ -47,8 +47,8 @@
                     <select name="asset_nature" class="form-select form-select-sm border-0 shadow-sm"
                         onchange="this.form.submit()">
                         <option value="">All Asset Types</option>
-                        {% for n in all_natures %}
-                        <option value="{{ n }}" {% if selected_nature == n %}selected{% endif %}>{{ n }}
+                        {% for n_code, n_label in all_natures %}
+                        <option value="{{ n_code }}" {% if selected_nature == n_code %}selected{% endif %}>{{ n_label }}
                         </option>
                         {% endfor %}
                     </select>

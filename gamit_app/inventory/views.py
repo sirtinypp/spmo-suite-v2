@@ -113,14 +113,12 @@ def dashboard(request):
         insight_text = "No inventory data available to generate insights."
 
     # 6. CONTEXT
-    all_classes = [c[1] for c in Asset.CLASS_CHOICES]
-    all_natures = [n[1] for n in Asset.ASSET_TYPE_CHOICES]
-    all_statuses = [s[0] for s in Asset.STATUS_CHOICES]
-
+    all_classes = Asset.CLASS_CHOICES
+    all_natures = Asset.ASSET_TYPE_CHOICES
+    all_statuses = Asset.STATUS_CHOICES
     recent_assets = assets.order_by('-created_at')[:5]
 
     context = {
-        # Existing metrics (keep 3)
         'total_count': total_count,
         'total_value': format_money(total_value),
         'highest_val': format_money(highest_val),
@@ -249,10 +247,10 @@ def asset_list(request):
     except EmptyPage:
         assets_paginated = paginator.page(paginator.num_pages)
 
-    # 5. Context Data for Dropdowns
-    all_classes = [c[1] for c in Asset.CLASS_CHOICES]
-    all_natures = [n[1] for n in Asset.ASSET_TYPE_CHOICES]
-    all_statuses = Asset.STATUS_CHOICES # Pass full tuples for (code, label)
+    # 5. Context Data for Dropdowns (Standardized Tuples)
+    all_classes = Asset.CLASS_CHOICES
+    all_natures = Asset.ASSET_TYPE_CHOICES
+    all_statuses = Asset.STATUS_CHOICES
     
     # Get Departments for the dropdown
     from .models import Department # Ensure Department is imported locally or at top
