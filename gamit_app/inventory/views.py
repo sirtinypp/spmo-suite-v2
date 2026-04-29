@@ -694,35 +694,42 @@ def transaction_ledger(request):
 
         # Search
         if search:
+            # Support multi-word name searches
             q_s = (Q(transaction_id__icontains=search) |
                    Q(requestor__first_name__icontains=search) |
-                   Q(requestor__last_name__icontains=search))
+                   Q(requestor__last_name__icontains=search) |
+                   Q(requestor__username__icontains=search))
+            
+            if " " in search:
+                parts = search.split()
+                q_s |= (Q(requestor__first_name__icontains=parts[0]) & Q(requestor__last_name__icontains=parts[-1]))
+
             if has_asset:
                 q_s |= (Q(asset__name__icontains=search) |
-                        Q(asset__property_number__icontains=search))
+                        Q(asset__property_number__icontains=search) |
+                        Q(asset__serial_number__icontains=search))
             elif code == 'BATCH':
                 q_s |= (Q(supplier_name__icontains=search) |
-                        Q(requesting_unit__icontains=search))
+                        Q(requesting_unit__icontains=search) |
+                        Q(po_number__icontains=search))
             elif code == 'CLR':
                 q_s |= Q(purpose__icontains=search)
             qs = qs.filter(q_s)
 
-        # Status filter
+        # Status filter (Case-Insensitive & Inclusive)
         if status_filter == 'APPROVED':
-            if code == 'BATCH':
-                qs = qs.filter(status='PAR_RELEASED')
-            else:
-                qs = qs.filter(
-                    Q(status__iexact='Approved') | Q(status__iexact='APPROVED') |
-                    Q(status__iexact='FINALIZED'))
+            # Capture all successful/finalized states
+            qs = qs.filter(Q(status__iexact='Approved') | Q(status__iexact='APPROVED') | 
+                           Q(status__iexact='FINALIZED') | Q(status__iexact='PAR_RELEASED'))
         elif status_filter == 'PENDING':
-            qs = qs.exclude(status__in=[
-                'APPROVED', 'PAR_RELEASED', 'RETURNED', 'REJECTED',
-                'Approved', 'Returned', 'Rejected', 'FINALIZED'])
+            # Filter for anything NOT in a final state
+            qs = qs.exclude(Q(status__iexact='Approved') | Q(status__iexact='APPROVED') | 
+                            Q(status__iexact='FINALIZED') | Q(status__iexact='PAR_RELEASED') |
+                            Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED') |
+                            Q(status__iexact='Rejected') | Q(status__iexact='Returned'))
         elif status_filter == 'RETURNED':
-            qs = qs.filter(
-                Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED') |
-                Q(status__iexact='Returned') | Q(status__iexact='Rejected'))
+            qs = qs.filter(Q(status__iexact='RETURNED') | Q(status__iexact='REJECTED') |
+                           Q(status__iexact='Returned') | Q(status__iexact='Rejected'))
 
         for obj in qs.order_by('-created_at')[:200]:
             if has_asset:
