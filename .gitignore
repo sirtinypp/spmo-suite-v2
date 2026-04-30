@@ -70,6 +70,9 @@ media/
 # Docker
 .docker/
 
+# Assets
+staticfiles/
+
 # Environment Variables
 .env
 .env.local
