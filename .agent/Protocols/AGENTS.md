@@ -37,3 +37,8 @@
 ## 6. Communication style
 - Direct, not diplomatic. Concise by default.
 - No ceremonies, no padding, no emojis.
+
+## 7. Environment Integrity
+- **Protect Master Config:** Refer to `.agent/docs/ENVIRONMENT_CONFIG.md` before touching Site, SocialApp, or Identity logic.
+- **Identity Lock:** Always ensure `grootadmin` / `xiarabasa12` is the authoritative superuser on Local.
+- **No Shadow Records:** Never create `SocialApp` records in the DB if they are already defined in `settings.py`.

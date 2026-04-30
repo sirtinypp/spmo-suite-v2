@@ -58,6 +58,8 @@ urlpatterns = [
     path('profile/signature/', views.upload_signature, name='upload_signature'),
     path('batch/<int:pk>/', views.batch_detail, name='batch_detail'),
     path('batch/<int:pk>/workflow/<str:target_state>/', views.approve_batch_workflow, name='approve_batch_workflow'),
+    path('inspection/<int:pk>/', views.inspection_detail, name='inspection_detail'),
+    path('inspection/<int:pk>/workflow/<str:target_state>/', views.approve_inspection_workflow, name='approve_inspection_workflow'),
     path('return/<int:pk>/', views.return_detail, name='return_detail'),
     path('return/<int:pk>/workflow/<str:target_state>/', views.approve_return_workflow, name='approve_return_workflow'),
     path('loss/<int:pk>/', views.loss_detail, name='loss_detail'),
@@ -75,4 +77,10 @@ urlpatterns = [
     # --- PERSONA SWITCHER ---
     path('switch-persona/<str:role_code>/', switch_persona, name='switch_persona'),
     path('administration/bulk-upload/', views.bulk_media_upload, name='bulk_media_upload'),
+    
+    # --- SUPERADMIN COMMAND CENTER ---
+    path('administration/command-center/', views.superadmin_command_center, name='superadmin_command_center'),
+    path('administration/users/', views.manage_personas, name='manage_users'), # Alias for Persona Management
+    path('administration/personas/', views.manage_personas, name='manage_personas'),
+    path('administration/workflows/', views.manage_workflows, name='manage_workflows'),
 ]

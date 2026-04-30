@@ -117,7 +117,9 @@
                 </thead>
                 <tbody>
                     {% for row in rows %}
-                    <tr class="text-body-emphasis border-bottom">
+                    <tr class="text-body-emphasis border-bottom clickable-row" 
+                        {% if row.detail_url %}onclick="window.location='{{ row.detail_url }}'"{% endif %}
+                        style="cursor: pointer; transition: background 0.15s ease;">
                         <td class="ps-4 fw-bold text-{{ row.type_color }}">{{ row.transaction_id }}</td>
                         <td>
                             <span class="badge bg-{{ row.type_color }} bg-opacity-10 text-{{ row.type_color }} border border-{{ row.type_color }} rounded-pill px-3">

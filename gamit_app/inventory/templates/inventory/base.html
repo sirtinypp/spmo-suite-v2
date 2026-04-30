@@ -198,6 +198,11 @@
             margin-left: var(--sidebar-width);
             min-height: 100vh;
             padding: 32px;
+            transition: margin-left 0.3s ease;
+        }
+        body.no-sidebar .main-content {
+            margin-left: 0;
+            padding: 15px;
         }
 
         /* Utility */
@@ -233,9 +238,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 </head>
 
-<body>
+<body {% if no_sidebar %}class="no-sidebar"{% endif %}>
 
+    {% if not no_sidebar %}
     {% include 'inventory/snippets/sidebar_nav.html' with show_theme_toggle=False %}
+    {% endif %}
 
     <main class="main-content">
         {% block content %}

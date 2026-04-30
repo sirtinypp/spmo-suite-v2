@@ -38,6 +38,10 @@ class ActionProcess(models.Model):
     name = models.CharField(max_length=150, unique=True)
     code = models.CharField(max_length=50, unique=True)
     description = models.TextField(blank=True, null=True)
+    order = models.PositiveIntegerField(default=10)
+
+    class Meta:
+        ordering = ['order', 'name']
 
     def __str__(self): return self.name
 

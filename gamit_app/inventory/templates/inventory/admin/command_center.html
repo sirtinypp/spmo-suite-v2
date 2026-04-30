@@ -1,0 +1,123 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-0"><i class="fas fa-tower-control-tower text-primary me-2"></i>Superadmin Command Center</h4>
+            <p class="text-muted small mb-0">Unified Identity & Workflow Governance Cockpit</p>
+        </div>
+        <div class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+            <i class="fas fa-server me-1"></i> LOCAL NODE: 8001
+        </div>
+    </div>
+
+    <!-- TAB NAVIGATION -->
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm border" id="commandCenterTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-3" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">
+                <i class="fas fa-chart-line me-2"></i>System Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3" id="personas-tab" data-bs-toggle="pill" data-bs-target="#personas" type="button" role="tab">
+                <i class="fas fa-users-gear me-2"></i>User Personas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3" id="workflows-tab" data-bs-toggle="pill" data-bs-target="#workflows" type="button" role="tab">
+                <i class="fas fa-route me-2"></i>Workflow Blueprints
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3" id="media-tab" data-bs-toggle="pill" data-bs-target="#media" type="button" role="tab">
+                <i class="fas fa-images me-2"></i>Bulk Media
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3" id="activity-tab" data-bs-toggle="pill" data-bs-target="#activity" type="button" role="tab">
+                <i class="fas fa-history me-2"></i>Activity Pulse
+            </button>
+        </li>
+        <li class="nav-item ms-auto" role="presentation">
+            <a href="/admin/" class="btn btn-outline-dark btn-sm rounded-3 mt-1 me-2" target="_blank">
+                <i class="fas fa-external-link-alt me-2"></i>Django Admin
+            </a>
+        </li>
+    </ul>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content" id="commandCenterTabsContent">
+        
+        <!-- 1. OVERVIEW -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary-subtle text-primary p-3 rounded-4 me-3"><i class="fas fa-user-friends fs-4"></i></div>
+                            <div>
+                                <h3 class="fw-bold mb-0">{{ total_users }}</h3>
+                                <p class="text-muted small mb-0">Total Users</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ... other cards ... -->
+            </div>
+            <!-- Parity Auditor -->
+            <div class="mt-5 text-center py-5 rounded-5 border-dashed" style="border: 2px dashed #dee2e6; background: rgba(0,0,0,0.01);">
+                <i class="fas fa-microchip fs-1 text-muted mb-3"></i>
+                <h5>Environment Parity Auditor</h5>
+                <p class="text-muted small">Compare Local DB state against DEV/PROD anchors.</p>
+                <button class="btn btn-primary rounded-pill px-4" disabled>Launch Audit</button>
+            </div>
+        </div>
+
+        <!-- 2. PERSONAS -->
+        <div class="tab-pane fade" id="personas" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <iframe src="{% url 'manage_personas' %}?framed=1" style="width: 100%; height: 800px; border: none; border-radius: 1rem;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. WORKFLOWS -->
+        <div class="tab-pane fade" id="workflows" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <iframe src="{% url 'manage_workflows' %}?framed=1" style="width: 100%; height: 800px; border: none; border-radius: 1rem;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. BULK MEDIA -->
+        <div class="tab-pane fade" id="media" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <iframe src="{% url 'bulk_media_upload' %}?framed=1" style="width: 100%; height: 800px; border: none; border-radius: 1rem;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. ACTIVITY PULSE -->
+        <div class="tab-pane fade" id="activity" role="tabpanel">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <iframe src="{% url 'activity_log' %}?framed=1" style="width: 100%; height: 800px; border: none; border-radius: 1rem;"></iframe>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .nav-pills .nav-link { color: #6c757d; font-weight: 500; transition: all 0.2s; }
+    .nav-pills .nav-link.active { background-color: var(--bs-primary); color: white; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); }
+    .nav-pills .nav-link:hover:not(.active) { background-color: #f8f9fa; color: var(--bs-primary); }
+    iframe { background: white; }
+</style>
+{% endblock %}

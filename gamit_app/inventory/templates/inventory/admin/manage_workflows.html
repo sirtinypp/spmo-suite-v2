@@ -1,0 +1,322 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="{% if not no_sidebar %}container-fluid py-4{% else %}fade-in{% endif %}">
+    {% if not no_sidebar %}
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'superadmin_command_center' %}" class="text-decoration-none">Command Center</a></li>
+            <li class="breadcrumb-item active">Workflow Blueprinting</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-dark mb-0"><i class="fas fa-route text-info me-2"></i>Workflow Blueprinting</h4>
+            <p class="text-muted small mb-0">Architect system business logic and actor-step bindings.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showAllProcesses()">
+                <i class="fas fa-layer-group me-1"></i> Show All
+            </button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addProcessModal">
+                <i class="fas fa-plus-circle me-2"></i> New Process
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Process Selector Pills -->
+    <div class="process-selector mb-4 p-2 bg-white rounded-4 shadow-sm border d-flex gap-2 overflow-auto" style="white-space: nowrap;">
+        {% for proc in processes %}
+        <button class="btn btn-light rounded-pill px-4 py-2 border-0 fw-bold text-muted process-pill" 
+                onclick="filterProcess('{{ proc.code }}')"
+                data-process-code="{{ proc.code }}"
+                style="font-size: 0.85rem; transition: all 0.2s;">
+            {{ proc.name }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <script>
+        function filterProcess(code) {
+            // Hide all cards
+            document.querySelectorAll('.process-card-wrapper').forEach(card => {
+                card.style.display = 'none';
+            });
+            // Show selected
+            const card = document.getElementById('proc-' + code);
+            if(card) card.style.display = 'block';
+            
+            // Update pills
+            document.querySelectorAll('.process-pill').forEach(pill => {
+                pill.classList.remove('btn-dark', 'text-white');
+                pill.classList.add('btn-light', 'text-muted');
+                if(pill.getAttribute('data-process-code') === code) {
+                    pill.classList.remove('btn-light', 'text-muted');
+                    pill.classList.add('btn-dark', 'text-white');
+                }
+            });
+        }
+
+        function showAllProcesses() {
+            document.querySelectorAll('.process-card-wrapper').forEach(card => {
+                card.style.display = 'block';
+            });
+            document.querySelectorAll('.process-pill').forEach(pill => {
+                pill.classList.remove('btn-dark', 'text-white');
+                pill.classList.add('btn-light', 'text-muted');
+            });
+        }
+        
+        // Auto-select first process on load if many
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if processes %}
+                filterProcess('{{ processes.0.code }}');
+            {% endif %}
+        });
+    </script>
+
+    <!-- Add Process Modal -->
+    <div class="modal fade" id="addProcessModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Initialize New Action Process</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_process">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Process Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Asset Returns" required>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label small fw-bold">System Code (UPPERCASE)</label>
+                            <input type="text" name="code" class="form-control" placeholder="e.g. ASSET_RETURN" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-bold">Create Process Card</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% for proc in processes %}
+    <div class="process-card-wrapper" id="proc-{{ proc.code }}">
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+        <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-info text-dark me-2">PROCESS</span>
+                <span class="fw-bold fs-5">{{ proc.name }}</span>
+                <code class="ms-2 text-info small" style="opacity: 0.8;">{{ proc.code }}</code>
+            </div>
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addWorkflowModal{{ proc.id }}">
+                <i class="fas fa-plus me-1"></i> Add Workflow
+            </button>
+        </div>
+
+        <!-- Add Workflow Modal -->
+        <div class="modal fade" id="addWorkflowModal{{ proc.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow rounded-4">
+                    <div class="modal-header border-0 pb-0">
+                        <h6 class="modal-title fw-bold">New Workflow for {{ proc.name }}</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_workflow">
+                        <input type="hidden" name="process_id" value="{{ proc.id }}">
+                        <div class="modal-body p-4">
+                            <div class="mb-0">
+                                <label class="form-label small fw-bold">Workflow Name</label>
+                                <input type="text" name="name" class="form-control" placeholder="e.g. Standard Item Return" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0">
+                            <button type="submit" class="btn btn-info w-100 rounded-3 py-2 fw-bold text-dark">Initialize Workflow</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body p-4 bg-light-subtle">
+            {% for wf in proc.workflows.all %}
+            <div class="workflow-block mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info-subtle text-info p-2 rounded-3 me-3">
+                            <i class="fas fa-diagram-project"></i>
+                        </div>
+                        <h6 class="fw-bold mb-0 text-dark">Workflow: {{ wf.name }}</h6>
+                    </div>
+                    <button class="btn btn-sm btn-outline-info rounded-pill" data-bs-toggle="modal" data-bs-target="#addPhaseModal{{ wf.id }}">
+                        <i class="fas fa-plus me-1"></i> Add Phase
+                    </button>
+                </div>
+
+                <!-- Add Phase Modal -->
+                <div class="modal fade" id="addPhaseModal{{ wf.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow rounded-4">
+                            <div class="modal-header border-0 pb-0">
+                                <h6 class="modal-title fw-bold">New Phase for {{ wf.name }}</h6>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_phase">
+                                <input type="hidden" name="workflow_id" value="{{ wf.id }}">
+                                <div class="modal-body p-4">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Phase Name</label>
+                                        <input type="text" name="name" class="form-control" placeholder="e.g. Technical Review" required>
+                                    </div>
+                                    <div class="mb-0">
+                                        <label class="form-label small fw-bold">Sequence Order</label>
+                                        <input type="number" name="order" class="form-control" value="10">
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0 pt-0">
+                                    <button type="submit" class="btn btn-info w-100 rounded-3 py-2 fw-bold text-dark">Commit Phase</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Horizontal Stepper Visualization -->
+                <div class="row g-3">
+                    {% for phase in wf.phases.all %}
+                    <div class="col-md-4">
+                        <div class="phase-card p-3 rounded-4 border bg-white h-100 shadow-sm position-relative">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-secondary-subtle text-secondary small me-2">{{ phase.order }}</span>
+                                    <span class="fw-bold text-dark">{{ phase.name }}</span>
+                                </div>
+                                <form method="POST" onsubmit="return confirm('Delete this phase?');" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_phase">
+                                    <input type="hidden" name="phase_id" value="{{ phase.id }}">
+                                    <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 0.7rem;"><i class="fas fa-trash-can"></i></button>
+                                </form>
+                            </div>
+
+                            <div class="steps-container">
+                                {% for step in phase.steps.all %}
+                                <div class="step-item p-2 rounded-3 bg-light border-start border-3 border-info mb-2 position-relative">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="fw-bold small text-dark" style="font-size: 0.75rem;">{{ step.label }}</div>
+                                            {% if step.required_persona_role %}
+                                            <div class="text-info mt-1" style="font-size: 0.65rem;">
+                                                <i class="fas fa-user-check me-1"></i> Actor: {{ step.required_persona_role.name }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        <form method="POST" onsubmit="return confirm('Remove step?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="delete_step">
+                                            <input type="hidden" name="step_id" value="{{ step.id }}">
+                                            <button type="submit" class="btn btn-link text-danger p-0" style="font-size: 0.7rem;"><i class="fas fa-xmark"></i></button>
+                                        </form>
+                                    </div>
+                                    
+                                    <!-- Signatories List -->
+                                    <div class="mt-2 border-top pt-1">
+                                        {% for slot in step.signatory_slots.all %}
+                                        <div class="d-flex align-items-center justify-content-between mt-1">
+                                            <span class="text-muted" style="font-size: 0.65rem;">{{ slot.label }}:</span>
+                                            <span class="badge bg-white border text-dark fw-normal" style="font-size: 0.6rem;">{{ slot.role.name }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                <button class="btn btn-link btn-sm text-info p-0 mt-1" style="font-size: 0.7rem;" data-bs-toggle="modal" data-bs-target="#addStepModal{{ phase.id }}">
+                                    <i class="fas fa-plus-circle me-1"></i> Add Step
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Add Step Modal -->
+                        <div class="modal fade" id="addStepModal{{ phase.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content border-0 shadow rounded-4">
+                                    <div class="modal-header border-0 pb-0">
+                                        <h6 class="modal-title fw-bold">New Step for {{ phase.name }}</h6>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_step">
+                                        <input type="hidden" name="phase_id" value="{{ phase.id }}">
+                                        <div class="modal-body p-4">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Status Label</label>
+                                                <input type="text" name="label" class="form-control" placeholder="e.g. Pending Approval" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Required Actor Role</label>
+                                                <select name="role_id" class="form-select">
+                                                    <option value="">Any Persona</option>
+                                                    {% for role in all_roles %}
+                                                    <option value="{{ role.id }}">{{ role.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="mb-0">
+                                                <label class="form-label small fw-bold">Sequence Order</label>
+                                                <input type="number" name="order" class="form-control" value="10">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer border-0 pt-0">
+                                            <button type="submit" class="btn btn-info w-100 rounded-3 py-2 fw-bold text-dark">Add to Sequence</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="col-md-3">
+                        <button class="btn btn-dashed w-100 h-100 rounded-4 d-flex flex-column align-items-center justify-content-center text-muted border-secondary border-opacity-25" 
+                                style="border-style: dashed; min-height: 120px;" 
+                                data-bs-toggle="modal" data-bs-target="#addPhaseModal{{ wf.id }}">
+                            <i class="fas fa-plus-circle mb-2 fs-4"></i>
+                            <span class="small">Add Phase</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .btn-dashed:hover {
+        background: rgba(0,0,0,0.02);
+        color: var(--bs-primary);
+        border-color: var(--bs-primary) !important;
+    }
+    .phase-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .phase-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+</style>
+{% endblock %}

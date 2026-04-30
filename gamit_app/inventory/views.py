@@ -3,7 +3,8 @@ import re
 import os
 from collections import Counter
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.db.models import Sum, Count, Q, Avg
@@ -794,7 +795,7 @@ def transaction_ledger(request):
     }
 
     DETAIL_URLS = {
-        'BATCH': 'batch_detail', 'TRF': 'transfer_detail',
+        'BATCH': 'batch_detail', 'REQ': 'inspection_detail', 'TRF': 'transfer_detail',
         'RET': 'return_detail', 'LOSS': 'loss_detail', 'CLR': 'clearance_detail',
     }
 
@@ -1434,6 +1435,36 @@ def create_return_request(request):
     return render(request, 'inventory/transaction_return.html', {'form': form})
 
 @login_required
+def inspection_detail(request, pk):
+    inspection = get_object_or_404(InspectionRequest, pk=pk)
+    
+    try:
+        allowed_transitions = WorkflowEngine.get_allowed_transitions(inspection, request.user)
+        workflow_steps = WorkflowEngine.get_workflow_steps(inspection)
+    except Exception:
+        allowed_transitions = []
+        workflow_steps = []
+
+    return render(request, 'inventory/inspection_detail.html', {
+        'inspection': inspection,
+        'req': inspection,
+        'allowed_transitions': allowed_transitions,
+        'workflow_steps': workflow_steps,
+    })
+
+@login_required
+def approve_inspection_workflow(request, pk, target_state):
+    inspection = get_object_or_404(InspectionRequest, pk=pk)
+    if request.method == 'POST':
+        try:
+            remarks = request.POST.get('remarks', '')
+            WorkflowEngine.transition(inspection, target_state, request.user, remarks=remarks)
+            messages.success(request, f"Workflow step executed successfully!")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+    return redirect('inspection_detail', pk=pk)
+
+@login_required
 def return_detail(request, pk):
     req = get_object_or_404(AssetReturnRequest, pk=pk)
     logs = req.movement_logs.all().order_by('-timestamp')
@@ -1564,6 +1595,7 @@ def create_iirup_request(request):
 # ==========================================
 @login_required
 def activity_log(request):
+    is_framed = request.GET.get('framed') == '1'
     """
     Centralized Audit Trail for SPMO Administration.
     Visible to Superusers, Chief, and Supervisors.
@@ -1743,7 +1775,8 @@ def activity_log(request):
         'selected_department': selected_department,
         'start_date': start_date,
         'end_date': end_date,
-        'process_type': process_type
+        'process_type': process_type,
+        'no_sidebar': is_framed
     })
 
 # ==========================================
@@ -1894,4 +1927,133 @@ def bulk_media_upload(request):
         'cond_perc': (condition_count / total_assets * 100) if total_assets > 0 else 0,
     }
 
-    return render(request, 'inventory/bulk_media.html', {'metrics': metrics})
+    return render(request, 'inventory/bulk_media.html', {'metrics': metrics, 'no_sidebar': request.GET.get('framed') == '1'})
+
+# ==========================================
+# 22. SUPERADMIN COMMAND CENTER (Surgical Infrastructure)
+# ==========================================
+from workflow.models import Role, Persona, ActionProcess, Workflow, WorkflowPhase, WorkflowStep, SignatorySlot
+
+@user_passes_test(lambda u: u.is_superuser)
+def superadmin_command_center(request):
+    """Master cockpit for Superadmins."""
+    context = {
+        'total_users': User.objects.count(),
+        'total_personas': Persona.objects.count(),
+        'total_roles': Role.objects.count(),
+        'total_workflows': Workflow.objects.count(),
+        'active_workflows': ActionProcess.objects.prefetch_related('workflows__phases__steps').all(),
+    }
+    return render(request, 'inventory/admin/command_center.html', context)
+
+@user_passes_test(lambda u: u.is_superuser)
+def manage_personas(request):
+    is_framed = request.GET.get('framed') == '1'
+    """CRUD interface for Personas."""
+    from .models import Department
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'create':
+            user_id = request.POST.get('user_id')
+            role_id = request.POST.get('role_id')
+            dept_id = request.POST.get('dept_id')
+            if user_id and role_id:
+                Persona.objects.get_or_create(
+                    user_id=user_id, 
+                    role_id=role_id, 
+                    department_id=dept_id if dept_id else None
+                )
+                messages.success(request, "Persona created.")
+            else:
+                messages.error(request, "User and Role are required.")
+        elif action == 'update':
+            persona_id = request.POST.get('persona_id')
+            role_id = request.POST.get('role_id')
+            dept_id = request.POST.get('dept_id')
+            if persona_id and role_id:
+                Persona.objects.filter(id=persona_id).update(
+                    role_id=role_id, 
+                    department_id=dept_id if dept_id else None
+                )
+                messages.success(request, "Persona updated.")
+        elif action == 'delete':
+            persona_id = request.POST.get('persona_id')
+            if persona_id:
+                Persona.objects.filter(id=persona_id).delete()
+                messages.warning(request, "Persona removed.")
+        from django.urls import reverse
+        redirect_url = reverse('manage_personas')
+        if is_framed:
+            redirect_url += '?framed=1'
+        return redirect(redirect_url)
+
+    context = {
+        'personas': Persona.objects.select_related('user', 'role', 'department').all().order_by('user__username'),
+        'all_users': User.objects.all().order_by('username'),
+        'all_roles': Role.objects.all(),
+        'all_departments': Department.objects.all().order_by('name'),
+        'no_sidebar': is_framed,
+    }
+    return render(request, 'inventory/admin/manage_personas.html', context)
+
+@user_passes_test(lambda u: u.is_superuser)
+def manage_workflows(request):
+    is_framed = request.GET.get('framed') == '1'
+    """Blueprint manager for Workflows."""
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add_process':
+            name = request.POST.get('name')
+            code = request.POST.get('code')
+            ActionProcess.objects.create(name=name, code=code)
+            messages.success(request, "New Action Process initialized.")
+
+        elif action == 'add_workflow':
+            process_id = request.POST.get('process_id')
+            name = request.POST.get('name')
+            Workflow.objects.create(process_id=process_id, name=name)
+            messages.success(request, "Workflow variant added.")
+        
+        elif action == 'add_phase':
+            workflow_id = request.POST.get('workflow_id')
+            name = request.POST.get('name')
+            order = request.POST.get('order', 10)
+            WorkflowPhase.objects.create(workflow_id=workflow_id, name=name, order=order)
+            messages.success(request, "Phase added to blueprint.")
+            
+        elif action == 'add_step':
+            phase_id = request.POST.get('phase_id')
+            label = request.POST.get('label')
+            role_id = request.POST.get('role_id')
+            order = request.POST.get('order', 10)
+            WorkflowStep.objects.create(
+                phase_id=phase_id, 
+                label=label, 
+                required_persona_role_id=role_id if role_id else None,
+                order=order
+            )
+            messages.success(request, "Step added to phase.")
+            
+        elif action == 'delete_step':
+            WorkflowStep.objects.filter(id=request.POST.get('step_id')).delete()
+            messages.warning(request, "Step removed.")
+            
+        elif action == 'delete_phase':
+            WorkflowPhase.objects.filter(id=request.POST.get('phase_id')).delete()
+            messages.warning(request, "Phase removed.")
+
+        from django.urls import reverse
+        redirect_url = reverse('manage_workflows')
+        if is_framed:
+            redirect_url += '?framed=1'
+        return redirect(redirect_url)
+
+    processes = ActionProcess.objects.prefetch_related('workflows__phases__steps__signatory_slots').all()
+    return render(request, 'inventory/admin/manage_workflows.html', {
+        'processes': processes, 
+        'all_roles': Role.objects.all(), 
+        'no_sidebar': is_framed
+    })
+

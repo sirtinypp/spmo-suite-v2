@@ -1,0 +1,195 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="{% if not no_sidebar %}container-fluid py-4{% endif %}">
+    {% if not no_sidebar %}
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{% url 'superadmin_command_center' %}" class="text-decoration-none">Command Center</a></li>
+            <li class="breadcrumb-item active">User Persona Manager</li>
+        </ol>
+    </nav>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- PERSONA CREATION SIDEBAR -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden sticky-top" style="top: 100px;">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="fw-bold mb-0">Link New Persona</h6>
+                </div>
+                <div class="card-body p-4 pt-2">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">System User</label>
+                        <select name="user_id" class="form-select select2-user" required>
+                            <option value="">Select User...</option>
+                            {% for u in all_users %}
+                                <option value="{{ u.id }}">{{ u.username }} ({{ u.get_full_name|default:"No Name" }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Assigned Role</label>
+                        <select name="role_id" class="form-select" required>
+                            <option value="">Select Role...</option>
+                            {% for r in all_roles %}
+                                <option value="{{ r.id }}">{{ r.name }} ({{ r.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">Primary Department (Optional)</label>
+                        <select name="dept_id" class="form-select select2-dept">
+                            <option value="">Global / Unassigned</option>
+                            {% for d in all_departments %}
+                                <option value="{{ d.id }}">{{ d.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text small" style="font-size: 0.7rem;">Required for Unit-level personas.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-3 py-2 fw-bold">
+                        <i class="fas fa-plus-circle me-2"></i> Commit Persona
+                    </button>
+                </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERSONA REGISTRY -->
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0">Active Persona Registry</h6>
+                    <span class="badge bg-primary-subtle text-primary">{{ personas.count }} Linkages</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role / Code</th>
+                                    <th>Department Scope</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for p in personas %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-secondary-subtle d-flex justify-content-center align-items-center text-secondary fw-bold me-2" style="width: 32px; height: 32px;">
+                                                {{ p.user.username|slice:":1"|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">{{ p.user.username }}</div>
+                                                <div class="text-muted" style="font-size: 0.7rem;">{{ p.user.email|default:"No Email" }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-primary">{{ p.role.name }}</div>
+                                        <code class="small text-secondary" style="font-size: 0.7rem;">{{ p.role.code }}</code>
+                                    </td>
+                                    <td>
+                                        {% if p.department %}
+                                            <span class="text-dark fw-medium">{{ p.department.name }}</span>
+                                        {% else %}
+                                            <span class="text-muted italic opacity-50">Global Scope</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <!-- Edit Trigger -->
+                                            <button class="btn btn-link text-primary p-0" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editPersonaModal{{ p.id }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+
+                                            <!-- Delete Form -->
+                                            <form method="POST" onsubmit="return confirm('Are you sure you want to remove this persona linkage?');" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="persona_id" value="{{ p.id }}">
+                                                <button type="submit" class="btn btn-link text-danger p-0">
+                                                    <i class="fas fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Edit Modal for this specific persona -->
+                                        <div class="modal fade" id="editPersonaModal{{ p.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content rounded-4 border-0 shadow">
+                                                    <div class="modal-header border-bottom py-3">
+                                                        <h6 class="modal-title fw-bold">Edit Persona: {{ p.user.username }}</h6>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <form method="POST">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="update">
+                                                        <input type="hidden" name="persona_id" value="{{ p.id }}">
+                                                        <div class="modal-body p-4 text-start">
+                                                            <div class="mb-3">
+                                                                <label class="form-label small fw-bold">Role</label>
+                                                                <select name="role_id" class="form-select" required>
+                                                                    {% for r in all_roles %}
+                                                                        <option value="{{ r.id }}" {% if p.role_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-0">
+                                                                <label class="form-label small fw-bold">Department Scope</label>
+                                                                <select name="dept_id" class="form-select">
+                                                                    <option value="">Global Scope</option>
+                                                                    {% for d in all_departments %}
+                                                                        <option value="{{ d.id }}" {% if p.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-top p-3">
+                                                            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">No personas defined in this environment.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function() {
+        $('.select2-user, .select2-dept').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+    });
+</script>
+{% endblock %}

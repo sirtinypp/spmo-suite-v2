@@ -1,0 +1,74 @@
+{% load static %}
+
+<div class="workflow-stepper-container mb-4 p-4 bg-white rounded-4 shadow-sm border">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 class="fw-bold mb-0 text-dark">
+            <i class="fas fa-project-diagram text-primary me-2"></i>
+            Workflow Lifecycle
+        </h6>
+        <div class="d-flex gap-2">
+            <span class="badge bg-light text-dark border rounded-pill px-3">
+                <i class="fas fa-map-marker-alt text-primary me-1"></i>
+                Current: {{ batch.current_step.label|default:batch.status }}
+            </span>
+        </div>
+    </div>
+
+    <div class="stepper-wrapper d-flex justify-content-between position-relative px-2">
+        <!-- Progress Line (Background) -->
+        <div class="progress-line position-absolute bg-light" style="height: 4px; top: 20px; left: 50px; right: 50px; z-index: 1;"></div>
+        
+        {% for step in workflow_steps %}
+            <div class="step-item d-flex flex-column align-items-center position-relative" style="z-index: 2; flex: 1;">
+                <!-- Step Circle -->
+                <div class="step-circle rounded-circle d-flex align-items-center justify-content-center shadow-sm 
+                    {% if step.status_class == 'success' %} bg-success text-white 
+                    {% elif step.is_current %} bg-primary text-white pulse-active 
+                    {% else %} bg-light text-muted border {% endif %}" 
+                    style="width: 40px; height: 40px; transition: all 0.3s ease; border-width: 2px !important;">
+                    
+                    {% if step.status_class == 'success' %}
+                        <i class="fas fa-check small"></i>
+                    {% elif step.is_current %}
+                        <i class="fas fa-dot-circle"></i>
+                    {% else %}
+                        <span class="small fw-bold" style="font-size: 0.7rem;">{{ forloop.counter }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Step Label -->
+                <div class="step-label mt-3 text-center">
+                    <div class="fw-bold {% if step.is_current %} text-primary {% elif step.status_class == 'success' %} text-dark {% else %} text-muted {% endif %}" 
+                         style="font-size: 0.7rem; line-height: 1.2; max-width: 110px; margin: 0 auto;">
+                        {{ step.label }}
+                    </div>
+                    
+                    {% if step.log %}
+                        <div class="text-success mt-1 fw-medium" style="font-size: 0.6rem;">
+                            <i class="far fa-clock me-1"></i>{{ step.log.timestamp|date:"M d, H:i" }}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="text-muted mt-1" style="font-size: 0.6rem; opacity: 0.8;">
+                        {{ step.role_expected }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .pulse-active {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+        animation: pulse-blue 2s infinite;
+    }
+    @keyframes pulse-blue {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); }
+    }
+    .step-item:hover .step-circle {
+        transform: translateY(-3px);
+    }
+</style>

@@ -3,8 +3,9 @@
 {% load inventory_tags %}
 
 {% block content %}
-<div class="container-fluid fade-in">
+<div class="{% if not no_sidebar %}container-fluid{% endif %} fade-in">
     <!-- Header -->
+    {% if not no_sidebar %}
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 border-bottom pb-2">
         <div class="d-flex align-items-center">
             <div>
@@ -26,6 +27,7 @@
             </span>
         </div>
     </div>
+    {% endif %}
 
     <!-- Filters Row -->
     <div class="card border-0 shadow-sm mb-4 bg-body-tertiary">

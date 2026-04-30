@@ -1,0 +1,111 @@
+{% extends 'inventory/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header: Status & Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Inspection #{{ inspection.transaction_id }}</h4>
+            <span class="badge bg-info fs-6">{{ inspection.status }}</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'transaction_history' %}" class="btn btn-outline-secondary">Back to Action Center</a>
+        </div>
+    </div>
+
+    <!-- Live Workflow Stepper -->
+    {% include 'workflow/snippets/workflow_stepper.html' %}
+
+    <div class="row">
+        <!-- LEFT: Inspection Details -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Asset:</strong> {{ inspection.asset.property_number }}</p>
+                            <p><strong>Description:</strong> {{ inspection.asset.name }}</p>
+                            <p><strong>Requestor:</strong> {{ inspection.requestor.get_full_name|default:inspection.requestor.username }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Unit:</strong> {{ inspection.requestor.userprofile.office|default:"-" }}</p>
+                            <p><strong>Date Requested:</strong> {{ inspection.created_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="fw-bold">Notes / Description of Issue:</h6>
+                    <p class="text-muted">{{ inspection.notes }}</p>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Attached Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-3">
+                        {% if inspection.document_1 %}
+                        <a href="{{ inspection.document_1.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-pdf me-2"></i>Document 1
+                        </a>
+                        {% endif %}
+                        {% if inspection.document_2 %}
+                        <a href="{{ inspection.document_2.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-pdf me-2"></i>Document 2
+                        </a>
+                        {% endif %}
+                        {% if not inspection.document_1 and not inspection.document_2 %}
+                        <span class="text-muted fst-italic">No documents attached.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Actions & History -->
+        <div class="col-md-4">
+            <!-- Vertical Timeline -->
+            {% include 'inventory/snippets/vertical_timeline.html' %}
+            
+            <!-- Action Panel -->
+            <div class="card shadow mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if allowed_transitions %}
+                    <form method="post" id="workflowForm">
+                        {% csrf_token %}
+                        <p class="text-muted small mb-2">Provide feedback or remarks:</p>
+                        <textarea name="remarks" class="form-control form-control-sm mb-3" rows="2" placeholder="Enter remarks here..."></textarea>
+
+                        <div class="d-grid gap-2">
+                            {% for transition in allowed_transitions %}
+                            <button type="submit" 
+                                    formaction="{% url 'approve_inspection_workflow' inspection.id transition.target %}"
+                                    class="btn {{ transition.css_class|default:'btn-primary' }} w-100 d-flex align-items-center justify-content-center">
+                                <i class="{{ transition.icon|default:'fas fa-check' }} me-2"></i>
+                                {{ transition.action }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                    </form>
+                    {% else %}
+                    <p class="text-muted text-center my-3">
+                        <em>No actions available for your role in this state.</em>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Movement Log (Audit Trail) -->
+    {% include 'inventory/snippets/movement_log_table.html' %}
+</div>
+{% endblock %}

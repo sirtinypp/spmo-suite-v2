@@ -192,21 +192,12 @@
             </li>
             {% endif %}
 
-            {% if not active_demo_role or not active_demo_role|slice:":5" == "UNIT_" %}
+            {% if user.is_superuser %}
             <li class="section-label mt-4">Administration</li>
             <li class="nav-item">
-                <a href="{% url 'activity_log' %}" class="nav-link {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
-                    <i class="fas fa-history me-2"></i> Activity Pulse
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'bulk_media_upload' %}" class="nav-link {% if request.resolver_match.url_name == 'bulk_media_upload' %}active{% endif %}">
-                    <i class="fas fa-images me-2"></i> Bulk Media Manager
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/admin/" class="nav-link">
-                    <i class="fas fa-shield-halved me-2"></i> Admin Panel
+                <a href="{% url 'superadmin_command_center' %}" class="nav-link {% if 'administration/command-center' in request.path %}active{% endif %}">
+                    <i class="fas fa-shield-halved me-2"></i> 
+                    <span class="fw-bold">Command Center</span>
                 </a>
             </li>
             {% endif %}

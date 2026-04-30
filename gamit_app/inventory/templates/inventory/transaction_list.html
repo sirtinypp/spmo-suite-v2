@@ -174,7 +174,9 @@
                         </thead>
                         <tbody>
                             {% for item in inspections %}
-                            <tr class="text-body-emphasis border-bottom"> 
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'inspection_detail' item.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;"> 
                                 <td class="ps-4 fw-bold text-primary">{{ item.transaction_id }}</td>
                                 <td>
                                     <div class="fw-bold text-body-emphasis">{{ item.asset.property_number }}</div>
@@ -260,7 +262,9 @@
                         </thead>
                         <tbody>
                             {% for item in transfers %}
-                            <tr class="text-body-emphasis border-bottom">
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'transfer_detail' item.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;">
                                 <td class="ps-4 fw-bold text-warning">{{ item.transaction_id }}</td>
                                 <td>
                                     <div class="fw-bold text-body-emphasis">{{ item.asset.property_number }}</div>
@@ -348,7 +352,9 @@
                         </thead>
                         <tbody>
                             {% for batch in batches %}
-                            <tr class="text-body-emphasis border-bottom">
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'batch_detail' batch.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;">
                                 <td class="ps-4 fw-bold text-success">{{ batch.transaction_id }}</td>
                                 <td>{{ batch.created_at|date:"M d, Y" }}</td>
                                 <td>
@@ -464,7 +470,9 @@
                         </thead>
                         <tbody>
                             {% for item in returns %}
-                            <tr class="text-body-emphasis border-bottom">
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'return_detail' item.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;">
                                 <td class="ps-4 fw-bold text-primary">{{ item.transaction_id }}</td>
                                 <td>
                                     <div class="fw-bold text-body-emphasis">{{ item.asset.property_number }}</div>
@@ -503,7 +511,9 @@
                         </thead>
                         <tbody>
                             {% for item in losses %}
-                            <tr class="text-body-emphasis border-bottom">
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'loss_detail' item.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;">
                                 <td class="ps-4 fw-bold text-danger">{{ item.transaction_id }}</td>
                                 <td>
                                     <div class="fw-bold text-body-emphasis">{{ item.asset.property_number }}</div>
@@ -542,7 +552,9 @@
                         </thead>
                         <tbody>
                             {% for item in clearances %}
-                            <tr class="text-body-emphasis border-bottom">
+                            <tr class="text-body-emphasis border-bottom clickable-row" 
+                                onclick="window.location='{% url 'clearance_detail' item.id %}'"
+                                style="cursor: pointer; transition: background 0.1s ease;">
                                 <td class="ps-4 fw-bold text-info">{{ item.transaction_id }}</td>
                                 <td>
                                     <div class="fw-bold text-body-emphasis">{{ item.requestor.get_full_name|default:item.requestor.username }}</div>
