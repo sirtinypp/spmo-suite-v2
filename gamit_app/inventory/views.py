@@ -1829,24 +1829,59 @@ def rpcppe_report(request):
 # ==========================================
 # 11. BULK MEDIA MANAGER (Surgical Execution)
 # ==========================================
+import re
+from django.http import JsonResponse
+
 @login_required
 def bulk_media_upload(request):
     if not request.user.is_staff and not request.user.is_superuser:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
         messages.error(request, "Unauthorized access.")
         return redirect('dashboard')
 
-    # --- KPI METRICS ---
-    from .models import Asset
+    # --- AJAX CHUNK HANDLER (POST) ---
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        images = request.FILES.getlist('images')
+        upload_type = request.POST.get('upload_type', 'condition')
+        chunk_results = []
+
+        for image in images:
+            filename = image.name
+            match = re.search(r'(\d+)', filename)
+
+            if not match:
+                chunk_results.append({'file': filename, 'status': 'Error', 'msg': 'No numeric PAR found in name.'})
+                continue
+
+            par_digits = match.group(1)
+            asset = Asset.objects.filter(property_number__icontains=par_digits).first()
+
+            if asset:
+                try:
+                    if upload_type == 'serials':
+                        asset.image_serial = image
+                    else:
+                        asset.image_condition = image
+                    asset.save()
+                    chunk_results.append({'file': filename, 'status': 'Success', 'asset': asset.property_number})
+                except Exception as e:
+                    chunk_results.append({'file': filename, 'status': 'Error', 'msg': str(e)})
+            else:
+                chunk_results.append({'file': filename, 'status': 'Not Found', 'msg': f'No Asset matches digits: {par_digits}'})
+
+        return JsonResponse({'results': chunk_results})
+
+    # --- KPI METRICS (GET) ---
     total_assets = Asset.objects.count()
     serial_count = Asset.objects.exclude(image_serial='').exclude(image_serial__isnull=True).count()
     condition_count = Asset.objects.exclude(image_condition='').exclude(image_condition__isnull=True).count()
-    
-    # Fetch actual records for the Side-Peek drawer
+
     complete_assets_qs = Asset.objects.exclude(
-        Q(image_serial='') | Q(image_serial__isnull=True) | 
+        Q(image_serial='') | Q(image_serial__isnull=True) |
         Q(image_condition='') | Q(image_condition__isnull=True)
     ).only('property_number', 'name', 'id')
-    
+
     fully_linked = complete_assets_qs.count()
 
     metrics = {
@@ -1854,47 +1889,9 @@ def bulk_media_upload(request):
         'serials': serial_count,
         'condition': condition_count,
         'complete': fully_linked,
-        'complete_list': complete_assets_qs[:100], # Limit to first 100 for drawer performance
+        'complete_list': complete_assets_qs[:100],
         'serial_perc': (serial_count / total_assets * 100) if total_assets > 0 else 0,
         'cond_perc': (condition_count / total_assets * 100) if total_assets > 0 else 0,
     }
 
-    results = []
-    try:
-        if request.method == 'POST' and request.FILES.getlist('images'):
-            images = request.FILES.getlist('images')
-            upload_type = request.POST.get('upload_type', 'condition') # 'serials' or 'condition'
-            
-            for image in images:
-                filename = image.name
-                # Extract digits only (e.g. "315716.jpg" -> "315716")
-                import re
-                match = re.search(r'(\d+)', filename)
-                
-                if not match:
-                    results.append({'file': filename, 'status': 'Error', 'msg': 'No numeric PAR found in name.'})
-                    continue
-                
-                par_digits = match.group(1)
-                # Find asset where property_number contains these digits (e.g. "PAR-315716")
-                from .models import Asset
-                asset = Asset.objects.filter(property_number__icontains=par_digits).first()
-                
-                if asset:
-                    try:
-                        if upload_type == 'serials':
-                            asset.image_serial = image
-                        else:
-                            asset.image_condition = image
-                        asset.save()
-                        results.append({'file': filename, 'status': 'Success', 'asset': asset.property_number})
-                    except Exception as e:
-                        results.append({'file': filename, 'status': 'Error', 'msg': str(e)})
-                else:
-                    results.append({'file': filename, 'status': 'Not Found', 'msg': f'No Asset matches digits: {par_digits}'})
-
-            messages.success(request, f"Processed {len(images)} images.")
-    except Exception as e:
-        messages.error(request, f"System Error during processing: {str(e)}")
-
-    return render(request, 'inventory/bulk_media.html', {'results': results, 'metrics': metrics})
+    return render(request, 'inventory/bulk_media.html', {'metrics': metrics})

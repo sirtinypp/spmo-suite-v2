@@ -52,34 +52,59 @@
                         </div>
                     </div>
 
-                    <form method="POST" enctype="multipart/form-data" class="mb-4">
-                        {% csrf_token %}
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-5">
-                                <label class="form-label small fw-bold text-secondary">Select Images</label>
-                                <input type="file" name="images" multiple class="form-control form-control-sm" accept="image/*" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small fw-bold text-secondary">Upload Type</label>
-                                <select name="upload_type" class="form-select form-select-sm">
-                                    <option value="condition">Actual Asset (General View)</option>
-                                    <option value="serials">Serial Plate / Tag</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3">
-                                    <i class="fas fa-upload me-2"></i> Start Linking
-                                </button>
-                            </div>
+                    <!-- UPLOAD FORM -->
+                    <div class="row g-3 align-items-end mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold text-secondary">Select Images</label>
+                            <input type="file" id="imageInput" multiple class="form-control form-control-sm" accept="image/*">
                         </div>
-                    </form>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold text-secondary">Upload Type</label>
+                            <select id="uploadType" class="form-select form-select-sm">
+                                <option value="condition">Actual Asset (General View)</option>
+                                <option value="serials">Serial Plate / Tag</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="startUploadBtn" type="button" class="btn btn-primary btn-sm w-100 rounded-3" disabled>
+                                <i class="fas fa-upload me-2"></i> Start Linking
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="cancelUploadBtn" type="button" class="btn btn-outline-danger btn-sm w-100 rounded-3 d-none">
+                                <i class="fas fa-stop me-2"></i> Cancel
+                            </button>
+                        </div>
+                    </div>
 
-                    {% if results %}
-                    <div class="mt-4">
-                        <h6 class="fw-bold mb-3">Post-Action Audit Report</h6>
-                        <div class="table-responsive rounded-3 border">
+                    <!-- PROGRESS SECTION -->
+                    <div id="progressSection" class="d-none mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-dark" id="progressLabel">Uploading...</span>
+                            <span class="small fw-bold text-primary" id="progressCount">0 / 0</span>
+                        </div>
+                        <div class="progress rounded-3" style="height: 8px;">
+                            <div id="progressBar" class="progress-bar bg-primary progress-bar-striped progress-bar-animated" style="width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted" id="progressStats">
+                                <span class="text-success fw-bold" id="statSuccess">0</span> linked · 
+                                <span class="text-warning fw-bold" id="statNotFound">0</span> not found · 
+                                <span class="text-danger fw-bold" id="statError">0</span> errors
+                            </small>
+                            <small class="text-muted" id="progressETA"></small>
+                        </div>
+                    </div>
+
+                    <!-- RESULTS TABLE -->
+                    <div id="resultsSection" class="d-none mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Post-Action Audit Report</h6>
+                            <span class="badge bg-primary" id="totalProcessed">0 files processed</span>
+                        </div>
+                        <div class="table-responsive rounded-3 border" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
-                                <thead class="bg-light">
+                                <thead class="bg-light" style="position: sticky; top: 0; z-index: 1;">
                                     <tr>
                                         <th>Filename</th>
                                         <th>Status</th>
@@ -87,28 +112,10 @@
                                         <th>Details</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {% for res in results %}
-                                    <tr>
-                                        <td class="fw-medium text-dark">{{ res.file }}</td>
-                                        <td>
-                                            {% if res.status == 'Success' %}
-                                                <span class="badge bg-success-subtle text-success px-2 py-1">Success</span>
-                                            {% elif res.status == 'Not Found' %}
-                                                <span class="badge bg-warning-subtle text-warning px-2 py-1">Not Found</span>
-                                            {% else %}
-                                                <span class="badge bg-danger-subtle text-danger px-2 py-1">Error</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-secondary">{{ res.asset|default:"-" }}</td>
-                                        <td class="small text-muted">{{ res.msg|default:"" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
+                                <tbody id="resultsBody"></tbody>
                             </table>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -149,14 +156,166 @@
 </div>
 
 <script>
-    document.querySelector('form').onsubmit = function(e) {
-        const fileInput = document.querySelector('input[name="images"]');
-        const maxFiles = 5000;
-        if (fileInput.files.length > maxFiles) {
-            alert("⚠️ SYSTEM LIMIT: You are trying to upload " + fileInput.files.length + " files. The maximum allowed per batch is " + maxFiles + ". Please split your upload into smaller groups.");
-            e.preventDefault();
-            return false;
+(function() {
+    const CHUNK_SIZE = 10; // files per AJAX request
+    const uploadUrl = '{% url "bulk_media_upload" %}';
+    const csrfToken = '{{ csrf_token }}';
+
+    const imageInput = document.getElementById('imageInput');
+    const uploadType = document.getElementById('uploadType');
+    const startBtn = document.getElementById('startUploadBtn');
+    const cancelBtn = document.getElementById('cancelUploadBtn');
+    const progressSection = document.getElementById('progressSection');
+    const progressBar = document.getElementById('progressBar');
+    const progressLabel = document.getElementById('progressLabel');
+    const progressCount = document.getElementById('progressCount');
+    const progressETA = document.getElementById('progressETA');
+    const statSuccess = document.getElementById('statSuccess');
+    const statNotFound = document.getElementById('statNotFound');
+    const statError = document.getElementById('statError');
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsBody = document.getElementById('resultsBody');
+    const totalProcessed = document.getElementById('totalProcessed');
+
+    let cancelled = false;
+
+    imageInput.addEventListener('change', function() {
+        startBtn.disabled = this.files.length === 0;
+        if (this.files.length > 0) {
+            startBtn.innerHTML = '<i class="fas fa-upload me-2"></i> Upload ' + this.files.length + ' Files';
+        } else {
+            startBtn.innerHTML = '<i class="fas fa-upload me-2"></i> Start Linking';
         }
-    };
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        cancelled = true;
+        cancelBtn.disabled = true;
+        cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Stopping...';
+        progressLabel.textContent = 'Cancelling...';
+    });
+
+    startBtn.addEventListener('click', async function() {
+        const files = Array.from(imageInput.files);
+        if (files.length === 0) return;
+
+        // Reset state
+        cancelled = false;
+        resultsBody.innerHTML = '';
+        let successCount = 0, notFoundCount = 0, errorCount = 0;
+        const startTime = Date.now();
+
+        // Show progress, hide start, show cancel
+        progressSection.classList.remove('d-none');
+        resultsSection.classList.remove('d-none');
+        startBtn.disabled = true;
+        startBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing...';
+        cancelBtn.classList.remove('d-none');
+        cancelBtn.disabled = false;
+        cancelBtn.innerHTML = '<i class="fas fa-stop me-2"></i> Cancel';
+        imageInput.disabled = true;
+        uploadType.disabled = true;
+
+        const totalFiles = files.length;
+        let processed = 0;
+
+        // Split into chunks
+        for (let i = 0; i < totalFiles; i += CHUNK_SIZE) {
+            if (cancelled) break;
+
+            const chunk = files.slice(i, i + CHUNK_SIZE);
+            const formData = new FormData();
+            formData.append('upload_type', uploadType.value);
+            chunk.forEach(f => formData.append('images', f));
+
+            try {
+                const resp = await fetch(uploadUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                if (!resp.ok) throw new Error('Server returned ' + resp.status);
+                const data = await resp.json();
+
+                // Process results
+                data.results.forEach(r => {
+                    processed++;
+                    if (r.status === 'Success') successCount++;
+                    else if (r.status === 'Not Found') notFoundCount++;
+                    else errorCount++;
+
+                    // Add row to table
+                    const tr = document.createElement('tr');
+                    let badgeClass = r.status === 'Success' ? 'bg-success-subtle text-success' :
+                                     r.status === 'Not Found' ? 'bg-warning-subtle text-warning' :
+                                     'bg-danger-subtle text-danger';
+                    tr.innerHTML = '<td class="fw-medium text-dark">' + r.file + '</td>' +
+                                   '<td><span class="badge ' + badgeClass + ' px-2 py-1">' + r.status + '</span></td>' +
+                                   '<td class="text-secondary">' + (r.asset || '-') + '</td>' +
+                                   '<td class="small text-muted">' + (r.msg || '') + '</td>';
+                    resultsBody.appendChild(tr);
+                });
+
+            } catch (err) {
+                // Mark remaining chunk files as errors
+                chunk.forEach(f => {
+                    processed++;
+                    errorCount++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td class="fw-medium text-dark">' + f.name + '</td>' +
+                                   '<td><span class="badge bg-danger-subtle text-danger px-2 py-1">Error</span></td>' +
+                                   '<td class="text-secondary">-</td>' +
+                                   '<td class="small text-muted">' + err.message + '</td>';
+                    resultsBody.appendChild(tr);
+                });
+            }
+
+            // Update progress
+            const pct = Math.round((processed / totalFiles) * 100);
+            progressBar.style.width = pct + '%';
+            progressCount.textContent = processed + ' / ' + totalFiles;
+            statSuccess.textContent = successCount;
+            statNotFound.textContent = notFoundCount;
+            statError.textContent = errorCount;
+
+            // ETA calculation
+            const elapsed = (Date.now() - startTime) / 1000;
+            const rate = processed / elapsed;
+            const remaining = totalFiles - processed;
+            const eta = rate > 0 ? Math.round(remaining / rate) : 0;
+            progressETA.textContent = eta > 60 ? Math.round(eta / 60) + 'm ' + (eta % 60) + 's remaining' :
+                                      eta + 's remaining';
+
+            progressLabel.textContent = 'Processing chunk ' + Math.min(Math.ceil((i + CHUNK_SIZE) / CHUNK_SIZE), Math.ceil(totalFiles / CHUNK_SIZE)) + ' of ' + Math.ceil(totalFiles / CHUNK_SIZE) + '...';
+        }
+
+        // Done
+        progressBar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        progressBar.style.width = '100%';
+        if (cancelled) {
+            progressBar.classList.add('bg-warning');
+            progressBar.classList.remove('bg-primary');
+            progressLabel.textContent = 'Cancelled — ' + processed + ' of ' + totalFiles + ' processed.';
+        } else {
+            progressBar.classList.add('bg-success');
+            progressBar.classList.remove('bg-primary');
+            progressLabel.textContent = 'Complete — All ' + totalFiles + ' files processed.';
+        }
+        progressETA.textContent = '';
+        progressCount.textContent = processed + ' / ' + totalFiles;
+        totalProcessed.textContent = processed + ' files processed';
+
+        // Reset controls
+        startBtn.disabled = false;
+        startBtn.innerHTML = '<i class="fas fa-upload me-2"></i> Start Linking';
+        cancelBtn.classList.add('d-none');
+        imageInput.disabled = false;
+        uploadType.disabled = false;
+    });
+})();
 </script>
 {% endblock %}
