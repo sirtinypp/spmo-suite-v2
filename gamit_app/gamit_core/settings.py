@@ -30,12 +30,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-dev-key-2026')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY_GAMIT', os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-local-dev-key-2026'))
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,gamit-sspmo.up.edu.ph,172.20.3.91,172.20.3.92').split(',')
 
 # CSRF Configuration - Read from environment or use production defaults
 csrf_origins_env = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
