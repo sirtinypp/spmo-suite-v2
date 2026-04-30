@@ -197,6 +197,11 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{% url 'bulk_media_upload' %}" class="nav-link {% if request.resolver_match.url_name == 'bulk_media_upload' %}active{% endif %}">
+                    <i class="fas fa-images me-2"></i> Bulk Media Manager
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/" class="nav-link">
                     <i class="fas fa-shield-halved me-2"></i> Admin Panel
                 </a>

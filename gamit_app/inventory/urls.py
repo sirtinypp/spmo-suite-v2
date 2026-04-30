@@ -74,4 +74,5 @@ urlpatterns = [
     path('api/asset-info/<int:asset_id>/', views.get_asset_info, name='get_asset_info'),
     # --- PERSONA SWITCHER ---
     path('switch-persona/<str:role_code>/', switch_persona, name='switch_persona'),
+    path('administration/bulk-upload/', views.bulk_media_upload, name='bulk_media_upload'),
 ]

@@ -1,0 +1,162 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden" style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 fw-bold text-dark">Bulk Media Manager</h4>
+                        <p class="text-secondary small mb-0">Link multiple images to Assets via PAR numbers instantly.</p>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- KPI SMART DASHBOARD -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-light border text-center h-100">
+                                <h6 class="text-secondary small text-uppercase fw-bold mb-1">Serial Coverage</h6>
+                                <h3 class="fw-bold text-dark mb-0">{{ metrics.serials }}</h3>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-primary" style="width: {{ metrics.serial_perc }}%"></div>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ metrics.serial_perc|floatformat:1 }}% of total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-light border text-center h-100">
+                                <h6 class="text-secondary small text-uppercase fw-bold mb-1">Asset Coverage</h6>
+                                <h3 class="fw-bold text-dark mb-0">{{ metrics.condition }}</h3>
+                                <div class="progress mt-2" style="height: 4px;">
+                                    <div class="progress-bar bg-success" style="width: {{ metrics.cond_perc }}%"></div>
+                                </div>
+                                <small class="text-muted" style="font-size: 0.7rem;">{{ metrics.cond_perc|floatformat:1 }}% of total</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-light border text-center h-100 cursor-pointer" 
+                                 style="cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#fullyDocumentedDrawer">
+                                <h6 class="text-secondary small text-uppercase fw-bold mb-1">Fully Documented</h6>
+                                <h3 class="fw-bold text-primary mb-0">{{ metrics.complete }}</h3>
+                                <small class="text-muted" style="font-size: 0.7rem;">Both images linked <i class="fas fa-chevron-right ms-1"></i></small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-4 bg-primary text-white text-center h-100">
+                                <h6 class="text-white-50 small text-uppercase fw-bold mb-1">Total Registry</h6>
+                                <h3 class="fw-bold mb-0">{{ metrics.total }}</h3>
+                                <small class="text-white-50" style="font-size: 0.7rem;">Target Assets</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data" class="mb-4">
+                        {% csrf_token %}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-secondary">Select Images</label>
+                                <input type="file" name="images" multiple class="form-control form-control-sm" accept="image/*" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary">Upload Type</label>
+                                <select name="upload_type" class="form-select form-select-sm">
+                                    <option value="condition">Actual Asset (General View)</option>
+                                    <option value="serials">Serial Plate / Tag</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3">
+                                    <i class="fas fa-upload me-2"></i> Start Linking
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% if results %}
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3">Post-Action Audit Report</h6>
+                        <div class="table-responsive rounded-3 border">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Filename</th>
+                                        <th>Status</th>
+                                        <th>Matched Asset</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for res in results %}
+                                    <tr>
+                                        <td class="fw-medium text-dark">{{ res.file }}</td>
+                                        <td>
+                                            {% if res.status == 'Success' %}
+                                                <span class="badge bg-success-subtle text-success px-2 py-1">Success</span>
+                                            {% elif res.status == 'Not Found' %}
+                                                <span class="badge bg-warning-subtle text-warning px-2 py-1">Not Found</span>
+                                            {% else %}
+                                                <span class="badge bg-danger-subtle text-danger px-2 py-1">Error</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-secondary">{{ res.asset|default:"-" }}</td>
+                                        <td class="small text-muted">{{ res.msg|default:"" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SIDE-PEEK DRAWER -->
+<div class="offcanvas offcanvas-end border-0 shadow" tabindex="-1" id="fullyDocumentedDrawer" aria-labelledby="fullyDocumentedDrawerLabel" style="width: 400px; background: rgba(255,255,255,0.95); backdrop-filter: blur(15px);">
+    <div class="offcanvas-header bg-primary text-white py-4">
+        <h5 class="offcanvas-title fw-bold" id="fullyDocumentedDrawerLabel">
+            <i class="fas fa-certificate me-2"></i> Fully Documented Assets
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <div class="p-3 bg-light border-bottom">
+            <small class="text-secondary fw-bold text-uppercase">Showing latest 100 verified records</small>
+        </div>
+        <div class="list-group list-group-flush">
+            {% for asset in metrics.complete_list %}
+            <a href="{% url 'asset_detail' asset.id %}" class="list-group-item list-group-item-action py-3 border-0 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold text-primary mb-0" style="font-size: 0.9rem;">{{ asset.property_number }}</div>
+                        <div class="text-muted small text-truncate" style="max-width: 280px;">{{ asset.name }}</div>
+                    </div>
+                    <i class="fas fa-check-circle text-success fs-5"></i>
+                </div>
+            </a>
+            {% empty %}
+            <div class="p-5 text-center text-muted">
+                <i class="fas fa-layer-group fs-1 mb-3 opacity-25"></i>
+                <p>No assets fully documented yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('form').onsubmit = function(e) {
+        const fileInput = document.querySelector('input[name="images"]');
+        const maxFiles = 5000;
+        if (fileInput.files.length > maxFiles) {
+            alert("⚠️ SYSTEM LIMIT: You are trying to upload " + fileInput.files.length + " files. The maximum allowed per batch is " + maxFiles + ". Please split your upload into smaller groups.");
+            e.preventDefault();
+            return false;
+        }
+    };
+</script>
+{% endblock %}

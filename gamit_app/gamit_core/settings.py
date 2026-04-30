@@ -233,3 +233,11 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_AUTO_SIGNUP = False      # No self-registration
 ACCOUNT_EMAIL_REQUIRED = True          # Email is mandatory
 ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Keep username login as primary
+
+# ===============================================
+# --- BULK UPLOAD SECURITY HARDENING ---
+# ===============================================
+# Supports thousands of images in a single POST request
+DATA_UPLOAD_MAX_NUMBER_FILES = 5000 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
