@@ -111,6 +111,7 @@ TEMPLATES = [
                 'inventory.context_processors.pending_count',
                 'inventory.context_processors.unread_notifications',
                 'inventory.context_processors.suite_wide_perms',
+                'inventory.context_processors.persona_context',
             ],
         },
     },
