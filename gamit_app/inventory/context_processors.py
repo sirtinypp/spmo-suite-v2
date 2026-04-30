@@ -1,5 +1,5 @@
 from .models import AssetBatch, InspectionRequest, AssetTransferRequest, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
-from workflow.models import Persona
+from workflow.models import Persona, Role
 
 def pending_count(request):
     if not request.user.is_authenticated:
@@ -51,3 +51,12 @@ def unread_notifications(request):
         'unread_notif_count': 0,
         'unread_notifs': [],
     }
+
+
+def persona_context(request):
+    """Inject all roles and active demo role for the Presentation Mode switcher."""
+    ctx = {}
+    if request.user.is_authenticated and request.user.is_superuser:
+        ctx['all_roles'] = Role.objects.all()
+        ctx['active_demo_role'] = request.session.get('active_demo_role', '')
+    return ctx

@@ -18,6 +18,7 @@
         </nav>
 
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            {% if not active_demo_role or not active_demo_role|slice:":5" == "UNIT_" %}
             <a href="{% url 'print_service_log' asset.pk %}" target="_blank" class="btn btn-primary shadow-sm">
                 <i class="fas fa-file-invoice me-2"></i>Asset Service Card
             </a>
@@ -25,6 +26,7 @@
             <a href="{% url 'print_property_card' asset.pk %}" target="_blank" class="btn btn-primary shadow-sm">
                 <i class="fas fa-print me-2"></i>Print Property Card
             </a>
+            {% endif %}
         </div>
     </div>
 
@@ -71,7 +73,7 @@
                     <div class="tab-pane fade show active" id="property-pane" role="tabpanel">
                         {% if tab_perms.property %}<div class="text-end mb-2"><button type="button"
                                 class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#editPropertyModal"><i
+                                {% if not is_unit_view %}data-bs-target="#editPropertyModal"{% else %}style="display:none;"{% endif %}><i
                                     class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
 
 
@@ -140,7 +142,7 @@
                     <div class="tab-pane fade" id="finance-pane" role="tabpanel">
                         {% if tab_perms.finance %}<div class="text-end mb-2"><button type="button"
                                 class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#editFinanceModal"><i
+                                {% if not is_unit_view %}data-bs-target="#editFinanceModal"{% else %}style="display:none;"{% endif %}><i
                                     class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
 
 
@@ -207,7 +209,7 @@
                     <div class="tab-pane fade" id="lifecycle-pane" role="tabpanel">
                         {% if tab_perms.lifecycle %}<div class="text-end mb-2"><button type="button"
                                 class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#editLifecycleModal"><i
+                                {% if not is_unit_view %}data-bs-target="#editLifecycleModal"{% else %}style="display:none;"{% endif %}><i
                                     class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
 
 
@@ -246,7 +248,7 @@
                     <div class="tab-pane fade" id="government-pane" role="tabpanel">
                         {% if tab_perms.government %}<div class="text-end mb-2"><button type="button"
                                 class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                data-bs-target="#editGovernmentModal"><i
+                                {% if not is_unit_view %}data-bs-target="#editGovernmentModal"{% else %}style="display:none;"{% endif %}><i
                                     class="fas fa-pen-to-square me-1"></i>Edit</button></div>{% endif %}
 
 
@@ -284,13 +286,15 @@
                 </div>
             </div>
 
-            <!-- SERVICE & MAINTENANCE HISTORY (always visible, below tabs) -->
             <div class="card border-0 shadow-sm mt-4">
                 <div class="card-header bg-body-tertiary py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold m-0"><i class="fas fa-tools me-2 text-secondary"></i>Service & Maintenance
-                        History</h6>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                        data-bs-target="#addServiceModal"><i class="fas fa-plus me-1"></i> Add Log</button>
+                    <h6 class="fw-bold m-0"><i class="fas fa-tools me-2 text-secondary"></i>Service & Maintenance History</h6>
+                    {% if not active_demo_role or not active_demo_role|slice:":5" == "UNIT_" %}
+                        {% if user.is_staff or user.is_superuser %}
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#addServiceModal"><i class="fas fa-plus me-1"></i> Add Log</button>
+                        {% endif %}
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">

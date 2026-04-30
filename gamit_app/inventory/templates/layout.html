@@ -325,6 +325,8 @@
             line-height: 1.4;
         }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 </head>
 
 <body>
@@ -594,6 +596,19 @@
     </script>
 
     {% block extra_scripts %}{% endblock %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log("Initializing Select2 for .select2-asset...");
+            $('.select2-asset').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Type to search asset...',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    </script>
 </body>
 
 </html>

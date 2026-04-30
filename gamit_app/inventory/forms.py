@@ -31,10 +31,10 @@ class AddAssetForm(forms.ModelForm):
             'acquisition_cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
             'unit_of_measure': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. pc, unit, set'}),
             'quantity_physical_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '1'}),
-            'asset_class': forms.Select(attrs={'class': 'form-select'}),
-            'asset_nature': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'department': forms.Select(attrs={'class': 'form-select'}),
+            'asset_class': forms.Select(attrs={'class': 'form-select select2-asset'}),
+            'asset_nature': forms.Select(attrs={'class': 'form-select select2-asset'}),
+            'status': forms.Select(attrs={'class': 'form-select select2-asset'}),
+            'department': forms.Select(attrs={'class': 'form-select select2-asset'}),
             'accountable_firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'accountable_surname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Surname'}),
             'image_serial': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
@@ -64,12 +64,23 @@ class InspectionRequestForm(forms.ModelForm):
     class Meta:
         model = InspectionRequest
         fields = ['asset', 'notes', 'document_1', 'document_2']
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, demo_role=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if user and not user.is_staff and hasattr(user, 'userprofile'):
-            try: self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
-            except: pass
-        for field in self.fields.values(): field.widget.attrs.update({'class': 'form-control'})
+        # --- PERSONA-AWARE FILTERING (FIXED) ---
+        if demo_role and demo_role.startswith('UNIT_'):
+            from .models import Department
+            try:
+                demo_dept = Department.objects.get(id=128)
+                self.fields['asset'].queryset = Asset.objects.filter(department=demo_dept)
+            except Department.DoesNotExist:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            try:
+                self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+            except:
+                pass
+        # -------------------------------------
+        for field in self.fields.values(): existing = field.widget.attrs.get('class', ''); field.widget.attrs['class'] = f'form-control {existing}'.strip()
 
 # ==========================================
 # 3. BATCH FORM (User View)
@@ -147,7 +158,7 @@ class AssetTransferRequestForm(forms.ModelForm):
         ]
         widgets = {
             # 'id_asset_select' is used by JS to fetch current officer info
-            'asset': forms.Select(attrs={'class': 'form-select', 'id': 'id_asset_select'}),
+            'asset': forms.Select(attrs={'class': 'form-select select2-asset', 'id': 'id_asset_select'}),
             'new_officer_firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
             'new_officer_surname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Surname'}),
             'remarks': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Reason for transfer...'}),
@@ -155,11 +166,19 @@ class AssetTransferRequestForm(forms.ModelForm):
             'document_2': forms.FileInput(attrs={'class': 'form-control'}), # ID
         }
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, demo_role=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Filter assets: Users only see assets in their office
-        if user and not user.is_staff and hasattr(user, 'userprofile'):
+        # --- PERSONA-AWARE FILTERING (FIXED) ---
+        if demo_role and demo_role.startswith('UNIT_'):
+            from .models import Department
+            try:
+                demo_dept = Department.objects.get(id=128)
+                self.fields['asset'].queryset = Asset.objects.filter(department=demo_dept)
+            except Department.DoesNotExist:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
             self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 5. ADMIN BATCH PROCESS FORM
@@ -219,7 +238,7 @@ class ServiceLogForm(forms.ModelForm):
         fields = ['service_date', 'service_type', 'service_provider', 'cost', 'next_service_date', 'description', 'service_document']
         widgets = {
             'service_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'service_type': forms.Select(attrs={'class': 'form-select'}),
+            'service_type': forms.Select(attrs={'class': 'form-select select2-asset'}),
             'service_provider': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Technician/Company Name'}),
             'cost': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0.00'}),
             'next_service_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -329,10 +348,23 @@ class AssetReturnRequestForm(forms.ModelForm):
         model = AssetReturnRequest
         fields = ['asset', 'reason', 'original_par_document']
         widgets = {
-            'asset': forms.Select(attrs={'class': 'form-select'}),
+            'asset': forms.Select(attrs={'class': 'form-select select2-asset'}),
             'reason': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Reason for returning the asset to the SPMO pool...'}),
             'original_par_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
         }
+    def __init__(self, user, demo_role=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # --- PERSONA-AWARE FILTERING (FIXED) ---
+        if demo_role and demo_role.startswith('UNIT_'):
+            from .models import Department
+            try:
+                demo_dept = Department.objects.get(id=128)
+                self.fields['asset'].queryset = Asset.objects.filter(department=demo_dept)
+            except Department.DoesNotExist:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 10. ASSET LOSS REPORT FORM
@@ -342,13 +374,26 @@ class AssetLossReportForm(forms.ModelForm):
         model = AssetLossReport
         fields = ['asset', 'incident_date', 'description', 'notice_of_loss', 'affidavit_of_loss', 'police_report']
         widgets = {
-            'asset': forms.Select(attrs={'class': 'form-select'}),
+            'asset': forms.Select(attrs={'class': 'form-select select2-asset'}),
             'incident_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Describe exactly when, where, and how the asset was lost or damaged...'}),
             'notice_of_loss': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
             'affidavit_of_loss': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
             'police_report': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
         }
+    def __init__(self, user, demo_role=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # --- PERSONA-AWARE FILTERING (FIXED) ---
+        if demo_role and demo_role.startswith('UNIT_'):
+            from .models import Department
+            try:
+                demo_dept = Department.objects.get(id=128)
+                self.fields['asset'].queryset = Asset.objects.filter(department=demo_dept)
+            except Department.DoesNotExist:
+                self.fields['asset'].queryset = Asset.objects.none()
+        elif user and not user.is_staff and hasattr(user, 'userprofile'):
+            self.fields['asset'].queryset = Asset.objects.filter(department=user.userprofile.department)
+        # -------------------------------------
 
 # ==========================================
 # 11. PROPERTY CLEARANCE FORM

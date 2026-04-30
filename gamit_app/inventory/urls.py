@@ -1,3 +1,4 @@
+from workflow.views import switch_persona
 # inventory/urls.py
 
 from django.urls import path
@@ -71,4 +72,6 @@ urlpatterns = [
 
     # --- API HELPERS ---
     path('api/asset-info/<int:asset_id>/', views.get_asset_info, name='get_asset_info'),
+    # --- PERSONA SWITCHER ---
+    path('switch-persona/<str:role_code>/', switch_persona, name='switch_persona'),
 ]
