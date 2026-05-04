@@ -27,6 +27,16 @@
 
 ---
 
+## 2.1 Git & Version Control
+| Property | Value |
+|---|---|
+| **Local Repo Root** | `D:\Aaron\Asset Manager` |
+| **Git Executable** | `C:\Users\Aaron\AppData\Local\GitHubDesktop\app-3.5.8\resources\app\git\cmd\git.exe` |
+| **Remote (SSH)** | `git@github.com:sirtinypp/Asset-Manager-.git` |
+| **GitHub Desktop** | `C:\Users\Aaron\AppData\Local\GitHubDesktop\app-3.5.8\GitHubDesktop.exe` |
+
+---
+
 ## 3. Administrative Identities
 | Username | Email | Role | Master Password |
 |---|---|---|---|
