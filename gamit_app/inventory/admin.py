@@ -24,7 +24,7 @@ patch_csv_format()
 
 # --- 0. DEPARTMENT ADMIN (New) ---
 @admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
+class DepartmentAdmin(ImportExportModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
 
@@ -97,7 +97,7 @@ class UserProfileInline(admin.StackedInline):
     fk_name = 'user'
 
 # Re-register UserAdmin
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(ImportExportModelAdmin, BaseUserAdmin):
     inlines = [UserProfileInline]
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_department', 'get_role')
     

@@ -2,6 +2,9 @@
 
 from import_export import resources, fields, widgets
 from .models import Asset, Department
+from workflow.models import Persona, Role
+from django.contrib.auth.models import User
+
 import tablib
 from django.db import IntegrityError
 import math
@@ -164,3 +167,27 @@ class AssetResource(resources.ModelResource):
             'accountable_surname', 'description'
         )
         skip_diff = True
+
+
+# --- Persona Resource for Easy Staff Tagging ---
+class PersonaResource(resources.ModelResource):
+    user = fields.Field(
+        column_name='user',
+        attribute='user',
+        widget=widgets.ForeignKeyWidget(User, 'username')
+    )
+    role = fields.Field(
+        column_name='role',
+        attribute='role',
+        widget=widgets.ForeignKeyWidget(Role, 'code')
+    )
+    department = fields.Field(
+        column_name='department',
+        attribute='department',
+        widget=widgets.ForeignKeyWidget(Department, 'name')
+    )
+
+    class Meta:
+        model = Persona
+        fields = ('id', 'user', 'role', 'department', 'is_active', 'signature_image', 'position_title')
+        export_order = ('id', 'user', 'role', 'department', 'is_active', 'position_title', 'signature_image')

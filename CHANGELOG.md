@@ -1,3 +1,24 @@
+## [Unreleased] - 2026-05-08
+
+### Added
+- **Identity Architecture**: Institutionalized the **Persona Model** to allow one user to hold multiple departmental roles.
+- **Ghost Army Deployment**: Programmatically provisioned **64 administrative slots** (1 AO and 1 Head per 32 departments) to simulate real-world institutional multi-tenancy.
+- **Hybrid Signature Engine**: Implemented a "Safe-Simulation" signature logic for PAR/IAR reports. Captures real digital signatures during live workflows but defaults to institutional team fallbacks (Isagani, Mark, Julius, etc.) for presentation stability.
+- **Bulk Data Portability**: Hardened the Django Admin with **Natural Key CSV Support**. Administrators can now bulk-import staff by **Username** and **Role Code** instead of database IDs.
+- **Role Categorization**: Grouped the persona registry into **GAMIT Operators** (SPMO Core) and **Client Units** (External Offices) with integrated admin filtering.
+- **Workflow Architecture**: Created a centralized `workflow` app to provide a "Single Source of Truth" for identity and logic, ready for deployment to **SUPLAY** and **LIPAD**.
+- **Contextual Knowledge Base**: Expanded the **Side-Peek System Guide** with categorized financial terminology and interactive pill filters (Property, Finance, General).
+- **UX Performance Overhaul**: Optimized the `sspmo-loader` and implemented **Search Memory** via `sessionStorage` to ensure seamless navigation between registries and detail views.
+- **Institutional KPI Context**: Added descriptive subtitles to all 8 Dashboard cards to align system metrics with government accounting standards (e.g., Serviceable vs. Unserviceable).
+- **Command Center Hardening**: Repaired the **User Personas**, **Workflow Blueprints**, and **Activity Pulse** tabs within the administrative cockpit.
+- **Live Stepper UI**: Operationalized real-time process visualization for all 6 transaction categories (Acquisition, Transfer, Inspection, etc.).
+- **Master Audit Ledger**: Converted the global audit log into a fully interactive, row-clickable dashboard for administrative oversight.
+
+### Fixed
+- **Workflow Parity**: Harmonized process codes across Local and Sandbox environments to resolve initialization crashes.
+- **Process Cleanup**: Suppressed legacy "Inter-CU Transfer" logic from the administrative views to maintain focus on primary institutional flows.
+- **Signature Audit**: Resolved hardcoded name issues in report views by implementing a unified `SignatorySlot` mapping.
+
 ## [Unreleased] - 2026-04-29
 
 ### Added

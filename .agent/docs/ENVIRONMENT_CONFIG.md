@@ -1,6 +1,6 @@
 # ENVIRONMENT CONFIGURATION MASTER
 **SPMO Suite — Authoritative Handshake & Identity Registry**
-**Last Updated:** April 30, 2026
+**Last Updated:** May 5, 2026
 
 > [!IMPORTANT]
 > This document is the **Single Source of Truth** for environment-sensitive data. 
@@ -11,8 +11,8 @@
 ## 1. SSO Configuration (Google OAuth)
 | Property | Value |
 |---|---|
-| **Client ID** | `307307846379-hk1atfjhev4p84fdicmglhl57jik0cn7.apps.googleusercontent.com` |
-| **Client Secret** | `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` |
+| **Client ID** | `[REDACTED]` |
+| **Client Secret** | `[REDACTED]` |
 | **Provider** | `google` |
 | **Logic Source** | Hardcoded in `settings.py` (via `SOCIALACCOUNT_PROVIDERS`) |
 
@@ -30,9 +30,9 @@
 ## 2.1 Git & Version Control
 | Property | Value |
 |---|---|
-| **Local Repo Root** | `D:\Aaron\Asset Manager` |
+| **Local Repo Root** | `c:\Users\Aaron\spmo-suite - Copy` |
 | **Git Executable** | `C:\Users\Aaron\AppData\Local\GitHubDesktop\app-3.5.8\resources\app\git\cmd\git.exe` |
-| **Remote (SSH)** | `git@github.com:sirtinypp/Asset-Manager-.git` |
+| **Remote (SSH)** | `git@github.com:sirtinypp/spmo-suite-v2.git` |
 | **GitHub Desktop** | `C:\Users\Aaron\AppData\Local\GitHubDesktop\app-3.5.8\GitHubDesktop.exe` |
 
 ---
@@ -54,6 +54,43 @@ python manage.py shell -c "from django.contrib.sites.models import Site; from dj
 
 ---
 
-## 5. Architectural Guardrails
-1. **No SocialApp Records in DB:** DEV and PROD rely strictly on `settings.py`. Do NOT create database records for Google SSO as it causes `MultipleObjectsReturned` conflicts.
-2. **Identity Consolidation:** `grootadmin` is the only account allowed to use `ajbasa@up.edu.ph` on Local.
+## 6. GAMIT Technical Inventory (Asset Manager)
+| Component | Value / Path |
+|---|---|
+| **App Root** | `c:\Users\Aaron\spmo-suite - Copy\gamit_app` |
+| **Database Name** | `db_gamit` |
+| **Local URL** | `http://localhost:8001` |
+| **Secret Key** | `+g1($&r^jwkprb)2o9fl8m=ba_(tq5v+^bj43)2z*$&l1c@7edx5` |
+| **Container Name**| `app_gamit` |
+| **Workflow App** | `workflow` (internal) |
+| **Primary Models** | `Asset`, `AssetBatch`, `AssetTransferRequest` |
+
+---
+
+## 7. SUPLAY Technical Inventory (Virtual Store)
+| Component | Value / Path |
+|---|---|
+| **App Root** | `c:\Users\Aaron\spmo-suite - Copy\suplay_app` |
+| **Database Name** | `db_store` |
+| **Local URL** | `http://localhost:8003` |
+| **Secret Key** | `store-prod-secret-2026-v2-virtual-store-key` |
+| **Container Name**| `app_store` |
+
+---
+
+## 8. GFA/LIPAD Technical Inventory (Travel)
+| Component | Value / Path |
+|---|---|
+| **App Root** | `c:\Users\Aaron\spmo-suite - Copy\gfa_app` |
+| **Database Name** | `db_gfa` |
+| **Local URL** | `http://localhost:8002` |
+| **Secret Key** | `gfa-prod-secret-key-2026-secure-lipad-travel-system-v1` |
+| **Container Name**| `app_gfa` |
++
++---
++
++## 9. Architectural Guardrails
++1. **No SocialApp Records in DB:** DEV and PROD rely strictly on `settings.py`. Do NOT create database records for Google SSO as it causes `MultipleObjectsReturned` conflicts.
++2. **Identity Consolidation:** `grootadmin` is the only account allowed to use `ajbasa@up.edu.ph` on Local.
++3. **GAMIT Branding:** Ensure GAMIT remains branded as GAMIT in this workspace to avoid confusion with other "Asset Manager" initiatives.
++

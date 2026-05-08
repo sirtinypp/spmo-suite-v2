@@ -64,14 +64,69 @@
                         </div>
                     </div>
                 </div>
-                <!-- ... other cards ... -->
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success-subtle text-success p-3 rounded-4 me-3"><i class="fas fa-id-badge fs-4"></i></div>
+                            <div>
+                                <h3 class="fw-bold mb-0">{{ total_personas }}</h3>
+                                <p class="text-muted small mb-0">Total Personas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-info-subtle text-info p-3 rounded-4 me-3"><i class="fas fa-user-shield fs-4"></i></div>
+                            <div>
+                                <h3 class="fw-bold mb-0">{{ total_roles }}</h3>
+                                <p class="text-muted small mb-0">Total Roles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning-subtle text-warning p-3 rounded-4 me-3"><i class="fas fa-project-diagram fs-4"></i></div>
+                            <div>
+                                <h3 class="fw-bold mb-0">{{ total_workflows }}</h3>
+                                <p class="text-muted small mb-0">Total Workflows</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <!-- Parity Auditor -->
             <div class="mt-5 text-center py-5 rounded-5 border-dashed" style="border: 2px dashed #dee2e6; background: rgba(0,0,0,0.01);">
-                <i class="fas fa-microchip fs-1 text-muted mb-3"></i>
-                <h5>Environment Parity Auditor</h5>
-                <p class="text-muted small">Compare Local DB state against DEV/PROD anchors.</p>
-                <button class="btn btn-primary rounded-pill px-4" disabled>Launch Audit</button>
+                <div class="mb-3">
+                    {% if pending_workflow_migrations == 0 %}
+                        <div class="bg-success-subtle text-success d-inline-block p-4 rounded-circle mb-3">
+                            <i class="fas fa-check-shield fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">System Parity: NOMINAL</h5>
+                        <p class="text-muted small">All database schemas and workflow blueprints are synchronized.</p>
+                    {% else %}
+                        <div class="bg-danger-subtle text-danger d-inline-block p-4 rounded-circle mb-3">
+                            <i class="fas fa-exclamation-triangle fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark">System Parity: DRIFT DETECTED</h5>
+                        <p class="text-muted small">There are {{ pending_workflow_migrations }} unapplied migrations in the workflow engine.</p>
+                        <button class="btn btn-danger rounded-pill px-4 mt-2" onclick="location.reload()">
+                            <i class="fas fa-sync me-2"></i> Re-check Parity
+                        </button>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-center gap-3">
+                    <button class="btn btn-outline-secondary rounded-pill px-4" disabled>
+                        <i class="fas fa-microchip me-2"></i> Environment Auditor
+                    </button>
+                    <button class="btn btn-dark rounded-pill px-4">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> Integrity Report
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -120,4 +175,21 @@
     .nav-pills .nav-link:hover:not(.active) { background-color: #f8f9fa; color: var(--bs-primary); }
     iframe { background: white; }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabElList = document.querySelectorAll('button[data-bs-toggle="pill"]');
+        tabElList.forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', event => {
+                const targetId = event.target.getAttribute('data-bs-target');
+                const iframe = document.querySelector(targetId + ' iframe');
+                if (iframe && !iframe.getAttribute('data-loaded')) {
+                    // Only reload once to avoid flicker, or remove the check to reload every time
+                    iframe.src = iframe.src;
+                    iframe.setAttribute('data-loaded', 'true');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

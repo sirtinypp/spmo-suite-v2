@@ -14,7 +14,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # Updated Imports
 from .models import Asset, UserProfile, InspectionRequest, AssetBatch, AssetTransferRequest, ServiceLog, AssetChangeLog, AssetNotification, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest, Department
-from workflow.models import WorkflowMovementLog, WorkflowStep, Persona
+from workflow.models import WorkflowMovementLog, WorkflowStep, Persona, SignatorySlot
 
 from .forms import (
     AddAssetForm, AssetTransactionForm, InspectionRequestForm, AssetBatchForm, 
@@ -1102,20 +1102,54 @@ def process_batch_admin(request, pk):
     })
 
 
+# --- HELPER: Unified Signature Registry Lookup (Hybrid Mode) ---
+def get_workflow_signatures(batch):
+    """
+    Retrieves dynamic signatures based on the SignatorySlot registry.
+    Includes hardcoded fallbacks for presentation safety.
+    """
+    # 1. INSTITUTIONAL FALLBACKS (For Demo Simulation)
+    fallbacks = {
+        'prepared_by': {'name': 'ELDEFONSO SARDUAL', 'pos': 'SPMO Inventory Officer'},
+        'inspected_by': {'name': 'MARK JOSHUA PEDROSA', 'pos': 'Inspection Officer'},
+        'reviewed_by': {'name': 'JULIUS MAR DELA CRUZ', 'pos': 'SPMO Inventory Supervisor'},
+        'issued_by': {'name': 'ISAGANI L. BAGUS', 'pos': 'SPMO Chief'},
+    }
+    
+    signatures = fallbacks.copy()
+    
+    # 2. OVERWRITE WITH REAL DATA (If exists in Workflow Log)
+    slots = SignatorySlot.objects.filter(step__phase__workflow__process=batch.workflow_process)
+    for slot in slots:
+        log = batch.movement_logs.filter(status_label=slot.step.label, signature_snapshot__isnull=False).order_by('-timestamp').first()
+        if log:
+            key = slot.label.lower().replace(' ', '_')
+            signatures[key] = {
+                'name': log.user.get_full_name().upper() or log.user.username.upper(),
+                'pos': log.persona.position_title if log.persona else slot.role.name,
+                'date': log.timestamp.date(),
+                'img': log.signature_snapshot.url if log.signature_snapshot else None
+            }
+    return signatures
+
+
 # 15. PRINT ACCEPTANCE REPORT (IAR)
 @login_required
 def print_acceptance_report(request, pk):
     batch = get_object_or_404(AssetBatch, pk=pk)
     items = batch.items.all()
-    
     grand_total = sum(item.total_price for item in items)
+    
+    # Dynamic Signature Mapping
+    signatures = get_workflow_signatures(batch)
     
     context = {
         'batch': batch,
         'items': items,
         'grand_total': grand_total,
-        'inspection_officer': "Mark Joshua M. Pedrosa", 
-        'inspection_position': "Inspection Officer"
+        'inspection_officer': signatures.get('inspected_by', {}).get('name', "Pending Inspection"), 
+        'inspection_position': signatures.get('inspected_by', {}).get('pos', "Inspection Officer"),
+        'signatures': signatures
     }
     return render(request, 'inventory/print_acceptance_report.html', context)
 
@@ -1204,50 +1238,8 @@ def print_par_v2(request, pk):
                     'date_acquired': batch.created_at,
                 })
 
-    # --- SIGNATURE INJECTION (New for Simulation/PARv2) ---
-    movement_logs = batch.movement_logs.filter(signature_snapshot__isnull=False).order_by('timestamp')
-    signatures = {}
-    
-    # Map steps to specific signature keys for the template
-    # Prepared (SPMO_AO)
-    prep_log = movement_logs.filter(status_label__icontains='SPMO AO').first()
-    if prep_log:
-        signatures['prepared'] = {
-            'name': prep_log.user.get_full_name() or prep_log.user.username,
-            'pos': prep_log.persona.position_title if prep_log.persona else "SPMO Admin",
-            'date': prep_log.timestamp.date(),
-            'img': prep_log.signature_snapshot.url
-        }
-
-    # Inspected (INSPECTION_OFFICER)
-    insp_log = movement_logs.filter(status_label__icontains='Inspection Signature').first()
-    if insp_log:
-        signatures['inspected'] = {
-            'name': insp_log.user.get_full_name() or insp_log.user.username,
-            'pos': insp_log.persona.position_title if insp_log.persona else "Inspection Officer",
-            'date': insp_log.timestamp.date(),
-            'img': insp_log.signature_snapshot.url
-        }
-
-    # Reviewed (SPMO_SUPERVISOR)
-    rev_log = movement_logs.filter(status_label__icontains='Supervisor Signature').first()
-    if rev_log:
-        signatures['reviewed'] = {
-            'name': rev_log.user.get_full_name() or rev_log.user.username,
-            'pos': rev_log.persona.position_title if rev_log.persona else "SPMO Supervisor",
-            'date': rev_log.timestamp.date(),
-            'img': rev_log.signature_snapshot.url
-        }
-
-    # Authorized (SPMO_CHIEF)
-    auth_log = movement_logs.filter(status_label__icontains='Chief Final Approval').first()
-    if auth_log:
-        signatures['authorized'] = {
-            'name': auth_log.user.get_full_name() or auth_log.user.username,
-            'pos': auth_log.persona.position_title if auth_log.persona else "Chief, SPMO",
-            'date': auth_log.timestamp.date(),
-            'img': auth_log.signature_snapshot.url
-        }
+    # --- SIGNATURE INJECTION (Unified SignatorySlot Registry) ---
+    signatures = get_workflow_signatures(batch)
 
     try:
         requestor_name = batch.requestor.get_full_name().upper() or batch.requestor.username.upper()
@@ -1258,12 +1250,17 @@ def print_par_v2(request, pk):
     context = {
         'batch': batch,
         'par_pages': par_pages,
-        'issued_by_name': signatures.get('authorized', {}).get('name', "ISAGANI L. BAGUS"),
-        'issued_by_position': signatures.get('authorized', {}).get('pos', "Director / SPMO Chief"),
+        'issued_by_name': signatures.get('issued_by', {}).get('name', "ISAGANI L. BAGUS"),
+        'issued_by_position': signatures.get('issued_by', {}).get('pos', "SPMO Chief"),
         'received_name': requestor_name,
         'received_by_position': first_item.custodian_position if first_item else "End-User",
         'total_value': sum(item.amount for item in batch.items.all()),
-        'signatures': signatures
+        'signatures': {
+            'prepared': signatures.get('prepared_by'),
+            'inspected': signatures.get('inspected_by'),
+            'reviewed': signatures.get('reviewed_by'),
+            'authorized': signatures.get('issued_by'),
+        }
     }
     return render(request, 'inventory/PARv2.html', context)
 
@@ -1937,12 +1934,20 @@ from workflow.models import Role, Persona, ActionProcess, Workflow, WorkflowPhas
 @user_passes_test(lambda u: u.is_superuser)
 def superadmin_command_center(request):
     """Master cockpit for Superadmins."""
+    from django.db import connection
+    from django.db.migrations.executor import MigrationExecutor
+    
+    executor = MigrationExecutor(connection)
+    plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+    pending_migrations = [m[0] for m in plan if m[0].app_label == 'workflow']
+    
     context = {
         'total_users': User.objects.count(),
         'total_personas': Persona.objects.count(),
         'total_roles': Role.objects.count(),
         'total_workflows': Workflow.objects.count(),
-        'active_workflows': ActionProcess.objects.prefetch_related('workflows__phases__steps').all(),
+        'active_workflows': ActionProcess.objects.exclude(code='ASSET_TRANSFER_CU').prefetch_related('workflows__phases__steps').all(),
+        'pending_workflow_migrations': len(pending_migrations),
     }
     return render(request, 'inventory/admin/command_center.html', context)
 
@@ -2050,7 +2055,7 @@ def manage_workflows(request):
             redirect_url += '?framed=1'
         return redirect(redirect_url)
 
-    processes = ActionProcess.objects.prefetch_related('workflows__phases__steps__signatory_slots').all()
+    processes = ActionProcess.objects.exclude(code='ASSET_TRANSFER_CU').prefetch_related('workflows__phases__steps__signatory_slots').all()
     return render(request, 'inventory/admin/manage_workflows.html', {
         'processes': processes, 
         'all_roles': Role.objects.all(), 

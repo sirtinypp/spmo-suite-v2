@@ -1,4 +1,6 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
+
 from .models import (
     Role,
     Persona,
@@ -9,16 +11,19 @@ from .models import (
     SignatorySlot,
     WorkflowMovementLog,
 )
+from inventory.resources import PersonaResource
+
 
 @admin.register(Role)
-class RoleAdmin(admin.ModelAdmin):
+class RoleAdmin(ImportExportModelAdmin):
     list_display = ('name', 'code')
     search_fields = ('name', 'code')
 
 @admin.register(Persona)
-class PersonaAdmin(admin.ModelAdmin):
+class PersonaAdmin(ImportExportModelAdmin):
+    resource_class = PersonaResource
     list_display = ('user', 'role', 'department', 'is_active')
-    list_filter = ('role', 'is_active', 'department')
+    list_filter = ('role__category', 'role', 'is_active', 'department')
     search_fields = ('user__username', 'user__first_name', 'user__last_name', 'department__name')
 
 @admin.register(ActionProcess)

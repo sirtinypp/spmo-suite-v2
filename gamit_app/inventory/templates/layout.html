@@ -358,6 +358,7 @@
         }
     </style>
     <script>
+        {% if no_sidebar %}window.suppressSspmoLoader = true;{% endif %}
         !function () {
             var s = Date.now();
             var params = new URLSearchParams(window.location.search);

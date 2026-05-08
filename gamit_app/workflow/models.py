@@ -6,8 +6,14 @@ from django.contrib.auth.models import User
 # ==========================================
 
 class Role(models.Model):
+    ROLE_CATEGORIES = [
+        ('OPERATOR', 'GAMIT Operator (SPMO Core)'),
+        ('CLIENT', 'Client Unit Staff'),
+        ('SYSTEM', 'System / Dev Roles'),
+    ]
     name = models.CharField(max_length=150, unique=True, verbose_name="Role Title")
     code = models.CharField(max_length=50, unique=True, verbose_name="System Code")
+    category = models.CharField(max_length=30, choices=ROLE_CATEGORIES, default='CLIENT')
     description = models.TextField(blank=True, null=True)
 
     def __str__(self): return self.name

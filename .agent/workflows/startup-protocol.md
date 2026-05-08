@@ -175,9 +175,10 @@ Compile a "Where We Left Off" narrative:
 ### 5.1 Git Status
 // turbo
 ```powershell
-git status --short
-git log --oneline -5
-git branch --list
+$gitPath = (Resolve-Path "C:\Users\Aaron\AppData\Local\GitHubDesktop\app-*\resources\app\git\cmd\git.exe" | Select-Object -First 1).Path
+& $gitPath status --short
+& $gitPath log --oneline -5
+& $gitPath branch --list
 ```
 
 Report:
@@ -214,6 +215,23 @@ Deliver the complete startup report to the user via `notify_user`, including:
 - Prioritized recommendations (Phase 5.4)
 
 Close with: *"JARVIS Startup Protocol: COMPLETE ✅ — Awaiting orders."*
+
+---
+
+## Phase 6: GAMIT Specific Boot Sequence
+
+**Goal**: Ensure GAMIT-specific workflow logic and schema are synchronized.
+
+### 6.1 GAMIT Schema Audit
+// turbo
+```powershell
+docker exec app_gamit python manage.py showmigrations workflow
+```
+
+- If any migration (specifically `0005_alter_actionprocess_options_actionprocess_order`) is `[ ]` (unapplied) → **ACTION**: Run `docker exec app_gamit python manage.py migrate workflow` immediately.
+
+### 6.2 GAMIT Workflow Initialization
+- Verify the "Workflow Blueprints" page in the Command Center (`/administration/workflows/`) loads without a `ProgrammingError`.
 
 ---
 
