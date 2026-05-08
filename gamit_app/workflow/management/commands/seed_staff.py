@@ -20,7 +20,7 @@ class Command(BaseCommand):
                 'first_name': 'Aaron Christian',
                 'last_name': 'Basa',
                 'email': 'ajbasa@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': True,
                 'roles': ['SPMO_ADMIN_SUPERVISOR', 'SYSTEM_DEVELOPER'],
             },
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                 'first_name': 'Joeven',
                 'last_name': 'Del Mundo',
                 'email': 'jvdelmundo1@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': True,
                 'roles': ['SPMO_AO'],
             },
@@ -92,7 +92,7 @@ class Command(BaseCommand):
                 'first_name': 'Augustus',
                 'last_name': 'Resurreccion',
                 'email': 'vpa@up.edu.ph', # Placeholder if not provided
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': True,
                 'roles': ['SPMO_CHIEF'], # Mapping to Chief for oversight for now
             },
