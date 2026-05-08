@@ -574,19 +574,23 @@
         const currentTheme = htmlElement.getAttribute('data-bs-theme');
         setIcon(currentTheme);
 
-        toggleBtn.addEventListener('click', () => {
-            const activeTheme = htmlElement.getAttribute('data-bs-theme');
-            const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const activeTheme = htmlElement.getAttribute('data-bs-theme');
+                const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
 
-            htmlElement.setAttribute('data-bs-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            setIcon(newTheme);
-        });
+                htmlElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                setIcon(newTheme);
+            });
+        }
 
         // 🧠 Glossary Filtering Logic
-        document.addEventListener('DOMContentLoaded', function() {
+        function initGlossaryFilters() {
             const pills = document.querySelectorAll('.filter-pill');
             const items = document.querySelectorAll('.glossary-item');
+            
+            if (!pills.length || !items.length) return;
 
             pills.forEach(pill => {
                 pill.addEventListener('click', function() {
@@ -600,21 +604,25 @@
                     this.classList.remove('btn-outline-secondary');
                     this.classList.add('btn-primary', 'active');
 
-                    // Filter items with transition
+                    // Filter items
                     items.forEach(item => {
-                        item.style.opacity = '0';
-                        setTimeout(() => {
-                            if (category === 'all' || item.getAttribute('data-category') === category) {
-                                item.style.display = 'block';
-                                setTimeout(() => { item.style.opacity = '1'; }, 50);
-                            } else {
-                                item.style.display = 'none';
-                            }
-                        }, 200);
+                        if (category === 'all' || item.getAttribute('data-category') === category) {
+                            item.style.display = 'block';
+                            item.style.opacity = '1';
+                        } else {
+                            item.style.display = 'none';
+                        }
                     });
                 });
             });
-        });
+        }
+
+        // Run immediately if DOM is ready, otherwise wait
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGlossaryFilters);
+        } else {
+            initGlossaryFilters();
+        }
     </script>
 
     {% block extra_scripts %}{% endblock %}
