@@ -27,7 +27,7 @@ class Command(BaseCommand):
                 'email': 'ajbasa@up.edu.ph',
                 'is_staff': False,
                 'is_superuser': True,
-                'roles': ['SPMO_ADMIN_SUPERVISOR', 'SYSTEM_DEVELOPER'],
+                'roles': ['SPMO_ADMIN_SUPERVISOR'],
             },
             {
                 'username': 'grootadmin',
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                 'email': 'jvdelmundo1@up.edu.ph',
                 'is_staff': False,
                 'is_superuser': True,
-                'roles': ['SPMO_AO'],
+                'roles': ['SPMO_AO', 'SYSTEM_DEVELOPER'],
             },
             {
                 'username': 'vpresurreccion',
@@ -99,7 +99,7 @@ class Command(BaseCommand):
                 'email': 'vpa@up.edu.ph', # Placeholder if not provided
                 'is_staff': False,
                 'is_superuser': True,
-                'roles': ['VP_ADMIN'],
+                'roles': ['VP_ADMIN', 'SYSTEM_DEVELOPER'],
             },
         ]
 
