@@ -25,15 +25,6 @@ class Command(BaseCommand):
                 'roles': ['SPMO_ADMIN_SUPERVISOR', 'SYSTEM_DEVELOPER'],
             },
             {
-                'username': 'xiarabasa12',
-                'first_name': 'Aaron',
-                'last_name': 'Basa',
-                'email': 'xiarabasa12@up.edu.ph',
-                'is_staff': True,
-                'is_superuser': True,
-                'roles': ['SYSTEM_DEVELOPER'],
-            },
-            {
                 'username': 'grootadmin',
                 'first_name': 'Aaron',
                 'last_name': 'Basa',
