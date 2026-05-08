@@ -247,15 +247,117 @@
         </ul>
 
     <!-- 3. FIXED FOOTER ZONE -->
-    <div class="sidebar-footer mt-auto pt-3 border-top border-secondary border-opacity-10">
-        <form action="{% url 'logout' %}" method="post">
-            {% csrf_token %}
-            <button type="submit" class="nav-link w-100 text-start text-danger hover-danger" style="background:none; border:none;">
-                <i class="fas fa-arrow-right-from-bracket me-2"></i> Logout
-            </button>
-        </form>
-        <div class="text-center text-secondary mt-2 pb-3" style="font-size: 0.7rem; opacity: 0.5;">
-            &copy; 2025 GAMIT System v1.5
-        </div>
+    <div class="sidebar-footer mt-auto pt-3 pb-3 px-3 border-top border-secondary border-opacity-10">
+        <a href="#userProfileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="userProfileOffcanvas" class="d-flex align-items-center text-white text-decoration-none hover-highlight p-2 rounded transition-all">
+            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=0a4d2e&color=fff&rounded=true&bold=true" alt="" width="36" height="36" class="rounded-circle me-3 shadow-sm border border-secondary border-opacity-25">
+            <div class="flex-grow-1 overflow-hidden">
+                <strong class="d-block text-truncate" style="font-size: 0.9rem;">{{ request.user.first_name }} {{ request.user.last_name }}</strong>
+                <span class="d-block text-truncate text-secondary" style="font-size: 0.75rem;">
+                    {% if active_demo_role %}{{ active_demo_role }}{% else %}{{ request.user.username }}{% endif %}
+                </span>
+            </div>
+            <i class="fas fa-chevron-right ms-2 opacity-50 small"></i>
+        </a>
     </div>
 </nav>
+
+<!-- ========================================== -->
+<!-- USER PROFILE OFFCANVAS (SIDE PEEK)         -->
+<!-- ========================================== -->
+<div class="offcanvas offcanvas-end bg-dark text-white border-start border-secondary border-opacity-25 shadow-lg" tabindex="-1" id="userProfileOffcanvas" aria-labelledby="userProfileOffcanvasLabel" style="width: 400px;">
+    
+    <!-- Header: Dynamic Banner & Avatar -->
+    <div class="offcanvas-header border-bottom border-secondary border-opacity-25 position-relative" style="background: linear-gradient(135deg, #0a4d2e 0%, #052c1a 100%); padding-top: 40px; padding-bottom: 20px;">
+        <div class="position-absolute top-0 end-0 p-3">
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="text-center w-100 mt-3">
+            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=ffffff&color=0a4d2e&rounded=true&bold=true&size=128" alt="Profile" class="rounded-circle border border-3 border-white shadow mb-3" style="width: 80px; height: 80px;">
+            <h5 class="offcanvas-title fw-bold" id="userProfileOffcanvasLabel">{{ request.user.first_name }} {{ request.user.last_name }}</h5>
+            <p class="mb-0 text-white-50 small"><i class="fas fa-id-badge me-1"></i> {% if active_demo_role %}{{ active_demo_role }}{% else %}Standard Operations{% endif %}</p>
+        </div>
+    </div>
+
+    <!-- Body: Forms & Actions -->
+    <div class="offcanvas-body p-4 custom-scrollbar">
+        
+        <!-- Tab Navigation -->
+        <ul class="nav nav-pills nav-fill mb-4 border-bottom border-secondary border-opacity-25 pb-3" id="profileTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill py-1 px-3" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" style="font-size: 0.85rem;"><i class="fas fa-user-edit me-1"></i> Details</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill py-1 px-3" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" style="font-size: 0.85rem;"><i class="fas fa-shield-alt me-1"></i> Security</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="profileTabsContent">
+            <!-- Account Details Tab -->
+            <div class="tab-pane fade show active" id="details" role="tabpanel">
+                <form action="{% url 'update_profile' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="personal_info">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary fw-semibold">First Name</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white" name="first_name" value="{{ request.user.first_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary fw-semibold">Last Name</label>
+                        <input type="text" class="form-control bg-dark border-secondary text-white" name="last_name" value="{{ request.user.last_name }}">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small text-secondary fw-semibold">UP Mail (Email)</label>
+                        <input type="email" class="form-control bg-dark border-secondary text-white" name="email" value="{{ request.user.email }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #0a4d2e; border:none;"><i class="fas fa-save me-2"></i> Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Security Tab -->
+            <div class="tab-pane fade" id="security" role="tabpanel">
+                <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-warning d-flex align-items-center" style="font-size: 0.8rem;">
+                    <i class="fas fa-info-circle fs-5 me-3"></i>
+                    <div>Changing your password allows you to log in manually without using Google SSO.</div>
+                </div>
+                <form action="{% url 'update_profile' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="form_type" value="password_change">
+                    <div class="mb-3">
+                        <label class="form-label small text-secondary fw-semibold">New Password</label>
+                        <input type="password" class="form-control bg-dark border-secondary text-white" name="new_password" required minlength="8" placeholder="Enter new password">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small text-secondary fw-semibold">Confirm Password</label>
+                        <input type="password" class="form-control bg-dark border-secondary text-white" name="confirm_password" required minlength="8" placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 fw-bold shadow-sm"><i class="fas fa-key me-2"></i> Update Password</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer: Logout Action -->
+    <div class="offcanvas-footer p-3 border-top border-secondary border-opacity-25 mt-auto">
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger w-100 fw-bold border-opacity-50">
+                <i class="fas fa-arrow-right-from-bracket me-2"></i> Sign Out
+            </button>
+        </form>
+        <div class="text-center text-secondary mt-3" style="font-size: 0.65rem; opacity: 0.5;">
+            &copy; 2026 GAMIT System v2.0
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-highlight:hover { background-color: rgba(255,255,255,0.05) !important; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    .nav-pills .nav-link { color: #aaa; }
+    .nav-pills .nav-link.active { background-color: #0a4d2e; color: white; }
+    .offcanvas-body .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(10, 77, 46, 0.25); border-color: #0a4d2e; }
+</style>

@@ -4,8 +4,10 @@ import os
 from collections import Counter
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import Http404, JsonResponse
 from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
@@ -912,6 +914,35 @@ def transaction_ledger(request):
         ],
     }
     return render(request, 'inventory/transaction_history.html', context)
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'personal_info':
+            request.user.first_name = request.POST.get('first_name', '')
+            request.user.last_name = request.POST.get('last_name', '')
+            request.user.email = request.POST.get('email', '')
+            request.user.save()
+            messages.success(request, "Personal details updated successfully.")
+            
+        elif form_type == 'password_change':
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            if new_password and new_password == confirm_password:
+                if len(new_password) < 8:
+                    messages.error(request, "Password must be at least 8 characters long.")
+                else:
+                    request.user.set_password(new_password)
+                    request.user.save()
+                    update_session_auth_hash(request, request.user) # Keeps user logged in
+                    messages.success(request, "Password updated successfully.")
+            else:
+                messages.error(request, "Passwords do not match.")
+                
+    return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
 
 # 9. UPDATE INSPECTION STATUS
