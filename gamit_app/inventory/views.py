@@ -942,6 +942,18 @@ def update_profile(request):
             else:
                 messages.error(request, "Passwords do not match.")
                 
+        elif form_type == 'signature_update':
+            from workflow.models import Persona
+            persona_id = request.POST.get('persona_id')
+            persona = get_object_or_404(Persona, id=persona_id, user=request.user)
+            
+            persona.position_title = request.POST.get('position_title', '')
+            if 'signature_image' in request.FILES:
+                persona.signature_image = request.FILES['signature_image']
+            
+            persona.save()
+            messages.success(request, f"Signature for {persona.role.name} updated successfully.")
+                
     return redirect(request.META.get('HTTP_REFERER', 'dashboard'))
 
 

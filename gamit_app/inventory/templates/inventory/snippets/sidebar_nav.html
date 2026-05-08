@@ -34,11 +34,6 @@
                 </div>
                 <div class="overflow-hidden" style="max-width: 90px;">
                     <div class="text-white small fw-bold text-truncate">{{ user.username }}</div>
-                    <div class="text-secondary small" style="font-size: 0.75rem;">
-                        <a href="{% url 'upload_signature' %}" class="text-secondary text-decoration-none hover-light">
-                            <i class="fas fa-pen-nib me-1"></i> Signatures
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
@@ -287,6 +282,9 @@
                 <button class="nav-link active rounded-pill py-1 px-3" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" style="font-size: 0.85rem;"><i class="fas fa-user-edit me-1"></i> Details</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill py-1 px-3" id="signature-tab" data-bs-toggle="tab" data-bs-target="#signature" type="button" role="tab" style="font-size: 0.85rem;"><i class="fas fa-pen-nib me-1"></i> Signatures</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link rounded-pill py-1 px-3" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" style="font-size: 0.85rem;"><i class="fas fa-shield-alt me-1"></i> Security</button>
             </li>
         </ul>
@@ -311,6 +309,51 @@
                     </div>
                     <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #7b1113; border:none;"><i class="fas fa-save me-2"></i> Save Changes</button>
                 </form>
+            </div>
+
+            <!-- Digital Signatures Tab -->
+            <div class="tab-pane fade" id="signature" role="tabpanel">
+                <p class="text-secondary small mb-3">Manage signatures for your active roles. These are used in official document preparation.</p>
+                
+                <div class="list-group list-group-flush bg-transparent">
+                    {% for p in request.user.personas.all %}
+                    {% if p.is_active %}
+                    <div class="mb-4 p-3 rounded border border-secondary border-opacity-25 bg-white bg-opacity-5">
+                        <h6 class="text-primary fw-bold small mb-1">{{ p.role.name }}</h6>
+                        <p class="text-secondary mb-3" style="font-size: 0.7rem;">{% if p.department %}{{ p.department.name }}{% else %}SSPMO Global{% endif %}</p>
+                        
+                        <form action="{% url 'update_profile' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="form_type" value="signature_update">
+                            <input type="hidden" name="persona_id" value="{{ p.id }}">
+                            
+                            <div class="mb-2">
+                                <label class="form-label text-secondary" style="font-size: 0.7rem;">Position Title</label>
+                                <input type="text" name="position_title" class="form-control form-control-sm bg-dark border-secondary text-white" value="{{ p.position_title|default:'' }}" placeholder="e.g. Administrative Officer V">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-secondary" style="font-size: 0.7rem;">Signature Image (PNG)</label>
+                                <input type="file" name="signature_image" class="form-control form-control-sm bg-dark border-secondary text-white" accept="image/png">
+                            </div>
+
+                            {% if p.signature_image %}
+                            <div class="mb-3 p-2 bg-white rounded text-center">
+                                <img src="{{ p.signature_image.url }}" style="max-height: 40px; filter: contrast(1.2);">
+                            </div>
+                            {% endif %}
+
+                            <button type="submit" class="btn btn-sm btn-outline-light w-100 py-1" style="font-size: 0.75rem;">Update Signature</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-user-slash fs-3 text-secondary opacity-25 mb-2"></i>
+                        <p class="text-secondary small">No active roles found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
 
             <!-- Security Tab -->
