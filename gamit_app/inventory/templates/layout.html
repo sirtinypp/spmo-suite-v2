@@ -315,6 +315,13 @@
             margin-bottom: 12px;
             background: rgba(30, 41, 59, 0.02);
             border-left: 3px solid #1e293b;
+            transition: all 0.3s ease;
+            opacity: 1;
+        }
+        .filter-pill.active {
+            background-color: #1e293b !important;
+            border-color: #1e293b !important;
+            color: white !important;
         }
         .glossary-term {
             font-weight: 700;
@@ -577,26 +584,34 @@
         });
 
         // 🧠 Glossary Filtering Logic
-        document.querySelectorAll('.filter-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                const category = this.getAttribute('data-filter');
-                
-                // Update active pill UI
-                document.querySelectorAll('.filter-pill').forEach(p => {
-                    p.classList.remove('btn-primary', 'active');
-                    p.classList.add('btn-outline-secondary');
-                });
-                this.classList.remove('btn-outline-secondary');
-                this.classList.add('btn-primary', 'active');
+        document.addEventListener('DOMContentLoaded', function() {
+            const pills = document.querySelectorAll('.filter-pill');
+            const items = document.querySelectorAll('.glossary-item');
 
-                // Filter items with transition
-                document.querySelectorAll('.glossary-item').forEach(item => {
-                    if (category === 'all' || item.getAttribute('data-category') === category) {
-                        item.style.display = 'block';
-                        setTimeout(() => { item.style.opacity = '1'; }, 10);
-                    } else {
-                        item.style.display = 'none';
-                    }
+            pills.forEach(pill => {
+                pill.addEventListener('click', function() {
+                    const category = this.getAttribute('data-filter');
+                    
+                    // Update active pill UI
+                    pills.forEach(p => {
+                        p.classList.remove('btn-primary', 'active');
+                        p.classList.add('btn-outline-secondary');
+                    });
+                    this.classList.remove('btn-outline-secondary');
+                    this.classList.add('btn-primary', 'active');
+
+                    // Filter items with transition
+                    items.forEach(item => {
+                        item.style.opacity = '0';
+                        setTimeout(() => {
+                            if (category === 'all' || item.getAttribute('data-category') === category) {
+                                item.style.display = 'block';
+                                setTimeout(() => { item.style.opacity = '1'; }, 50);
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        }, 200);
+                    });
                 });
             });
         });
