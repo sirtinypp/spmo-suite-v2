@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from workflow.models import Role, Persona, WorkflowStep, SignatorySlot
-from gamit_app.models import Department
+from inventory.models import Department
 
 class Command(BaseCommand):
     help = 'Seeds institutional data (Roles, Ghost Army Personas, and Signatory Slots)'
