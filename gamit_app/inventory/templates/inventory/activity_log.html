@@ -124,7 +124,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="fw-bold">{{ log.user.get_full_name|default:log.user.username }}</div>
+                                    <div class="fw-bold">{% if log.user %}{{ log.user.get_full_name|default:log.user.username }}{% else %}<span class="text-secondary fst-italic">System</span>{% endif %}</div>
                                     <div class="text-secondary small" style="font-size: 0.75rem;">{{ log.unit_name }}</div>
                                 </td>
                                 <td class="text-center">
@@ -162,7 +162,7 @@
                                                         {{ log.action_taken }}
                                                         <span class="ms-2 badge bg-success p-1" style="font-size: 0.6rem;">LATEST</span>
                                                     </div>
-                                                    <div class="small text-secondary">{{ log.timestamp|date:"M d, H:i" }} — <strong>{{ log.user.username }}</strong> ({{ log.role_name }})</div>
+                                                    <div class="small text-secondary">{{ log.timestamp|date:"M d, H:i" }} — <strong>{% if log.user %}{{ log.user.username }}{% else %}System{% endif %}</strong> ({{ log.role_name }})</div>
                                                     {% if log.remarks %}<div class="bg-body p-2 border border-secondary-subtle rounded mt-1 small fst-italic">"{{ log.remarks }}"</div>{% endif %}
                                                 </div>
                                             </div>
@@ -172,7 +172,7 @@
                                                 <div class="bg-secondary opacity-50 rounded-circle mt-1" style="width: 10px; height: 10px;"></div>
                                                 <div class="ms-3">
                                                     <div class="fw-semibold text-body-secondary">{{ hlog.action_taken }}</div>
-                                                    <div class="small text-muted" style="font-size: 0.75rem;">{{ hlog.timestamp|date:"M d, H:i" }} — {{ hlog.user.username }}</div>
+                                                    <div class="small text-muted" style="font-size: 0.75rem;">{{ hlog.timestamp|date:"M d, H:i" }} — {% if hlog.user %}{{ hlog.user.username }}{% else %}System{% endif %}</div>
                                                     {% if hlog.remarks %}<div class="text-secondary small px-2 border-start ms-1 fst-italic">"{{ hlog.remarks }}"</div>{% endif %}
                                                 </div>
                                             </div>
