@@ -11,7 +11,7 @@
                 </li>
                 <li class="breadcrumb-item active" aria-current="page">{{ asset.property_number }}</li>
             </ol>
-            <button class="btn btn-sm btn-outline-primary rounded-pill ms-3 py-0 px-2" style="font-size: 0.7rem; vertical-align: middle;" 
+            <button class="btn btn-sm btn-outline-secondary rounded-pill ms-3 py-0 px-2" style="font-size: 0.7rem; vertical-align: middle; border-color: rgba(30, 41, 59, 0.2); color: #1e293b;" 
                 data-bs-toggle="offcanvas" data-bs-target="#knowledgeBase">
                 <i class="fas fa-lightbulb me-1"></i>System Guide
             </button>
@@ -627,7 +627,7 @@
     }, 4000);
 </script>
 
-{% endblock %}
+
 
 <!-- ====== UPLOAD DOCUMENT MODAL ====== -->
 <div class="modal fade" id="uploadDocModal" tabindex="-1" aria-hidden="true">
@@ -658,3 +658,4 @@
         </div>
     </div>
 </div>
+{% endblock %}
