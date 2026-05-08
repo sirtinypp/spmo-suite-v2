@@ -13,6 +13,11 @@ class Command(BaseCommand):
             code='SYSTEM_DEVELOPER',
             defaults={'name': 'System Developer', 'category': 'OPERATOR'}
         )
+        # Ensure VP_ADMIN role exists
+        Role.objects.get_or_create(
+            code='VP_ADMIN',
+            defaults={'name': 'VP for Administration', 'category': 'EXECUTIVE'}
+        )
 
         staff_data = [
             {
