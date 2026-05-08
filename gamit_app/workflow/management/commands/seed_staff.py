@@ -38,7 +38,7 @@ class Command(BaseCommand):
                 'first_name': 'Isagani L.',
                 'last_name': 'Bagus',
                 'email': 'ilbagus@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': False,
                 'roles': ['SPMO_CHIEF'],
             },
@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 'first_name': 'Julius Mar',
                 'last_name': 'Dela Cruz',
                 'email': 'jldelacruz4@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': False,
                 'roles': ['SPMO_SUPERVISOR'],
             },
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 'first_name': 'Mark Joshua',
                 'last_name': 'Pedrosa',
                 'email': 'mmpedrosa@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': False,
                 'roles': ['INSPECTION_OFFICER'],
             },
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 'first_name': 'Sherwin',
                 'last_name': 'Cura',
                 'email': 'srcura@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': False,
                 'roles': ['SPMO_CLERK'],
             },
@@ -74,7 +74,7 @@ class Command(BaseCommand):
                 'first_name': 'Eldefonso',
                 'last_name': 'Sardual',
                 'email': 'etsardual@up.edu.ph',
-                'is_staff': True,
+                'is_staff': False,
                 'is_superuser': False,
                 'roles': ['SPMO_AO'],
             },
@@ -94,7 +94,7 @@ class Command(BaseCommand):
                 'email': 'vpa@up.edu.ph', # Placeholder if not provided
                 'is_staff': False,
                 'is_superuser': True,
-                'roles': ['SPMO_CHIEF'], # Mapping to Chief for oversight for now
+                'roles': ['VP_ADMIN'],
             },
         ]
 
