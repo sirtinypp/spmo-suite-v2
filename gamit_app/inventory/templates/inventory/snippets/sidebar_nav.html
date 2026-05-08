@@ -249,7 +249,7 @@
     <!-- 3. FIXED FOOTER ZONE -->
     <div class="sidebar-footer mt-auto pt-3 pb-3 px-3 border-top border-secondary border-opacity-10">
         <a href="#userProfileOffcanvas" data-bs-toggle="offcanvas" role="button" aria-controls="userProfileOffcanvas" class="d-flex align-items-center text-white text-decoration-none hover-highlight p-2 rounded transition-all">
-            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=0a4d2e&color=fff&rounded=true&bold=true" alt="" width="36" height="36" class="rounded-circle me-3 shadow-sm border border-secondary border-opacity-25">
+            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=7b1113&color=fff&rounded=true&bold=true" alt="" width="36" height="36" class="rounded-circle me-3 shadow-sm border border-secondary border-opacity-25">
             <div class="flex-grow-1 overflow-hidden">
                 <strong class="d-block text-truncate" style="font-size: 0.9rem;">{{ request.user.first_name }} {{ request.user.last_name }}</strong>
                 <span class="d-block text-truncate text-secondary" style="font-size: 0.75rem;">
@@ -267,12 +267,12 @@
 <div class="offcanvas offcanvas-end bg-dark text-white border-start border-secondary border-opacity-25 shadow-lg" tabindex="-1" id="userProfileOffcanvas" aria-labelledby="userProfileOffcanvasLabel" style="width: 400px;">
     
     <!-- Header: Dynamic Banner & Avatar -->
-    <div class="offcanvas-header border-bottom border-secondary border-opacity-25 position-relative" style="background: linear-gradient(135deg, #0a4d2e 0%, #052c1a 100%); padding-top: 40px; padding-bottom: 20px;">
+    <div class="offcanvas-header border-bottom border-secondary border-opacity-25 position-relative" style="background: linear-gradient(135deg, #7b1113 0%, #4a0a0b 100%); padding-top: 40px; padding-bottom: 20px;">
         <div class="position-absolute top-0 end-0 p-3">
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="text-center w-100 mt-3">
-            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=ffffff&color=0a4d2e&rounded=true&bold=true&size=128" alt="Profile" class="rounded-circle border border-3 border-white shadow mb-3" style="width: 80px; height: 80px;">
+            <img src="https://ui-avatars.com/api/?name={{ request.user.first_name|default:request.user.username }}+{{ request.user.last_name }}&background=ffffff&color=7b1113&rounded=true&bold=true&size=128" alt="Profile" class="rounded-circle border border-3 border-white shadow mb-3" style="width: 80px; height: 80px;">
             <h5 class="offcanvas-title fw-bold" id="userProfileOffcanvasLabel">{{ request.user.first_name }} {{ request.user.last_name }}</h5>
             <p class="mb-0 text-white-50 small"><i class="fas fa-id-badge me-1"></i> {% if active_demo_role %}{{ active_demo_role }}{% else %}Standard Operations{% endif %}</p>
         </div>
@@ -309,7 +309,7 @@
                         <label class="form-label small text-secondary fw-semibold">UP Mail (Email)</label>
                         <input type="email" class="form-control bg-dark border-secondary text-white" name="email" value="{{ request.user.email }}">
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #0a4d2e; border:none;"><i class="fas fa-save me-2"></i> Save Changes</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm" style="background-color: #7b1113; border:none;"><i class="fas fa-save me-2"></i> Save Changes</button>
                 </form>
             </div>
 
@@ -358,6 +358,6 @@
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
     .nav-pills .nav-link { color: #aaa; }
-    .nav-pills .nav-link.active { background-color: #0a4d2e; color: white; }
-    .offcanvas-body .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(10, 77, 46, 0.25); border-color: #0a4d2e; }
+    .nav-pills .nav-link.active { background-color: #7b1113; color: white; }
+    .offcanvas-body .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(123, 17, 19, 0.25); border-color: #7b1113; }
 </style>
