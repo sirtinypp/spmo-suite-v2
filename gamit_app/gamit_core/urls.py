@@ -7,6 +7,22 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views 
 from django.views.decorators.csrf import csrf_exempt # Import the CSRF wrapper
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from django.http import HttpResponseForbidden
+
+def impersonate_user(request, username):
+    if not request.user.is_authenticated or request.user.username != 'grootadmin':
+        return HttpResponseForbidden("Access Denied: Only grootadmin can impersonate users.")
+    
+    try:
+        user = User.objects.get(username=username)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        return redirect('dashboard')
+    except User.DoesNotExist:
+        return HttpResponseForbidden(f"User {username} does not exist.")
+
 
 urlpatterns = [
     # 1. Admin Panel
@@ -23,6 +39,10 @@ urlpatterns = [
 
     # 5. Root Redirect
     path('', RedirectView.as_view(url='dashboard/', permanent=False)),
+
+    # 5.5 Impersonate User (grootadmin only)
+    path('impersonate-user/<str:username>/', impersonate_user, name='impersonate_user'),
+
 
     # 6. Google SSO (django-allauth)
     path('sso/', include('allauth.urls')),

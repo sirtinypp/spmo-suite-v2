@@ -190,6 +190,29 @@
                     </ul>
                 </div>
             </li>
+            
+            <li class="section-label mt-4 text-danger border-top border-danger border-opacity-25 pt-3">Account Backdoor</li>
+            <li class="nav-item mb-3">
+                <div class="dropdown px-2">
+                    <button class="btn btn-sm w-100 d-flex align-items-center justify-content-between text-danger rounded-3 px-3 py-2 dropdown-toggle" 
+                            type="button" data-bs-toggle="dropdown" 
+                            style="background: rgba(220,53,69,0.05); border: 1px solid rgba(220,53,69,0.15);">
+                        <span class="text-truncate" style="max-width: 140px;">
+                            <i class="fas fa-ghost me-2"></i> Log in as User
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark shadow-lg" style="font-size: 0.85rem; min-width: 200px; max-height: 350px; overflow-y: auto;">
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'ajbasa' %}"><i class="fas fa-user text-danger me-2"></i> ajbasa</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'vpresurreccion' %}"><i class="fas fa-user text-danger me-2"></i> vpresurreccion</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'jvdelmundo' %}"><i class="fas fa-user text-danger me-2"></i> jvdelmundo</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'ilbagus' %}"><i class="fas fa-user text-danger me-2"></i> ilbagus</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'jldelacruz' %}"><i class="fas fa-user text-danger me-2"></i> jldelacruz</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'mmpedrosa' %}"><i class="fas fa-user text-danger me-2"></i> mmpedrosa</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'srcura' %}"><i class="fas fa-user text-danger me-2"></i> srcura</a></li>
+                        <li><a class="dropdown-item" href="{% url 'impersonate_user' 'etsardual' %}"><i class="fas fa-user text-danger me-2"></i> etsardual</a></li>
+                    </ul>
+                </div>
+            </li>
             {% elif request.user.username == 'ajbasa' %}
             <li class="section-label mt-4">Presentation Mode</li>
             <li class="nav-item mb-3">
