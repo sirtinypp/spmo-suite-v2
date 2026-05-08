@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Asset, InspectionRequest, AssetBatch, AssetTransferRequest, BatchItem, ServiceLog, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest
+from .models import Asset, InspectionRequest, AssetBatch, AssetTransferRequest, BatchItem, ServiceLog, AssetReturnRequest, AssetLossReport, PropertyClearanceRequest, AssetDocument
 
 # ==========================================
 # 1. ADD ASSET FORM (Frontend — replaces admin link)
@@ -405,4 +405,13 @@ class PropertyClearanceRequestForm(forms.ModelForm):
         widgets = {
             'purpose': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Resignation, Retirement, Transfer to another UP Unit'}),
             'routing_form': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png'}),
+        }
+
+class AssetDocumentForm(forms.ModelForm):
+    class Meta:
+        model = AssetDocument
+        fields = ['name', 'file']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Purchase Contract Scan'}),
+            'file': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.png,.doc,.docx'}),
         }

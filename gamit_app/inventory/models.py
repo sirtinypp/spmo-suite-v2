@@ -255,6 +255,15 @@ class Asset(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self): return f"{self.property_number} - {self.name}"
+    
+class AssetDocument(models.Model):
+    asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='documents')
+    name = models.CharField(max_length=255, verbose_name="Document Name")
+    file = models.FileField(upload_to='assets/repository/', verbose_name="File Attachment")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self): return f"{self.name} - {self.asset.property_number}"
 
 # 3. INSPECTION REQUEST MODEL
 class InspectionRequest(models.Model):

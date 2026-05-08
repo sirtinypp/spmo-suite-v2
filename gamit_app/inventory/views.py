@@ -432,6 +432,8 @@ def _create_cross_office_notification(asset, user, tab_name, changed_fields):
 
 @login_required
 def asset_detail(request, pk):
+    from .models import AssetDocument
+    from .forms import AssetDocumentForm
     asset = get_object_or_404(Asset, pk=pk)
     # --- PERSONA-AWARE ACCESS CHECK ---
     demo_role = request.session.get('active_demo_role')
@@ -487,6 +489,26 @@ def asset_detail(request, pk):
         else:
             messages.error(request, 'You do not have permission to edit this tab.')
 
+    # Handle Multi-Document Upload (Repository)
+    if request.method == 'POST' and 'upload_document' in request.POST:
+        doc_form = AssetDocumentForm(request.POST, request.FILES)
+        if doc_form.is_valid():
+            new_doc = doc_form.save(commit=False)
+            new_doc.asset = asset
+            new_doc.uploaded_by = request.user
+            new_doc.save()
+            messages.success(request, f'Document "{new_doc.name}" uploaded to repository.')
+            return redirect('asset_detail', pk=pk)
+            
+    # Handle Document Deletion
+    if request.method == 'POST' and 'delete_document_id' in request.POST:
+        doc_id = request.POST.get('delete_document_id')
+        doc_to_del = get_object_or_404(AssetDocument, id=doc_id, asset=asset)
+        doc_name = doc_to_del.name
+        doc_to_del.delete()
+        messages.success(request, f'Document "{doc_name}" removed from repository.')
+        return redirect('asset_detail', pk=pk)
+
     # Build form instances for each tab (GET or after POST errors)
     property_form = PropertyTabForm(instance=asset)
     finance_form = FinanceTabForm(instance=asset)
@@ -507,6 +529,8 @@ def asset_detail(request, pk):
         'lifecycle_form': lifecycle_form,
         'government_form': government_form,
         'active_tab': active_tab if request.method == 'POST' else 'property',
+        'doc_form': AssetDocumentForm(),
+        'documents': asset.documents.all().order_by('-uploaded_at'),
     })
 
 
