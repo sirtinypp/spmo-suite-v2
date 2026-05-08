@@ -198,14 +198,25 @@ class WorkflowEngine:
         signatory_roles = list(current_step.signatory_slots.all().values_list('role', flat=True))
         
         active_persona = None
+        demo_persona = getattr(user, 'demo_persona', None)
         
         # Check primary role
         if required_role:
-            active_persona = Persona.objects.filter(user=user, role=required_role, is_active=True).first()
+            if demo_persona and demo_persona.role == required_role:
+                active_persona = demo_persona
+            else:
+                active_persona = Persona.objects.filter(user=user, role=required_role, is_active=True).first()
             
         # Fallback to signatory slots if primary is not met
         if not active_persona and signatory_roles:
-            active_persona = Persona.objects.filter(user=user, role__id__in=signatory_roles, is_active=True).first()
+            if demo_persona and demo_persona.role and demo_persona.role.id in signatory_roles:
+                active_persona = demo_persona
+            else:
+                active_persona = Persona.objects.filter(user=user, role__id__in=signatory_roles, is_active=True).first()
+
+        # Final fallback: if superuser has a demo persona active, let them use it to log the action accurately
+        if not active_persona and user.is_superuser and demo_persona:
+             active_persona = demo_persona
 
         if not active_persona and not user.is_superuser:
             role_names = [required_role.name] if required_role else []
