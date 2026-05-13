@@ -169,6 +169,66 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* Manual Login Form Styles */
+        .manual-login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .manual-login-form input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1rem;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .manual-login-form input:focus {
+            border-color: var(--accent-teal);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+
+        .btn-signin {
+            background: var(--accent-teal);
+            color: #fff;
+            padding: 1rem;
+            border-radius: 16px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-signin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(13, 148, 136, 0.3);
+            background: var(--accent-emerald);
+        }
+
+        .error-text {
+            color: #fb7185;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            text-align: center;
+            font-weight: 500;
+            background: rgba(251, 113, 133, 0.1);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(251, 113, 133, 0.2);
+        }
+
         .footer {
             margin-top: 2.5rem;
             text-align: center;
@@ -220,12 +280,23 @@
                     Continue with UP Mail
                 </a>
 
-                <div class="divider"><span>OR SECURE CHANNEL</span></div>
+                <div class="divider"><span>OR MANUAL ACCESS</span></div>
 
-                <a href="/admin/login/?next=/console/" class="btn-admin">
-                    <i class="bi bi-shield-lock"></i>
-                    System Administrator Access
-                </a>
+                <form method="post" action="{% url 'login' %}" class="manual-login-form">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Username" required autofocus>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button type="submit" class="btn-signin">
+                        <i class="bi bi-shield-lock"></i>
+                        Sign In
+                    </button>
+                    {% if form.errors %}
+                    <div class="error-text">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Invalid username or password.
+                    </div>
+                    {% endif %}
+                </form>
             </div>
 
             <div class="acronym-box">

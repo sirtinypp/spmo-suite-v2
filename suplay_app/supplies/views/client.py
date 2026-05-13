@@ -133,6 +133,39 @@ def home(request):
 
     search_query = request.GET.get('q')
     stock_status = request.GET.get('stock')
+    ready_to_order = request.GET.get('ready_to_order') == '1'
+
+    # --- ADVANCED ALLOCATION FILTERING ---
+    orderable_ids = []
+    if request.user.is_authenticated and user_dept:
+        now = timezone.now()
+        month_str = now.strftime('%b').lower()
+        current_year = now.year
+        
+        # 1. Get all products in the user's APP
+        app_items = AnnualProcurementPlan.objects.filter(department=user_dept, year=current_year)
+        
+        # 2. Filter for those with remaining monthly allocation
+        for item in app_items:
+            limit = getattr(item, month_str, 0)
+            if limit > 0:
+                # Check consumption
+                monthly_orders = Order.objects.filter(
+                    department=user_dept,
+                    created_at__year=current_year,
+                    created_at__month=now.month
+                ).exclude(status='cancelled')
+                
+                consumed = OrderItem.objects.filter(
+                    order__in=monthly_orders,
+                    product=item.product
+                ).aggregate(total=Sum('quantity'))['total'] or 0
+                
+                if consumed < limit:
+                    orderable_ids.append(item.product_id)
+        
+        if ready_to_order:
+            products = products.filter(id__in=orderable_ids)
 
     if search_query:
         # If searching: Show everything matching the query (In Stock + Out of Stock)
@@ -543,26 +576,32 @@ def profile(request):
     # 1. Request History (Limit 5)
     my_orders = Order.objects.filter(user=request.user).order_by('-created_at')[:5]
     
-    # 2. Suggested Items Logic
+    # 2. Predictive Replenishment Logic
+    # Identify top 4 most frequently purchased products by this user across all history
+    frequent_items = OrderItem.objects.filter(
+        order__user=request.user
+    ).values('product').annotate(
+        count=Count('product')
+    ).order_by('-count')[:4]
+    
     suggested_products = []
+    if frequent_items:
+        product_ids = [item['product'] for item in frequent_items]
+        # Maintain order of frequency
+        preserved_order = {id: i for i, id in enumerate(product_ids)}
+        suggested_products = sorted(
+            Product.objects.filter(id__in=product_ids),
+            key=lambda x: preserved_order.get(x.id)
+        )
     
-    # Strategy A: Check user's department from last order
-    last_order = Order.objects.filter(user=request.user).order_by('-created_at').first()
-    
-    if last_order:
-        last_item = last_order.items.first()
-        if last_item:
-            target_category = last_item.product.category
-            suggested_products = Product.objects.filter(category=target_category).exclude(id=last_item.product.id).order_by('?')[:4]
-
     # Strategy B: Fallback (If no history or not enough suggestions)
-    if not suggested_products or len(suggested_products) < 4:
+    if len(suggested_products) < 4:
         additional_needed = 4 - len(suggested_products)
-        ids_to_exclude = [p.id for p in suggested_products]
-        fallback_items = Product.objects.exclude(id__in=ids_to_exclude).order_by('?')[:additional_needed]
-        # Combine them
-        import itertools
-        suggested_products = list(itertools.chain(suggested_products, fallback_items))
+        exclude_ids = [p.id for p in suggested_products]
+        
+        # Pull diverse items from the general catalog
+        fallback_items = Product.objects.exclude(id__in=exclude_ids).order_by('?')[:additional_needed]
+        suggested_products = list(suggested_products) + list(fallback_items)
 
     return render(request, 'supplies/profile.html', {
         'orders': my_orders,

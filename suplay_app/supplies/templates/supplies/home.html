@@ -236,6 +236,19 @@
                             </div>
                         </div>
 
+                        <div class="p-3 border-bottom bg-light bg-opacity-50">
+                            <h6 class="text-uppercase fw-bold text-muted small mb-2">My Stock Access</h6>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input cursor-pointer" type="checkbox" id="readyToOrderToggle" 
+                                    {% if request.GET.ready_to_order == '1' %}checked{% endif %}
+                                    onchange="location.href='?ready_to_order=' + (this.checked ? '1' : '0') + '{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.supplier %}&supplier={{ request.GET.supplier }}{% endif %}{% if request.GET.stock %}&stock={{ request.GET.stock }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}'">
+                                <label class="form-check-label small fw-bold text-dark cursor-pointer" for="readyToOrderToggle">
+                                    Ready to Order Only
+                                </label>
+                            </div>
+                            <p class="text-muted mb-0" style="font-size: 0.65rem;">Hides items with 0 allocation</p>
+                        </div>
+
                         <div class="p-3">
                             <h6 class="text-uppercase fw-bold text-muted small mb-2">Availability</h6>
                             <div class="list-group list-group-flush">
