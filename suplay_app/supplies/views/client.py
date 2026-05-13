@@ -1,14 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Q, Count
+from django.db.models import Sum, Q, Count, F
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db import transaction
+from django.contrib import messages
+from decimal import Decimal
 from io import BytesIO
 from xhtml2pdf import pisa
 
-from ..models import Product, Category, Order, OrderItem, AnnualProcurementPlan, Supplier, StockBatch, News, Department
+from ..models import Product, Category, Order, OrderItem, EmergencyRequest, AnnualProcurementPlan, Supplier, StockBatch, News, Department
 from ..forms import OrderDocumentForm
 
 # ==========================================
@@ -603,8 +606,12 @@ def profile(request):
         fallback_items = Product.objects.exclude(id__in=exclude_ids).order_by('?')[:additional_needed]
         suggested_products = list(suggested_products) + list(fallback_items)
 
+    # Fetch emergency requests
+    emergency_requests = EmergencyRequest.objects.filter(user=request.user).order_by('-created_at')
+
     return render(request, 'supplies/profile.html', {
         'orders': my_orders,
+        'emergency_requests': emergency_requests,
         'suggested_products': suggested_products
     })
 
@@ -642,12 +649,19 @@ def requisition_slip(request, order_id=None):
     from django.contrib.auth.models import User
     issued_by_user = User.objects.filter(username='spmo_admin2').first()
 
+    # Fetch Emergency Context if applicable
+    emergency_req = None
+    if order and order.is_emergency:
+        from ..models import EmergencyRequest
+        emergency_req = EmergencyRequest.objects.filter(linked_order=order).first()
+
     context = {
         'cart_items': cart_items,
         'total': total,
         'user': request.user,
         'date': timezone.now(),
         'order': order,
+        'emergency_req': emergency_req,
         'issued_by_user': issued_by_user,
     }
 
@@ -685,13 +699,23 @@ def emergency_request_submit(request):
 
 @login_required
 def emergency_cockpit(request):
-    if not request.user.profile.is_supply_officer:
-        return redirect('home')
+    # God-Mode Bypass: Superusers don't strictly need a profile for the cockpit
+    if request.user.is_superuser:
+        role = 'store_sup' # Treat as Supervisor for UI context
+    else:
+        try:
+            if not request.user.profile.is_supply_officer:
+                return redirect('home')
+            role = request.user.profile.role
+        except UserProfile.DoesNotExist:
+            return redirect('home')
     
-    # Logic: Show what needs the current user's attention
-    role = request.user.profile.role
-    
-    if role == 'store_ao':
+    if request.user.is_superuser:
+        # God-Mode: See all pending validation/approval stages
+        active_requests = EmergencyRequest.objects.filter(
+            status__in=['pending_ao', 'pending_supervisor', 'pending_chief']
+        )
+    elif role == 'store_ao':
         active_requests = EmergencyRequest.objects.filter(status='pending_ao')
     elif role == 'store_sup':
         active_requests = EmergencyRequest.objects.filter(status='pending_supervisor')
@@ -709,11 +733,18 @@ def emergency_cockpit(request):
 
 @login_required
 def emergency_request_action(request, pk, action):
-    if not request.user.profile.is_supply_officer:
-        return redirect('home')
+    # God-Mode Bypass
+    if request.user.is_superuser:
+        role = 'store_sup'
+    else:
+        try:
+            if not request.user.profile.is_supply_officer:
+                return redirect('home')
+            role = request.user.profile.role
+        except UserProfile.DoesNotExist:
+            return redirect('home')
         
     emg_req = get_object_or_404(EmergencyRequest, pk=pk)
-    role = request.user.profile.role
     
     if action == 'approve':
         if role == 'store_ao' and emg_req.status == 'pending_ao':
@@ -722,9 +753,30 @@ def emergency_request_action(request, pk, action):
             emg_req.status = 'pending_chief'
         elif role == 'spmo_chief' and emg_req.status == 'pending_chief':
             emg_req.status = 'approved'
-            # TODO: Notify user that link is active
+        if request.user.is_superuser:
+            # God-Mode: Universal Advance
+            if emg_req.status == 'pending_ao':
+                emg_req.status = 'pending_supervisor'
+                messages.success(request, f"God-Mode: Request #EMG-{emg_req.id} advanced to Supervisor Review.")
+            elif emg_req.status == 'pending_supervisor':
+                emg_req.status = 'pending_chief'
+                messages.success(request, f"God-Mode: Request #EMG-{emg_req.id} advanced to Chief Approval.")
+            elif emg_req.status == 'pending_chief':
+                emg_req.status = 'approved'
+                messages.success(request, f"God-Mode: Request #EMG-{emg_req.id} FULLY APPROVED.")
+        else:
+            # Standard Role-Based Logic
+            if role == 'store_ao' and emg_req.status == 'pending_ao':
+                emg_req.status = 'pending_supervisor'
+                messages.success(request, f"Request #EMG-{emg_req.id} validated by AO. Now pending Supervisor review.")
+            elif role == 'store_sup' and emg_req.status == 'pending_supervisor':
+                emg_req.status = 'pending_chief'
+                messages.success(request, f"Request #EMG-{emg_req.id} reviewed by Supervisor. Now pending Chief approval.")
+            elif role == 'spmo_chief' and emg_req.status == 'pending_chief':
+                emg_req.status = 'approved'
+                messages.success(request, f"Request #EMG-{emg_req.id} fully approved. Department can now access the form.")
+        
         emg_req.save()
-        messages.success(request, f"Request #EMG-{emg_req.id} advanced to next stage.")
     elif action == 'reject':
         emg_req.status = 'rejected'
         emg_req.remarks = request.POST.get('remarks', 'Rejected by ' + request.user.username)
@@ -732,3 +784,160 @@ def emergency_request_action(request, pk, action):
         messages.warning(request, f"Request #EMG-{emg_req.id} has been rejected.")
         
     return redirect('emergency_cockpit')
+
+# ==========================================
+# FIFO PRICING ENGINE
+# ==========================================
+
+def get_fifo_price(product, quantity):
+    """
+    Calculates the total cost for a quantity of product using FIFO logic.
+    Does NOT deduct stock, only calculates quote.
+    """
+    batches = StockBatch.objects.filter(product=product, quantity_remaining__gt=0).order_by('date_received', 'id')
+    total_cost = Decimal('0.00')
+    remaining_to_calculate = int(quantity)
+    
+    for batch in batches:
+        if remaining_to_calculate <= 0:
+            break
+            
+        take_from_this_batch = min(batch.quantity_remaining, remaining_to_calculate)
+        total_cost += take_from_this_batch * batch.cost_per_item
+        remaining_to_calculate -= take_from_this_batch
+        
+    # If we couldn't fulfill the quantity from current batches, use the product's default price for the rest
+    if remaining_to_calculate > 0:
+        total_cost += remaining_to_calculate * product.price
+        
+    return total_cost
+
+@login_required
+def get_fifo_quote(request):
+    """AJAX endpoint for real-time pricing"""
+    product_id = request.GET.get('product_id')
+    quantity = request.GET.get('quantity', 0)
+    
+    if not product_id or not quantity:
+        return JsonResponse({'error': 'Invalid parameters'}, status=400)
+        
+    product = get_object_or_404(Product, pk=product_id)
+    total_price = get_fifo_price(product, quantity)
+    
+    return JsonResponse({
+        'total_price': float(total_price),
+        'unit_price_avg': float(total_price / int(quantity)) if int(quantity) > 0 else 0
+    })
+
+# ==========================================
+# EMERGENCY ORDER FLOW
+# ==========================================
+
+@login_required
+def emergency_order_form(request, req_id):
+    # Ensure user has an APPROVED request
+    emg_req = get_object_or_404(EmergencyRequest, pk=req_id, user=request.user, status='approved')
+    products = Product.objects.all().order_by('name')
+    
+    return render(request, 'supplies/emergency_form.html', {
+        'emg_req': emg_req,
+        'products': products
+    })
+
+@login_required
+@transaction.atomic
+def emergency_order_finalize(request, req_id):
+    if request.method != 'POST':
+        return redirect('home')
+        
+    emg_req = get_object_or_404(EmergencyRequest, pk=req_id, user=request.user, status='approved')
+    
+    product_ids = request.POST.getlist('product_ids[]')
+    quantities = request.POST.getlist('quantities[]')
+    
+    if not product_ids or not quantities or len(product_ids) != len(quantities):
+        messages.error(request, "Requisition data is incomplete or corrupted.")
+        return redirect('emergency_order_form', req_id=req_id)
+        
+    # Phase 1: Verification & Calculation
+    total_order_amount = Decimal('0.00')
+    items_to_create = []
+    
+    for i in range(len(product_ids)):
+        p_id = product_ids[i]
+        qty = int(quantities[i])
+        
+        if qty <= 0: continue
+        
+        product = get_object_or_404(Product, pk=p_id)
+        item_total_cost = get_fifo_price(product, qty)
+        
+        total_order_amount += item_total_cost
+        items_to_create.append({
+            'product': product,
+            'quantity': qty,
+            'price': item_total_cost / qty
+        })
+
+    if not items_to_create:
+        messages.error(request, "No valid items selected.")
+        return redirect('emergency_order_form', req_id=req_id)
+        
+    # Phase 2: Creation
+    order = Order.objects.create(
+        user=request.user,
+        employee_name=request.user.get_full_name() or request.user.username,
+        department=request.user.profile.department,
+        total_amount=total_order_amount,
+        remarks=f"EMERGENCY REQUISITION (Ref: EMG-REQ #{emg_req.id})",
+        is_emergency=True,
+        status='pending'
+    )
+    
+    for item in items_to_create:
+        OrderItem.objects.create(
+            order=order,
+            product=item['product'],
+            quantity=item['quantity'],
+            price=item['price']
+        )
+    
+    # Phase 3: Transition
+    emg_req.status = 'completed'
+    emg_req.linked_order = order
+    emg_req.save()
+    
+    messages.success(request, f"Emergency Requisition #{order.id} established. Pending final admin validation.")
+    return redirect('profile')
+
+@login_required
+def get_fifo_quote_bulk(request):
+    """AJAX endpoint for multi-item real-time pricing"""
+    import json
+    try:
+        data = json.loads(request.body)
+        items = data.get('items', [])
+    except:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+    grand_total = Decimal('0.00')
+    results = []
+    
+    for item in items:
+        p_id = item.get('product_id')
+        qty = int(item.get('quantity', 0))
+        
+        if p_id and qty > 0:
+            product = Product.objects.get(pk=p_id)
+            cost = get_fifo_price(product, qty)
+            grand_total += cost
+            results.append({
+                'product_id': p_id,
+                'total_cost': float(cost),
+                'unit_avg': float(cost / qty)
+            })
+            
+    return JsonResponse({
+        'grand_total': float(grand_total),
+        'items': results
+    })

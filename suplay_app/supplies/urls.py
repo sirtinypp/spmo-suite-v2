@@ -91,4 +91,8 @@ urlpatterns = [
     path('emergency/submit/', views.emergency_request_submit, name='emergency_request_submit'),
     path('emergency/cockpit/', views.emergency_cockpit, name='emergency_cockpit'),
     path('emergency/action/<int:pk>/<str:action>/', views.emergency_request_action, name='emergency_request_action'),
+    path('emergency/order/<int:req_id>/', views.emergency_order_form, name='emergency_order_form'),
+    path('emergency/finalize/<int:req_id>/', views.emergency_order_finalize, name='emergency_order_finalize'),
+    path('emergency/quote/', views.get_fifo_quote, name='get_fifo_quote'),
+    path('emergency/quote-bulk/', views.get_fifo_quote_bulk, name='get_fifo_quote_bulk'),
 ]

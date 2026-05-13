@@ -183,6 +183,19 @@
             <div class="sticky-top custom-scrollbar"
                 style="top: 90px; z-index: 100; max-height: calc(100vh - 110px); overflow-y: auto;">
 
+                <div class="card border-0 shadow-sm bg-danger bg-opacity-10 mb-3 overflow-hidden" style="border: 1px solid rgba(220, 53, 69, 0.2) !important;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i class="bi bi-exclamation-diamond-fill text-danger"></i>
+                            <h6 class="fw-bold text-dark mb-0 small text-uppercase" style="letter-spacing: 0.05em;">Emergency Path</h6>
+                        </div>
+                        <p class="text-muted mb-3" style="font-size: 0.7rem; line-height: 1.4;">Require items not in your APP? Start a special procurement bypass.</p>
+                        <button class="btn btn-danger btn-sm w-100 rounded-pill fw-bold shadow-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#emergencyRequestDrawer">
+                            <i class="bi bi-plus-lg me-1"></i> Request Access
+                        </button>
+                    </div>
+                </div>
+
                 <form action="{% url 'search' %}" method="GET" class="mb-3">
                     <div class="input-group shadow-sm">
                         <span class="input-group-text bg-white border-end-0"><i

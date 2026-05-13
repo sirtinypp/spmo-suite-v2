@@ -352,7 +352,13 @@
                     <div class="office-name">Supply and Property Management Office</div>
                 </div>
             </div>
-            <div class="doc-title">Requisition and Issuance Slip</div>
+            <div class="doc-title {% if order.is_emergency %}bg-danger{% endif %}">
+                {% if order.is_emergency %}
+                SPECIAL EMERGENCY REQUISITION (SER)
+                {% else %}
+                Requisition and Issuance Slip
+                {% endif %}
+            </div>
         </div>
 
         <!-- CONTENT -->
@@ -375,14 +381,21 @@
 
                 <div class="meta-row">
                     <span class="label">RIS No.:</span>
-                    <span class="value"><strong>{{ order.id|stringformat:"06d" }}</strong></span>
+                    <span class="value"><strong>{{ order.id|stringformat:"06d" }}{% if order.is_emergency %} (EMG-{{ emergency_req.id }}){% endif %}</strong></span>
                 </div>
                 <div class="meta-row">
                     <span class="label">Date:</span>
                     <span class="value">{{ date|date:"F j, Y" }}</span>
                 </div>
             </div>
+        {% if order.is_emergency and emergency_req %}
+        <div class="meta-row" style="margin-top: -10px; margin-bottom: 20px;">
+            <span class="label" style="width: 120px;">Justification:</span>
+            <div class="value" style="font-size: 10px; border-bottom: 1px dashed #ccc; font-style: italic;">
+                {{ emergency_req.remarks|default:"Urgent administrative necessity authorized via bypass protocol." }}
+            </div>
         </div>
+        {% endif %}
 
         <table class="item-table">
             <thead>

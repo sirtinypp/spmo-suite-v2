@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum, F, Count
 from django.utils import timezone
 from django.contrib.auth.models import User
-from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord
+from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord, EmergencyRequest
 from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm, DeliveryRecordForm
 from ..decorators import role_required, scope_required
 
@@ -72,6 +72,18 @@ def admin_dashboard(request):
         total=Sum('total_amount')
     ).order_by('-total')[:5]
 
+    # 6. Emergency Authorization Feed (God-Mode / Role Aware)
+    if request.user.is_superuser:
+        emergency_feed = EmergencyRequest.objects.filter(status__in=['pending_ao', 'pending_supervisor', 'pending_chief'])
+    elif request.user.profile.role == 'store_ao':
+        emergency_feed = EmergencyRequest.objects.filter(status='pending_ao')
+    elif request.user.profile.role == 'store_sup':
+        emergency_feed = EmergencyRequest.objects.filter(status='pending_supervisor')
+    elif request.user.profile.role == 'spmo_chief':
+        emergency_feed = EmergencyRequest.objects.filter(status='pending_chief')
+    else:
+        emergency_feed = EmergencyRequest.objects.none()
+
     context = {
         'active_orders_count': active_orders_count,
         'delivery_queue_count': delivery_queue_count,
@@ -81,6 +93,7 @@ def admin_dashboard(request):
         'low_stock_count': low_stock_products,
         'top_items': top_items,
         'recent_orders': orders[:8],
+        'emergency_feed': emergency_feed,
         'news_items': News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5],
         'urgent_news': News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3],
         'category_data': list(category_data),

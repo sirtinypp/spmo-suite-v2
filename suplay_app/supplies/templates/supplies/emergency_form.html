@@ -1,0 +1,277 @@
+{% extends 'supplies/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- FORCED INLINE STYLES TO BYPASS CACHE -->
+<style>
+    :root {
+        --suplay-green: #059669 !important;
+        --suplay-blue: #3b82f6 !important;
+        --suplay-slate: #1e293b !important;
+        --suplay-border: #cbd5e1 !important;
+    }
+
+    /* THE ADMIN PILL INPUT (FORCE) */
+    .pill-input {
+        width: 100% !important;
+        padding: 0.8rem 1.5rem !important;
+        border-radius: 2rem !important;
+        border: 1px solid var(--suplay-border) !important;
+        background: #ffffff !important;
+        font-size: 0.9rem !important;
+        color: var(--suplay-slate) !important;
+        appearance: none !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='C19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 1.25rem center !important;
+        background-size: 1rem !important;
+    }
+    .pill-input:focus {
+        border-color: var(--suplay-blue) !important;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+        outline: none !important;
+    }
+
+    /* THE FLOATING SEARCH PORTAL (FORCE COLLAPSE) */
+    .search-portal {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        background: #ffffff !important;
+        border-radius: 1rem !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+        z-index: 9999 !important;
+        display: none !important; /* FORCED COLLAPSE */
+        margin-top: 10px !important;
+        max-height: 280px !important;
+        overflow-y: auto !important;
+        padding: 0.5rem !important;
+    }
+
+    .portal-item {
+        padding: 0.75rem 1.25rem !important;
+        font-size: 0.85rem !important;
+        border-radius: 0.6rem !important;
+        color: #334155 !important;
+        cursor: pointer !important;
+    }
+    .portal-item:hover {
+        background-color: #f1f5f9 !important;
+        color: var(--suplay-blue) !important;
+    }
+
+    /* TABLE DESIGN */
+    .item-row td { padding: 1.5rem 1rem !important; border-bottom: 1px solid #f8fafc !important; vertical-align: middle !important; }
+    .qty-pill { width: 100px !important; text-align: center !important; border-radius: 2rem !important; border: 1px solid var(--suplay-border) !important; padding: 0.6rem !important; font-weight: 700 !important; height: 44px !important; }
+
+    .btn-authorize { background-color: var(--suplay-green) !important; color: white !important; border-radius: 2rem !important; padding: 1rem 3.5rem !important; font-weight: 700 !important; border: none !important; text-transform: uppercase !important; }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+            <div class="card bg-white shadow-sm" style="border-radius: 1.5rem; border: none;">
+                <!-- HEADER (LOCKED) -->
+                <div class="card-header bg-white border-0 py-4 px-5 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="fw-bold text-success mb-1">Emergency Requisition Hub</h4>
+                            <p class="text-muted small mb-0">Ref: #EMG-{{ emg_req.id }} | Department: <strong>{{ emg_req.department.name }}</strong></p>
+                        </div>
+                        <div class="text-end">
+                            <span class="x-small text-uppercase opacity-50 fw-bold d-block mb-1" style="font-size: 0.6rem; letter-spacing: 0.1em;">ESTIMATED TOTAL</span>
+                            <h3 class="fw-bold mb-0 text-dark" id="grandTotalDisplay">₱ 0.00</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MANIFEST -->
+                <div class="card-body p-0">
+                    <form id="multiItemForm" action="{% url 'emergency_order_finalize' emg_req.id %}" method="POST">
+                        {% csrf_token %}
+                        <div class="table-responsive" style="overflow: visible;">
+                            <table class="table table-borderless align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr class="small text-muted text-uppercase fw-bold" style="font-size: 0.6rem;">
+                                        <th class="ps-5 py-3">Institutional Catalog</th>
+                                        <th style="width: 140px;" class="text-center">Quantity</th>
+                                        <th style="width: 250px;">Price Quote</th>
+                                        <th class="pe-5 text-end" style="width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemRows">
+                                    <tr class="item-row">
+                                        <td class="ps-5 py-4">
+                                            <div class="position-relative search-container">
+                                                <input type="text" class="pill-input search-trigger" placeholder="Select supply item..." autocomplete="off">
+                                                <input type="hidden" name="product_ids[]" class="product-id-hidden">
+                                                <div class="search-portal shadow-lg">
+                                                    {% for product in products %}
+                                                    <div class="portal-item" data-id="{{ product.id }}" data-stock="{{ product.stock }}">
+                                                        {{ product.name }}
+                                                    </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <div class="mt-2 ms-4 text-muted x-small stock-info">Select an item...</div>
+                                        </td>
+                                        <td class="py-4 text-center">
+                                            <input type="number" name="quantities[]" class="qty-pill" min="1" required placeholder="0">
+                                        </td>
+                                        <td class="py-4">
+                                            <div class="item-quote fw-bold text-dark fs-5">₱ 0.00</div>
+                                            <div class="text-muted x-small unit-price-info">₱ 0.00 per unit</div>
+                                        </td>
+                                        <td class="pe-5 text-end py-4">
+                                            <button type="button" class="btn btn-link remove-row d-none p-0"><i class="bi bi-x-circle fs-4 text-muted"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="px-5 py-5 border-top bg-light bg-opacity-20">
+                            <div class="row align-items-center">
+                                <div class="col-md-7">
+                                    <button type="button" id="addRowBtn" class="btn btn-link text-success fw-bold text-decoration-none p-0 mb-3 d-block">
+                                        <i class="bi bi-plus-circle-fill me-2"></i> ADD ANOTHER SUPPLY LINE
+                                    </button>
+                                    <div class="form-check custom-check">
+                                        <input class="form-check-input border-success" type="checkbox" id="disclosureCheck" required style="width: 22px; height: 22px; cursor: pointer;">
+                                        <label class="form-check-label ms-2 text-dark fw-medium mt-1" for="disclosureCheck" style="cursor: pointer;">
+                                            I solemnly authorize this emergency bypass requisition and confirm its administrative necessity.
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-5 text-end">
+                                    <button type="submit" class="btn btn-authorize shadow-lg px-5">
+                                        AUTHORIZE & FINALIZE
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const itemRows = document.getElementById('itemRows');
+        const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+
+        function initRowLogic(row) {
+            const input = row.querySelector('.search-trigger');
+            const portal = row.querySelector('.search-portal');
+            const hiddenInput = row.querySelector('.product-id-hidden');
+            const stockInfo = row.querySelector('.stock-info');
+            const items = portal.querySelectorAll('.portal-item');
+
+            input.addEventListener('click', () => {
+                portal.style.setProperty('display', 'block', 'important');
+            });
+
+            input.addEventListener('input', function() {
+                const term = this.value.toLowerCase();
+                let hasResults = false;
+                portal.style.setProperty('display', 'block', 'important');
+                
+                items.forEach(item => {
+                    if (item.textContent.toLowerCase().includes(term)) {
+                        item.style.display = 'block';
+                        hasResults = true;
+                    } else { item.style.display = 'none'; }
+                });
+                if (!hasResults) portal.style.setProperty('display', 'none', 'important');
+            });
+
+            portal.addEventListener('click', function(e) {
+                const item = e.target.closest('.portal-item');
+                if (item) {
+                    input.value = item.textContent.trim();
+                    hiddenInput.value = item.dataset.id;
+                    portal.style.setProperty('display', 'none', 'important');
+                    stockInfo.innerHTML = `Stock: <strong>${item.dataset.stock}</strong>`;
+                    calculateGrandTotal();
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!row.contains(e.target)) portal.style.setProperty('display', 'none', 'important');
+            });
+        }
+
+        initRowLogic(itemRows.querySelector('.item-row'));
+
+        document.getElementById('addRowBtn').addEventListener('click', function() {
+            const firstRow = itemRows.querySelector('.item-row');
+            const newRow = firstRow.cloneNode(true);
+            newRow.querySelector('.search-trigger').value = '';
+            newRow.querySelector('.product-id-hidden').value = '';
+            newRow.querySelector('.qty-pill').value = '';
+            newRow.querySelector('.item-quote').textContent = '₱ 0.00';
+            newRow.querySelector('.unit-price-info').textContent = '₱ 0.00 per unit';
+            newRow.querySelector('.stock-info').textContent = 'Select an item...';
+            newRow.querySelector('.search-portal').style.setProperty('display', 'none', 'important');
+            itemRows.appendChild(newRow);
+            initRowLogic(newRow);
+            updateRemoveButtons();
+        });
+
+        itemRows.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-row')) {
+                e.target.closest('.item-row').remove();
+                updateRemoveButtons();
+                calculateGrandTotal();
+            }
+        });
+
+        function updateRemoveButtons() {
+            const rows = itemRows.querySelectorAll('.item-row');
+            rows.forEach(r => {
+                const btn = r.querySelector('.remove-row');
+                if (rows.length > 1) btn.classList.remove('d-none');
+                else btn.classList.add('d-none');
+            });
+        }
+
+        itemRows.addEventListener('input', function(e) {
+            if (e.target.classList.contains('qty-pill')) calculateGrandTotal();
+        });
+
+        async function calculateGrandTotal() {
+            const items = [];
+            const rows = itemRows.querySelectorAll('.item-row');
+            rows.forEach(row => {
+                const p_id = row.querySelector('.product-id-hidden').value;
+                const qty = row.querySelector('.qty-pill').value;
+                if (p_id && qty > 0) items.push({ product_id: p_id, quantity: qty });
+            });
+
+            if (items.length > 0) {
+                const response = await fetch("{% url 'get_fifo_quote_bulk' %}", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: JSON.stringify({ items: items })
+                });
+                const data = await response.json();
+                grandTotalDisplay.textContent = `₱ ${data.grand_total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                rows.forEach(row => {
+                    const p_id = row.querySelector('.product-id-hidden').value;
+                    const itemData = data.items.find(i => i.product_id == p_id);
+                    if (itemData) {
+                        row.querySelector('.item-quote').textContent = `₱ ${itemData.total_cost.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+                        row.querySelector('.unit-price-info').textContent = `₱ ${itemData.unit_avg.toLocaleString(undefined, {minimumFractionDigits: 2})} / unit`;
+                    }
+                });
+            } else {
+                grandTotalDisplay.textContent = '₱ 0.00';
+            }
+        }
+    });
+</script>
+{% endblock %}

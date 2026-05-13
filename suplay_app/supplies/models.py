@@ -102,6 +102,7 @@ class Order(models.Model):
     approved_at = models.DateTimeField(null=True, blank=True) # Approval Time
     completed_at = models.DateTimeField(null=True, blank=True) # Pickup/Delivery Time
     
+    is_emergency = models.BooleanField(default=False)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
     
     document1 = models.FileField(upload_to='order_documents/', blank=True, null=True)
@@ -304,21 +305,21 @@ class UserProfile(models.Model):
     @property
     def is_unit_head(self): return self.role == 'unit_head'
     @property
-    def is_store_ao(self): return self.role == 'store_ao'
+    def is_store_ao(self): return self.role == 'store_ao' or self.user.is_superuser
     @property
-    def is_store_supervisor(self): return self.role == 'store_sup'
+    def is_store_supervisor(self): return self.role == 'store_sup' or self.user.is_superuser
     @property
-    def is_supply_officer(self): return self.role in ['store_ao', 'store_sup', 'spmo_chief']
+    def is_supply_officer(self): return self.role in ['store_ao', 'store_sup', 'spmo_chief'] or self.user.is_superuser
     @property
-    def is_chief(self): return self.role == 'spmo_chief'
+    def is_chief(self): return self.role == 'spmo_chief' or self.user.is_superuser
 
     # Permission Scopes
     @property
     def can_manage_assets(self): return self.is_supply_officer
     @property
-    def can_manage_procurement(self): return self.is_supply_officer or self.is_admin_ast
+    def can_manage_procurement(self): return self.is_supply_officer
     @property
-    def can_manage_fulfillment(self): return self.is_supply_officer or self.is_warehouse_staff
+    def can_manage_fulfillment(self): return self.is_supply_officer
     @property
     def can_manage_finances(self): return self.is_supply_officer
     @property
