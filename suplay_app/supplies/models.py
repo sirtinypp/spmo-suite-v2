@@ -110,6 +110,35 @@ class Order(models.Model):
     
     def __str__(self): return f"Order #{self.id} - {self.employee_name}"
 
+class EmergencyRequest(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Drafting'),
+        ('pending_ao', 'Pending Admin Officer Validation'),
+        ('pending_supervisor', 'Pending Store Supervisor Review'),
+        ('pending_chief', 'Pending Chief Final Approval'),
+        ('approved', 'Approved - Form Access Granted'),
+        ('rejected', 'Rejected / Needs Revision'),
+        ('completed', 'Order Finalized'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='emergency_requests')
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    
+    justification_letter = models.FileField(upload_to='emergency/justifications/')
+    supplemental_app = models.FileField(upload_to='emergency/app_amendments/')
+    
+    remarks = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending_ao')
+    
+    # Track the final order once approved
+    linked_order = models.OneToOneField(Order, on_delete=models.SET_NULL, null=True, blank=True, related_name='emergency_meta')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"EMG-REQ #{self.id} - {self.department.name} ({self.status})"
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -256,31 +285,30 @@ class AnnualProcurementPlan(models.Model):
 
 class UserProfile(models.Model):
     ROLE_CHOICES = [
-        ('dept_staff', 'Department Staff'),
-        ('dept_head', 'Head of Unit'),
-        ('wh_staff', 'SPMO Warehouse Staff (Edgardo)'),
-        ('admin_ast', 'SPMO Admin Assistant (Grexxy)'),
-        ('admin_off', 'SPMO Admin Officer (Aaron)'),
-        ('spmo_chief', 'SPMO Chief (Isagani)'),
+        ('dept_ao', 'Department Admin Officer'),
+        ('unit_head', 'Head of Unit / Office'),
+        ('store_ao', 'Store Admin Officer (Egay)'),
+        ('store_sup', 'Store Supervisor (Aaron)'),
+        ('spmo_chief', 'SSPMO Chief (Isagani)'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='profiles')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='dept_staff')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='dept_ao')
 
     def __str__(self):
         return f"{self.user.username} - {self.get_role_display()} - {self.department}"
 
     @property
-    def is_dept_staff(self): return self.role == 'dept_staff'
+    def is_dept_ao(self): return self.role == 'dept_ao'
     @property
-    def is_dept_head(self): return self.role == 'dept_head'
+    def is_unit_head(self): return self.role == 'unit_head'
     @property
-    def is_warehouse_staff(self): return self.role == 'wh_staff'
+    def is_store_ao(self): return self.role == 'store_ao'
     @property
-    def is_admin_ast(self): return self.role == 'admin_ast'
+    def is_store_supervisor(self): return self.role == 'store_sup'
     @property
-    def is_supply_officer(self): return self.role in ['admin_off', 'spmo_chief']
+    def is_supply_officer(self): return self.role in ['store_ao', 'store_sup', 'spmo_chief']
     @property
     def is_chief(self): return self.role == 'spmo_chief'
 

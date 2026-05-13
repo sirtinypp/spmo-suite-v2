@@ -654,3 +654,81 @@ def requisition_slip(request, order_id=None):
     # --- BROWSER PRINT STRATEGY ---
     # Return standard HTML. The template contains @media print CSS for A4 formatting.
     return render(request, 'supplies/requisition_slip.html', context)
+
+@login_required
+def emergency_request_submit(request):
+    if request.method == 'POST':
+        justification = request.FILES.get('justification_letter')
+        supplemental = request.FILES.get('supplemental_app')
+        remarks = request.POST.get('remarks', '')
+        
+        if not justification or not supplemental:
+            from django.contrib import messages
+            messages.error(request, "Both Justification Letter and Supplemental APP are required.")
+            return redirect('home')
+
+        from ..models import EmergencyRequest
+        emergency_req = EmergencyRequest.objects.create(
+            user=request.user,
+            department=request.user.profile.department if hasattr(request.user, 'profile') else None,
+            justification_letter=justification,
+            supplemental_app=supplemental,
+            remarks=remarks,
+            status='pending_ao'
+        )
+        
+        from django.contrib import messages
+        messages.success(request, f"Emergency Request #EMG-{emergency_req.id} submitted successfully. Pending Admin Officer (Aaron) validation.")
+        return redirect('profile')
+        
+    return redirect('home')
+
+@login_required
+def emergency_cockpit(request):
+    if not request.user.profile.is_supply_officer:
+        return redirect('home')
+    
+    # Logic: Show what needs the current user's attention
+    role = request.user.profile.role
+    
+    if role == 'store_ao':
+        active_requests = EmergencyRequest.objects.filter(status='pending_ao')
+    elif role == 'store_sup':
+        active_requests = EmergencyRequest.objects.filter(status='pending_supervisor')
+    elif role == 'spmo_chief':
+        active_requests = EmergencyRequest.objects.filter(status='pending_chief')
+    else:
+        active_requests = EmergencyRequest.objects.none()
+        
+    all_requests = EmergencyRequest.objects.all().order_by('-created_at')
+    
+    return render(request, 'supplies/emergency_cockpit.html', {
+        'active_requests': active_requests,
+        'all_requests': all_requests
+    })
+
+@login_required
+def emergency_request_action(request, pk, action):
+    if not request.user.profile.is_supply_officer:
+        return redirect('home')
+        
+    emg_req = get_object_or_404(EmergencyRequest, pk=pk)
+    role = request.user.profile.role
+    
+    if action == 'approve':
+        if role == 'store_ao' and emg_req.status == 'pending_ao':
+            emg_req.status = 'pending_supervisor'
+        elif role == 'store_sup' and emg_req.status == 'pending_supervisor':
+            emg_req.status = 'pending_chief'
+        elif role == 'spmo_chief' and emg_req.status == 'pending_chief':
+            emg_req.status = 'approved'
+            # TODO: Notify user that link is active
+        emg_req.save()
+        messages.success(request, f"Request #EMG-{emg_req.id} advanced to next stage.")
+    elif action == 'reject':
+        emg_req.status = 'rejected'
+        emg_req.remarks = request.POST.get('remarks', 'Rejected by ' + request.user.username)
+        emg_req.save()
+        messages.warning(request, f"Request #EMG-{emg_req.id} has been rejected.")
+        
+    return redirect('emergency_cockpit')

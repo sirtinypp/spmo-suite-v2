@@ -36,9 +36,9 @@
                         <i class="bi bi-shield-check me-1"></i> Authoritative Session
                     </div>
                 </div>
-                <div class="row g-2">
+                <div class="row g-2 row-cols-1 row-cols-md-5">
                     {% if user.profile.can_manage_procurement %}
-                    <div class="col-md-3">
+                    <div class="col">
                         <a href="{% url 'receive_delivery' %}" class="btn btn-glass-teal w-100 py-3 text-start">
                             <i class="bi bi-box-seam fs-4 d-block mb-1"></i>
                             <span class="fw-bold d-block">Receive Delivery</span>
@@ -47,7 +47,7 @@
                     </div>
                     {% endif %}
                     {% if user.profile.can_manage_fulfillment %}
-                    <div class="col-md-3">
+                    <div class="col">
                         <a href="{% url 'transaction_list' %}" class="btn btn-glass-emerald w-100 py-3 text-start">
                             <i class="bi bi-clipboard2-check fs-4 d-block mb-1"></i>
                             <span class="fw-bold d-block">Fulfillment Queue</span>
@@ -55,8 +55,20 @@
                         </a>
                     </div>
                     {% endif %}
+                    
+                    <!-- EMERGENCY MODULE ACCESS -->
+                    {% if user.profile.is_supply_officer %}
+                    <div class="col">
+                        <a href="{% url 'emergency_cockpit' %}" class="btn btn-glass-danger w-100 py-3 text-start">
+                            <i class="bi bi-exclamation-diamond fs-4 d-block mb-1"></i>
+                            <span class="fw-bold d-block">Emergency Queue</span>
+                            <small class="opacity-75">SER Approvals</small>
+                        </a>
+                    </div>
+                    {% endif %}
+
                     {% if user.profile.can_manage_finances %}
-                    <div class="col-md-3">
+                    <div class="col">
                         <a href="{% url 'settlement_list' %}" class="btn btn-glass-blue w-100 py-3 text-start">
                             <i class="bi bi-bank fs-4 d-block mb-1"></i>
                             <span class="fw-bold d-block">Settlement Tracker</span>
@@ -65,7 +77,7 @@
                     </div>
                     {% endif %}
                     {% if user.profile.can_manage_assets %}
-                    <div class="col-md-3">
+                    <div class="col">
                         <a href="{% url 'add_product' %}" class="btn btn-glass-dark w-100 py-3 text-start">
                             <i class="bi bi-plus-circle fs-4 d-block mb-1"></i>
                             <span class="fw-bold d-block">Register Asset</span>
@@ -82,9 +94,10 @@
 <style>
     .btn-glass-teal { background: rgba(20, 184, 166, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
     .btn-glass-emerald { background: rgba(16, 185, 129, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+    .btn-glass-danger { background: rgba(220, 53, 69, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
     .btn-glass-blue { background: rgba(59, 130, 246, 0.2); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
     .btn-glass-dark { background: rgba(0, 0, 0, 0.3); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
-    .btn-glass-teal:hover, .btn-glass-emerald:hover, .btn-glass-blue:hover, .btn-glass-dark:hover { 
+    .btn-glass-teal:hover, .btn-glass-emerald:hover, .btn-glass-danger:hover, .btn-glass-blue:hover, .btn-glass-dark:hover { 
         background: rgba(255,255,255,0.1); 
         transform: translateY(-2px); 
         border-color: rgba(255,255,255,0.4);

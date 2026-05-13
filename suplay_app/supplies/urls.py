@@ -86,4 +86,9 @@ urlpatterns = [
     path('units/edit/<int:pk>/', views.edit_unit, name='edit_unit'),
     path('units/delete/<int:pk>/', views.delete_unit, name='delete_unit'),
     path('units/unlink/<int:profile_id>/', views.unlink_user, name='unlink_user'),
+
+    # --- EMERGENCY MODULE ---
+    path('emergency/submit/', views.emergency_request_submit, name='emergency_request_submit'),
+    path('emergency/cockpit/', views.emergency_cockpit, name='emergency_cockpit'),
+    path('emergency/action/<int:pk>/<str:action>/', views.emergency_request_action, name='emergency_request_action'),
 ]

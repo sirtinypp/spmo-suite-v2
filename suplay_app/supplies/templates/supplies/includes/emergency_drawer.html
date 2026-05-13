@@ -1,0 +1,80 @@
+<!-- Emergency Procurement Side-Peek Drawer -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="emergencyRequestDrawer" aria-labelledby="emergencyRequestDrawerLabel" style="width: 450px; border-left: 5px solid #dc3545;">
+    <div class="offcanvas-header bg-light border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+            </div>
+            <div>
+                <h5 class="offcanvas-title fw-bold text-dark" id="emergencyRequestDrawerLabel">Emergency Request</h5>
+                <small class="text-muted text-uppercase fw-bold tracking-widest" style="font-size: 0.65rem; letter-spacing: 0.05em;">Special Procurement Bypass</small>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    
+    <div class="offcanvas-body p-4">
+        <!-- Institutional Disclosure -->
+        <div class="alert alert-warning border-warning border-opacity-25 rounded-4 p-3 mb-4" style="background-color: rgba(255, 193, 7, 0.05);">
+            <div class="d-flex gap-3">
+                <i class="bi bi-info-circle-fill text-warning fs-5"></i>
+                <div>
+                    <h6 class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">Mandatory Disclosure</h6>
+                    <p class="small text-muted mb-0" style="line-height: 1.4;">
+                        Emergency requests are subject to manual validation by the Store Admin, Supervisor, and Chief. 
+                        <strong>Lead time of 7-14 days</strong> is required for procurement. Do not expect immediate fulfillment from existing stock.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form action="{% url 'emergency_request_submit' %}" method="POST" enctype="multipart/form-data" id="emergencyRequestForm">
+            {% csrf_token %}
+            
+            <!-- Justification Letter -->
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small mb-1">Justification Letter <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-file-earmark-text"></i></span>
+                    <input type="file" name="justification_letter" class="form-control border-start-0" accept=".pdf,.doc,.docx,.jpg,.png" required>
+                </div>
+                <div class="form-text" style="font-size: 0.7rem;">Please upload the signed memo justifying the emergency need.</div>
+            </div>
+
+            <!-- Supplemental APP -->
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small mb-1">Amendment / Supplemental APP <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-file-earmark-spreadsheet"></i></span>
+                    <input type="file" name="supplemental_app" class="form-control border-start-0" accept=".pdf,.doc,.docx,.xls,.xlsx" required>
+                </div>
+                <div class="form-text" style="font-size: 0.7rem;">Upload the approved Supplemental APP reflecting this request.</div>
+            </div>
+
+            <!-- Remarks -->
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark small mb-1">Additional Remarks</label>
+                <textarea name="remarks" class="form-control rounded-3" rows="3" placeholder="Brief description of the urgency..."></textarea>
+            </div>
+
+            <div class="d-grid gap-2 mt-5">
+                <button type="submit" class="btn btn-danger py-2 rounded-pill fw-bold shadow-sm">
+                    <i class="bi bi-send-fill me-2"></i> Submit for Validation
+                </button>
+                <button type="button" class="btn btn-light py-2 rounded-pill fw-bold text-muted border" data-bs-dismiss="offcanvas">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    #emergencyRequestDrawer .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.1);
+    }
+    #emergencyRequestDrawer .tracking-widest {
+        letter-spacing: 0.1em;
+    }
+</style>
