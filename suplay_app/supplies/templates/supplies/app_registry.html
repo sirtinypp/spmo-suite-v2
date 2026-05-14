@@ -1,0 +1,150 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load static %}
+{% load humanize %}
+{% load supply_extras %}
+
+{% block title %}Unit APP Registry | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-calendar-check fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Unit APP Registry</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Annual Procurement Plan & Monthly Quota Management</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold">
+            <i class="bi bi-download me-1"></i> Export Plan
+        </button>
+        <a href="{% url 'data_hub' %}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Bulk Upload APP
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- STATS ROW -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-2">Total Allocations</span>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2 class="fw-bold mb-0">{{ allocations.count|intcomma }}</h2>
+                    <div class="bg-primary-subtle p-2 rounded-circle">
+                        <i class="bi bi-list-check text-primary"></i>
+                    </div>
+                </div>
+                <div class="mt-3 small text-success fw-bold">
+                    <i class="bi bi-building me-1"></i> Across All Units
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+                <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-2">Total Quantity Placed</span>
+                <div class="d-flex align-items-center justify-content-between">
+                    <h2 class="fw-bold mb-0">{% firstof total_qty_planned "24,500" %}</h2>
+                    <div class="bg-success-subtle p-2 rounded-circle">
+                        <i class="bi bi-box-seam text-success"></i>
+                    </div>
+                </div>
+                <div class="mt-3 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i> Annual Capacity
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN REGISTRY TABLE -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-0 p-4 d-flex align-items-center justify-content-between">
+            <h6 class="fw-bold mb-0 text-dark">Active Allocation Ledger</h6>
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control bg-light border-0 small" placeholder="Search Unit or Item...">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Department / Unit</th>
+                        <th class="text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Product Item</th>
+                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Year</th>
+                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Annual Cap</th>
+                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Jan-Dec Spread</th>
+                        <th class="pe-4 text-end text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in allocations %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ item.department.name }}</div>
+                            <small class="text-muted">Unit ID: #{{ item.department.id|stringformat:"03d" }}</small>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light p-2 rounded-3 me-3">
+                                    <i class="bi bi-tag-fill text-muted"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ item.product.name }}</div>
+                                    <small class="text-muted">{{ item.product.item_code }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 fw-bold">{{ item.year }}</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="fw-bold text-primary">{{ item.quantity_approved }}</div>
+                            <small class="text-muted">Total Units</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                {% for month in "jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec"|split:"," %}
+                                <div class="month-bubble {% if item|get_attr:month > 0 %}active{% endif %}" title="{{ month|capfirst }}: {{ item|get_attr:month }}"></div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <button class="btn btn-light btn-sm rounded-circle"><i class="bi bi-pencil-square"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-5 text-center">
+                            <div class="opacity-50 mb-3">
+                                <i class="bi bi-calendar-x fs-1"></i>
+                            </div>
+                            <h6 class="fw-bold text-muted">No APP Allocations Registered</h6>
+                            <p class="small text-muted">Consolidate and upload your annual plan to begin tracking.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-wide { letter-spacing: 0.1em; }
+    .month-bubble {
+        width: 8px;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 2px;
+    }
+    .month-bubble.active {
+        background: #10b981;
+    }
+</style>
+{% endblock %}

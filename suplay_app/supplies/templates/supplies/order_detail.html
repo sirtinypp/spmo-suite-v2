@@ -1,0 +1,215 @@
+{% extends base_template|default:'supplies/admin_base.html' %}
+{% load humanize static %}
+
+{% block title %}Order #{{ order.id }} Details | SUPLAY Admin{% endblock %}
+
+{% block header_title %}
+<div class="d-flex align-items-center justify-content-between w-100 pe-4">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'transaction_list' %}" 
+           hx-get="{% url 'transaction_list' %}" 
+           hx-target="#admin-panel" 
+           hx-push-url="true"
+           class="btn btn-light rounded-circle shadow-sm me-3 border-0 d-flex align-items-center justify-content-center" 
+           style="width: 38px; height: 38px; background: white;">
+            <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
+        </a>
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-receipt fs-4 text-success"></i>
+        </div>
+        <div>
+            <h4 class="fw-bold text-dark mb-0">Order #{{ order.id }}</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Requester: {{ order.employee_name }} | {{ order.department.name|default:"General" }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge rounded-pill 
+            {% if order.status == 'pending' %}bg-warning-subtle text-warning border border-warning-subtle
+            {% elif order.status == 'approved' %}bg-info-subtle text-info border border-info-subtle
+            {% elif order.status == 'delivered_pending_settlement' %}bg-primary-subtle text-primary border border-primary-subtle
+            {% elif order.status == 'completed' %}bg-success-subtle text-success border border-success-subtle
+            {% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %} px-4 py-2 fw-bold shadow-sm">
+            {{ order.get_status_display|upper }}
+        </span>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Fulfillment Stepper -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="card-body p-4 p-lg-5">
+        <div class="d-flex justify-content-between position-relative mb-5" style="z-index: 1;">
+            <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-light" style="height: 4px; z-index: -1;"></div>
+            <div class="position-absolute top-50 start-0 translate-middle-y bg-success transition-all" style="height: 4px; z-index: -1; width: {% if order.status == 'pending' %}0%{% elif order.status == 'approved' %}33%{% elif order.status == 'delivered_pending_settlement' %}66%{% elif order.status == 'completed' %}100%{% else %}0%{% endif %};"></div>
+            
+            <!-- Step 1: Validation -->
+            <div class="text-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm 
+                    {% if order.status == 'pending' %}bg-warning text-white{% else %}bg-success text-white{% endif %}" style="width: 45px; height: 45px; border: 4px solid white;">
+                    <i class="bi {% if order.status == 'pending' %}bi-hourglass-split{% else %}bi-check-lg{% endif %}"></i>
+                </div>
+                <div class="small fw-bold text-dark">Validation</div>
+                <div class="text-muted" style="font-size: 10px;">{{ order.created_at|date:"M d, H:i" }}</div>
+            </div>
+
+            <!-- Step 2: Release -->
+            <div class="text-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm 
+                    {% if order.status == 'approved' %}bg-info text-white{% elif order.status == 'delivered_pending_settlement' or order.status == 'completed' %}bg-success text-white{% else %}bg-light text-muted{% endif %}" style="width: 45px; height: 45px; border: 4px solid white;">
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <div class="small fw-bold text-dark">Asset Release</div>
+                {% if order.approved_at %}
+                <div class="text-muted" style="font-size: 10px;">{{ order.approved_at|date:"M d, H:i" }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Step 3: Settlement -->
+            <div class="text-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm 
+                    {% if order.status == 'delivered_pending_settlement' %}bg-primary text-white{% elif order.status == 'completed' %}bg-success text-white{% else %}bg-light text-muted{% endif %}" style="width: 45px; height: 45px; border: 4px solid white;">
+                    <i class="bi bi-bank"></i>
+                </div>
+                <div class="small fw-bold text-dark">Settlement</div>
+                {% if order.dv_uploaded_at %}
+                <div class="text-muted" style="font-size: 10px;">Uploaded {{ order.dv_uploaded_at|date:"M d" }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Step 4: Final Closure -->
+            <div class="text-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2 shadow-sm 
+                    {% if order.status == 'completed' %}bg-success text-white{% else %}bg-light text-muted{% endif %}" style="width: 45px; height: 45px; border: 4px solid white;">
+                    <i class="bi bi-check2-all"></i>
+                </div>
+                <div class="small fw-bold text-dark">Closed</div>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <!-- Left: Order Items -->
+            <div class="col-lg-8">
+                <div class="bg-light bg-opacity-50 rounded-4 p-4 border h-100">
+                    <h6 class="fw-bold text-dark mb-4 d-flex align-items-center">
+                        <i class="bi bi-list-check me-2 text-success"></i> Requisitioned Items
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead>
+                                <tr class="text-uppercase text-muted small fw-bold" style="font-size: 10px; letter-spacing: 0.1em;">
+                                    <th>Item Description</th>
+                                    <th class="text-center">Quantity</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr class="border-bottom border-light">
+                                    <td class="py-3">
+                                        <div class="fw-bold text-dark">{{ item.product.name }}</div>
+                                        <div class="text-muted small">{{ item.product.brand|default:"Generic" }}</div>
+                                    </td>
+                                    <td class="text-center fw-bold text-dark">x{{ item.quantity }}</td>
+                                    <td class="text-end text-muted">₱{{ item.price|intcomma }}</td>
+                                    <td class="text-end fw-bold text-success">₱{{ item.subtotal|intcomma }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end py-4 fw-bold text-muted text-uppercase small">Total Requisition Value</td>
+                                    <td class="text-end py-4 fs-5 fw-black text-dark">₱{{ order.total_amount|intcomma }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls & Documents -->
+            <div class="col-lg-4">
+                <div class="d-flex flex-column gap-4 h-100">
+                    <!-- Action Controls -->
+                    <div class="bg-white rounded-4 p-4 border shadow-sm">
+                        <h6 class="fw-bold text-dark mb-3">Fulfillment Action Hub</h6>
+                        <div class="d-grid gap-2">
+                            {% if order.status == 'pending' %}
+                                <a href="{% url 'update_status' order.id 'approved' %}" class="btn btn-success btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Validate Request
+                                </a>
+                                <a href="{% url 'update_status' order.id 'returned' %}" class="btn btn-outline-danger rounded-pill fw-bold">
+                                    <i class="bi bi-x-circle me-2"></i> Flag / Return
+                                </a>
+                            {% elif order.status == 'approved' %}
+                                <a href="{% url 'mark_delivered' order.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold py-3 shadow-sm">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Mark as Delivered
+                                </a>
+                            {% elif order.status == 'delivered_pending_settlement' %}
+                                <div class="alert alert-primary rounded-4 border-0 shadow-sm text-center mb-0 p-3">
+                                    <i class="bi bi-info-circle-fill fs-3 d-block mb-2"></i>
+                                    <div class="fw-bold">Awaiting Unit Settlement</div>
+                                    <div class="small">The department AO must upload the Disbursement Voucher (DV) proof to proceed.</div>
+                                </div>
+                            {% elif order.status == 'completed' %}
+                                <div class="alert alert-success rounded-4 border-0 shadow-sm text-center mb-0 p-3">
+                                    <i class="bi bi-check-circle-fill fs-3 d-block mb-2"></i>
+                                    <div class="fw-bold">Order Settled & Closed</div>
+                                    <div class="small opacity-75">Verification by {{ order.dv_verified_by.first_name }} on {{ order.dv_verified_at|date:"M d, Y" }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- INSTITUTIONAL SETTLEMENT AUDIT -->
+                    {% if order.dv_file %}
+                    <div class="bg-dark text-white rounded-4 p-4 border-0 shadow-lg">
+                        <h6 class="fw-bold text-uppercase small ls-wide mb-3 text-info">Settlement Audit Vault</h6>
+                        <div class="mb-3">
+                            <span class="text-muted small d-block">Disbursement Voucher No.</span>
+                            <div class="fw-bold fs-5">{{ order.dv_no }}</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a href="{{ order.dv_file.url }}" target="_blank" class="btn btn-info btn-sm rounded-pill fw-bold">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> View DV Scan
+                            </a>
+                            {% if order.status == 'delivered_pending_settlement' %}
+                            <form action="{% url 'verify_settlement' order.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-light btn-lg w-100 rounded-pill fw-bold shadow-sm mt-2">
+                                    <i class="bi bi-shield-check text-success me-2"></i> Verify & Close Order
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Supporting Documents -->
+                    <div class="bg-light rounded-4 p-4 border">
+                        <h6 class="fw-bold text-dark mb-3">Audit Documentation</h6>
+                        <div class="d-flex flex-column gap-2">
+                            <a href="{% url 'requisition_slip_download' order.id %}" target="_blank" class="btn btn-white bg-white border text-dark fw-bold rounded-pill text-start p-3 shadow-sm">
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Requisition Slip (PAR/RIS)
+                            </a>
+                            {% if order.document1 %}
+                            <a href="{{ order.document1.url }}" target="_blank" class="btn btn-white bg-white border text-dark fw-bold rounded-pill text-start p-3 shadow-sm">
+                                <i class="bi bi-file-earmark-image text-success me-2"></i> Signed Proof-of-Request
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .transition-all { transition: all 0.5s ease; }
+    .fw-black { font-weight: 950; }
+    .ls-wide { letter-spacing: 0.12em; }
+    .step-meta { font-size: 10px; margin-top: 4px; }
+</style>
+{% endblock %}

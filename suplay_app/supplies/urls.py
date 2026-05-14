@@ -41,6 +41,8 @@ urlpatterns = [
     path('delivery/', views.delivery_dashboard, name='delivery_dashboard'),
     path('delivery/confirm/<int:order_id>/', views.mark_delivered, name='mark_delivered'),
     path('delivery/manifest/<int:apr_id>/', views.get_apr_manifest, name='get_apr_manifest'),
+    path('order/upload-dv/<int:order_id>/', views.upload_dv, name='upload_dv'),
+    path('order/verify-settlement/<int:order_id>/', views.verify_settlement, name='verify_settlement'),
 
     path('requisition-slip/', views.requisition_slip, name='requisition_slip'),
     path('requisition-slip/<int:order_id>/', views.requisition_slip, name='requisition_slip_download'),
@@ -53,6 +55,9 @@ urlpatterns = [
     path('orders/delete/<int:pk>/', views.delete_order, name='delete_order'),
     path('apr/add/', views.add_apr, name='add_apr'),
     path('apr/detail/<int:pk>/', views.apr_detail, name='apr_detail'),
+    path('apr/verify/<int:pk>/', views.verify_procurement, name='verify_procurement'),
+    path('apr/upload-doc/<int:pk>/', views.upload_procurement_doc, name='upload_procurement_doc'),
+    path('apr/delete-doc/<int:pk>/', views.delete_procurement_doc, name='delete_procurement_doc'),
     path('apr/add-item/<int:apr_id>/', views.add_apr_item, name='add_apr_item'),
     path('apr/delete-item/<int:item_id>/', views.delete_apr_item, name='delete_apr_item'),
     path('apr/print/<int:pk>/', views.apr_print, name='apr_print'),
@@ -62,6 +67,7 @@ urlpatterns = [
 
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
     path('data-hub/', views.data_hub, name='data_hub'),
+    path('app-registry/', views.app_registry, name='app_registry'),
     path('data-hub/template/<str:type>/', views.download_template, name='download_template'),
     path('data-hub/upload/', views.upload_csv, name='upload_csv'),
 

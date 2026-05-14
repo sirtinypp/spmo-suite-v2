@@ -135,32 +135,83 @@
                                         <div class="step-meta">{% if order.status == 'approved' %}Awaiting Pickup{% elif order.status == 'delivered' %}Ready Released{% else %}Status Check{% endif %}</div>
                                     </div>
 
-                                    <!-- Step 3: Completed -->
-                                    <div class="step-item {% if order.status == 'delivered' %}active{% endif %}">
+                                    <!-- Step 3: Settlement (New Institutional Gate) -->
+                                    <div class="step-item {% if order.status == 'delivered_pending_settlement' or order.status == 'completed' %}active{% endif %}">
+                                        <div class="step-icon">
+                                            <i class="bi bi-bank"></i>
+                                        </div>
+                                        <div class="step-label">Settlement</div>
+                                        <div class="step-meta">
+                                            {% if order.status == 'delivered_pending_settlement' %}
+                                                {% if order.dv_file %}DV Uploaded{% else %}Awaiting DV{% endif %}
+                                            {% elif order.status == 'completed' %}Settled & Closed{% else %}AO Obligation{% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 4: Final Closure -->
+                                    <div class="step-item {% if order.status == 'completed' %}active{% endif %}">
                                         <div class="step-icon">
                                             <i class="bi bi-check2-all"></i>
                                         </div>
-                                        <div class="step-label">Completed</div>
-                                        <div class="step-meta">{% if order.status == 'delivered' %}{{ order.completed_at|date:"M d, Y" }}{% else %}End-to-End{% endif %}</div>
+                                        <div class="step-label">Final Closure</div>
+                                        <div class="step-meta">{% if order.status == 'completed' %}{{ order.completed_at|date:"M d, Y" }}{% else %}Verified{% endif %}</div>
                                     </div>
 
                                 </div>
                             </div>
 
-                            <!-- Action Toolbar -->
-                            <div class="d-flex gap-2 border-top pt-3">
-                                <a href="{% url 'checkout_finalize' order.id %}" class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-muted border">
-                                    <i class="bi bi-eye me-1"></i> View Items
-                                </a>
-                                {% if order.status == 'approved' or order.status == 'delivered' %}
-                                <a href="{% url 'requisition_slip_download' order.id %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm">
-                                    <i class="bi bi-download me-1"></i> Requisition Slip
-                                </a>
-                                {% endif %}
-                                <div class="ms-auto text-muted small align-self-center">
-                                    <i class="bi bi-clock me-1"></i> Submitted {{ order.created_at|naturaltime }}
+                                <!-- Action Toolbar -->
+                                <div class="d-flex flex-wrap gap-2 border-top pt-3 align-items-center">
+                                    <a href="{% url 'checkout_finalize' order.id %}" class="btn btn-light btn-sm rounded-pill px-3 fw-bold text-muted border">
+                                        <i class="bi bi-eye me-1"></i> View Items
+                                    </a>
+                                    
+                                    {% if order.status == 'approved' or order.status == 'ready' or order.status == 'delivered_pending_settlement' %}
+                                    <a href="{% url 'requisition_slip_download' order.id %}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                                        <i class="bi bi-download me-1"></i> Requisition Slip
+                                    </a>
+                                    {% endif %}
+
+                                    <!-- SETTLEMENT ACTION GATE -->
+                                    {% if order.status == 'delivered_pending_settlement' %}
+                                        {% if not order.dv_file %}
+                                        <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#settle-{{ order.id }}">
+                                            <i class="bi bi-upload me-1"></i> Settle Order (Upload DV)
+                                        </button>
+                                        {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
+                                            <i class="bi bi-clock-history me-1"></i> DV Uploaded: Awaiting Verification
+                                        </span>
+                                        {% endif %}
+                                    {% endif %}
+
+                                    <div class="ms-auto text-muted small">
+                                        <i class="bi bi-clock me-1"></i> Submitted {{ order.created_at|naturaltime }}
+                                    </div>
                                 </div>
-                            </div>
+
+                                <!-- COLLAPSIBLE SETTLEMENT FORM -->
+                                <div class="collapse mt-3" id="settle-{{ order.id }}">
+                                    <div class="card card-body bg-light border-0 rounded-4 p-4 shadow-sm">
+                                        <h6 class="fw-bold text-dark mb-3">Institutional Settlement Proof</h6>
+                                        <form action="{% url 'upload_dv' order.id %}" method="post" enctype="multipart/form-data">
+                                            {% csrf_token %}
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">Disbursement Voucher (DV) No.</label>
+                                                    <input type="text" name="dv_no" class="form-control form-control-sm border-0 bg-white" placeholder="e.g. 2026-05-123" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small fw-bold">DV Scan / Proof of Payment (PDF/Image)</label>
+                                                    <input type="file" name="dv_file" class="form-control form-control-sm border-0 bg-white" required>
+                                                </div>
+                                                <div class="col-12 text-end">
+                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">Submit Settlement Proof</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                         </div>
                     </div>
                 </div>

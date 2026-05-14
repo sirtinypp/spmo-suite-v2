@@ -6,8 +6,8 @@
 {% block header_title %}
 <div class="d-flex align-items-center justify-content-between w-100 pe-4">
     <div class="d-flex align-items-center">
-        <div class="bg-primary-subtle p-2 rounded-3 me-3" style="background-color: rgba(59, 130, 246, 0.1);">
-            <i class="bi bi-cart-check fs-4 text-primary"></i>
+        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
+            <i class="bi bi-cart-check fs-4 text-success"></i>
         </div>
         <div>
             <h4 class="fw-bold text-dark mb-0">Fulfillment Queue</h4>
@@ -132,7 +132,7 @@
                             {% if order.status == 'pending' %}
                                 <a href="{% url 'update_status' order.id 'approved' %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold border-0 shadow-sm">Validate</a>
                             {% elif order.status == 'approved' %}
-                                <a href="{% url 'mark_delivered' order.id %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold border-0 shadow-sm">Release</a>
+                                <a href="{% url 'mark_delivered' order.id %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold border-0 shadow-sm">Release</a>
                             {% endif %}
                             <a href="{% url 'order_detail' order.id %}" class="btn btn-light rounded-circle shadow-sm border-0 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" title="View Details"><i class="bi bi-eye"></i></a>
                             

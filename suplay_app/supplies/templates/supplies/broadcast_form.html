@@ -8,11 +8,14 @@
        style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: white; border: none;">
         <i class="bi bi-arrow-left" style="font-size: 1.2rem;"></i>
     </a>
-    <span class="text-dark">{{ title|default:"Broadcast Detail" }}</span>
+    <div>
+        <h4 class="fw-bold text-dark mb-0">{{ title|default:"Broadcast Configuration" }}</h4>
+        <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Strategic Communication Protocol</span>
+    </div>
 </div>
 {% endblock %}
 
-{% block admin_content %}
+{% block content %}
 <div class="row g-5">
     <!-- LEFT: THE BROADCASTING CONTEXT -->
     <div class="col-lg-5">
@@ -37,9 +40,9 @@
                         </div>
 
                         <div class="col-md-6 d-flex align-items-end">
-                            <div class="bg-light p-3 rounded-3 w-100 d-flex justify-content-between align-items-center">
+                            <div class="bg-light p-3 rounded-3 w-100 d-flex justify-content-between align-items-center border">
                                 <span class="small fw-bold text-dark">Publish Instantly</span>
-                                <div class="form-check form-switch p-0 m-0">
+                                <div class="form-check form-switch p-0 m-0 d-flex align-items-center">
                                     {{ form.is_active }}
                                 </div>
                             </div>
@@ -52,14 +55,14 @@
 
                         <div class="col-12">
                             <label class="form-label small fw-bold text-muted text-uppercase mb-1" style="font-size: 11px;">Supporting Asset (Image)</label>
-                            <div class="p-3 bg-light rounded-3">
+                            <div class="p-3 bg-light rounded-3 border">
                                 {{ form.image }}
                             </div>
                         </div>
                     </div>
 
                     <div class="d-grid gap-2 mt-5 pt-3">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-4 shadow-sm fw-bold py-3 border-0" style="background-color: #3b82f6;">
+                        <button type="submit" class="btn btn-success btn-lg rounded-4 shadow-sm fw-bold py-3 border-0">
                             <i class="bi bi-broadcast me-2"></i> Commit to Global Feed
                         </button>
                     </div>
@@ -71,11 +74,20 @@
     <!-- RIGHT: PREVIEW VIGNETTE -->
     <div class="col-lg-7">
         <div class="h-100 bg-white rounded-5 shadow-sm p-5 border border-light d-flex flex-column align-items-center justify-content-center text-center">
-             <div class="bg-primary-subtle p-5 rounded-circle mb-4" style="background-color: rgba(59, 130, 246, 0.05);">
-                <i class="bi bi-eye text-primary" style="font-size: 5rem;"></i>
+             <div class="bg-success-subtle p-5 rounded-circle mb-4" style="background-color: rgba(5, 150, 105, 0.05);">
+                <i class="bi bi-eye text-success" style="font-size: 5rem;"></i>
             </div>
             <h3 class="fw-bold text-dark">Audience Reach</h3>
-            <p class="text-muted px-5 mb-0">Your announcement will be visible to all verified staff and office admins. Critical alerts will be highlighted with a red pulse indicator to ensure immediate institutional awareness.</p>
+            <p class="text-muted px-5 mb-0" style="line-height: 1.7;">Your announcement will be visible to all verified staff and office admins. Critical alerts will be highlighted with a red pulse indicator to ensure immediate institutional awareness across the entire platform.</p>
+            
+            <div class="mt-5 p-4 rounded-4 bg-light border w-100 text-start">
+                <div class="small fw-bold text-uppercase text-muted mb-3" style="font-size: 10px; letter-spacing: 0.1em;">Communication Best Practices:</div>
+                <ul class="small text-muted mb-0 ps-3">
+                    <li class="mb-2">Use **URGENT** only for system-wide disruptions or critical deadlines.</li>
+                    <li class="mb-2">Keep headlines concise and action-oriented.</li>
+                    <li>Supporting images should be institutional (logos, official banners).</li>
+                </ul>
+            </div>
         </div>
     </div>
 </div>
@@ -85,15 +97,19 @@
     .fw-extrabold { font-weight: 800; }
     /* Form Control Softening from Emerald System */
     input, select, textarea { 
-        border: none !important; 
-        background: #f8fafc !important; 
+        border: 1px solid #e2e8f0 !important; 
+        background: #ffffff !important; 
         padding: 12px 16px !important; 
         border-radius: 12px !important;
-        font-weight: 600;
+        font-weight: 500;
+        width: 100%;
+        font-size: 0.95rem;
     }
     input:focus, select:focus, textarea:focus {
-        background: #fff !important;
-        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+        border-color: #10b981 !important;
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+        outline: none;
     }
+    textarea { min-height: 150px; }
 </style>
 {% endblock %}

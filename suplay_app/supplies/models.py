@@ -81,8 +81,9 @@ class Order(models.Model):
         ('pending', 'Pending Admin Validation (Aaron)'),
         ('for_approval', 'For Chief Approval (Isagani)'),
         ('approved', 'Ready for Pickup/Delivery'),
+        ('delivered_pending_settlement', 'Delivered (Awaiting DV Upload)'),
+        ('completed', 'Completed & Settled'),
         ('returned', 'Returned to Sender'),
-        ('delivered', 'Completed/Delivered'),
         ('cancelled', 'Cancelled'),
     ]
 
@@ -93,11 +94,18 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     remarks = models.TextField(blank=True, null=True)
     
+    # Settlement Fields (Institutional Hardening)
+    dv_no = models.CharField(max_length=100, blank=True, null=True, verbose_name="Disbursement Voucher No.")
+    dv_file = models.FileField(upload_to='order_settlements/', blank=True, null=True)
+    dv_uploaded_at = models.DateTimeField(blank=True, null=True)
+    dv_verified_at = models.DateTimeField(blank=True, null=True)
+    dv_verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='verified_settlements')
+
     # Workflow Logic
     admin_validated = models.BooleanField(default=False)
     chief_approved = models.BooleanField(default=False)
     
-    # --- TIMESTAMPS FOR LEAD TIME MONITORING ---
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True) # Request Time
     approved_at = models.DateTimeField(null=True, blank=True) # Approval Time
     completed_at = models.DateTimeField(null=True, blank=True) # Pickup/Delivery Time
@@ -167,14 +175,11 @@ class APRRequest(models.Model):
         ('CHARGE_DEPOSIT', 'Charge to Unutilized Deposit'),
     ]
     STATUS_CHOICES = [
-        ('DRAFT', 'Draft / Preparing'),
-        ('FOR_VALIDATION', 'For Admin Validation (Aaron)'),
-        ('FOR_CHIEF', 'For Chief Approval (Isagani)'),
-        ('FOR_HEAD', 'For Agency Head Approval'),
-        ('SENT', 'Sent to PS-DBM'),
-        ('PAID', 'Paid / Funds Deposited'),
-        ('PARTIALLY_RECEIVED', 'Partially Received'),
-        ('CLOSED', 'Closed / Fully Received'),
+        ('DRAFT', 'Draft/Preparing'),
+        ('VERIFICATION_PENDING', 'Pending Supervisor Verification'),
+        ('VERIFIED', 'Verified & Released to Store'),
+        ('PARTIAL', 'Partially Received'),
+        ('CLOSED', 'Closed/Fully Received'),
         ('CANCELLED', 'Cancelled'),
     ]
 
@@ -193,7 +198,10 @@ class APRRequest(models.Model):
     is_chief_approved = models.BooleanField(default=False)
     is_head_approved = models.BooleanField(default=False)
     
-    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='DRAFT')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='VERIFICATION_PENDING')
+    has_unregistered_items = models.BooleanField(default=False)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='verified_aprs')
+    verified_at = models.DateTimeField(null=True, blank=True)
     
     # Financial Snapshot
     total_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
@@ -206,15 +214,39 @@ class APRRequest(models.Model):
 
 class APRItem(models.Model):
     apr = models.ForeignKey(APRRequest, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
     quantity_requested = models.PositiveIntegerField()
     quantity_received = models.PositiveIntegerField(default=0)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    remarks = models.TextField(blank=True, null=True)
     
-    def __str__(self): return f"{self.quantity_requested}x {self.product.name}"
+    def __str__(self): return f"{self.quantity_requested}x {self.product.name if self.product else 'Unregistered'}"
     
     @property
     def total_amount(self): return self.quantity_requested * self.unit_price
+
+    @property
+    def quantity_received_neg(self):
+        return -self.quantity_received
+
+class ProcurementDocument(models.Model):
+    DOCUMENT_TYPE_CHOICES = [
+        ('INVOICE', 'Sales Invoice'),
+        ('RECEIPT', 'Official Receipt (OR)'),
+        ('DR', 'Delivery Receipt'),
+        ('APR', 'Scanned APR Form'),
+        ('INSPECTION', 'Inspection & Acceptance Report (IAR)'),
+        ('OTHER', 'Other Supporting Doc'),
+    ]
+    
+    apr = models.ForeignKey(APRRequest, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='procurement_docs/')
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPE_CHOICES, default='OTHER')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self): return f"{self.get_document_type_display()} - {self.apr.apr_no}"
 
 # ==========================================
 # 3. SETTLEMENT MODULE

@@ -349,14 +349,15 @@
                 <img src="{% static 'up_logo_official.png' %}" class="logo">
                 <div class="agency-info">
                     <div class="agency-name">University of the Philippines System</div>
-                    <div class="office-name">Supply and Property Management Office</div>
+                    <div class="office-name">System Supply and Property Management Office</div>
+                    <div class="text-muted smaller" style="font-size: 8px; margin-top: 2px;">SUPLAY app report | v3.2 Intelligence Pulse</div>
                 </div>
             </div>
             <div class="doc-title {% if order.is_emergency %}bg-danger{% endif %}">
                 {% if order.is_emergency %}
                 SPECIAL EMERGENCY REQUISITION (SER)
                 {% else %}
-                Requisition and Issuance Slip
+                Requisition and Issue Slip (RIS)
                 {% endif %}
             </div>
         </div>
@@ -366,11 +367,11 @@
             <div>
                 <div class="meta-row">
                     <span class="label">Entity Name:</span>
-                    <span class="value">University of the Philippines</span>
+                    <span class="value">{{ order.department.name|default:"University of the Philippines" }}</span>
                 </div>
                 <div class="meta-row">
                     <span class="label">Department:</span>
-                    <span class="value">&nbsp;</span>
+                    <span class="value">{{ order.department.name|default:"General Administration" }}</span>
                 </div>
             </div>
             <div>
@@ -388,42 +389,41 @@
                     <span class="value">{{ date|date:"F j, Y" }}</span>
                 </div>
             </div>
-        {% if order.is_emergency and emergency_req %}
-        <div class="meta-row" style="margin-top: -10px; margin-bottom: 20px;">
-            <span class="label" style="width: 120px;">Justification:</span>
-            <div class="value" style="font-size: 10px; border-bottom: 1px dashed #ccc; font-style: italic;">
-                {{ emergency_req.remarks|default:"Urgent administrative necessity authorized via bypass protocol." }}
-            </div>
-        </div>
-        {% endif %}
-
+        </div> <!-- End Meta Grid -->
+        
         <table class="item-table">
             <thead>
                 <tr>
-                    <th width="50%">Description</th>
-                    <th width="10%" class="text-center">Qty</th>
-                    <th width="20%" class="text-right">Unit Cost</th>
-                    <th width="20%" class="text-right">Amount</th>
+                    <th width="12%">Stock No.</th>
+                    <th width="8%">Unit</th>
+                    <th width="40%">Description</th>
+                    <th width="10%" class="text-center">Requested</th>
+                    <th width="10%" class="text-center">Issued</th>
+                    <th width="10%" class="text-right">Unit Cost</th>
+                    <th width="10%" class="text-right">Amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart_items %}
                 <tr>
+                    <td class="text-muted" style="font-size: 9px;">{{ item.product.item_code|default:"---" }}</td>
+                    <td class="text-muted text-center" style="font-size: 9px;">{{ item.product.unit|default:"pc" }}</td>
                     <td><strong>{{ item.product.name }}</strong></td>
+                    <td class="text-center fw-bold">{{ item.quantity }}</td>
                     <td class="text-center">{{ item.quantity }}</td>
                     <td class="text-right">₱ {{ item.product.price|floatformat:2|intcomma }}</td>
-                    <td class="text-right">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
+                    <td class="text-right fw-bold">₱ {{ item.subtotal|floatformat:2|intcomma }}</td>
                 </tr>
                 {% endfor %}
                 <!-- NOTHING FOLLOWS -->
                 <tr>
-                    <td colspan="4" class="text-center"
+                    <td colspan="7" class="text-center"
                         style="font-style: italic; font-weight: 600; font-size: 10px; color: #555; padding: 10px;">
                         ****** NOTHING FOLLOWS ******
                     </td>
                 </tr>
                 <tr class="total-row">
-                    <td colspan="3" class="text-right">TOTAL AMOUNT</td>
+                    <td colspan="6" class="text-right">TOTAL AMOUNT</td>
                     <td class="text-right">₱ {{ total|floatformat:2|intcomma }}</td>
                 </tr>
             </tbody>
@@ -431,34 +431,44 @@
 
         <!-- SIGNATORIES -->
 
+        {% if order.is_emergency %}
+        <div class="emergency-disclosure" style="background: #fff5f5; border: 2px solid #feb2b2; border-radius: 8px; padding: 12px; margin-bottom: 15px; border-left: 5px solid #e11d48;">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger text-white px-2 py-1 rounded-pill fw-bold" style="font-size: 8px;">EMERGENCY TRACK</span>
+                <span class="fw-bold text-danger" style="font-size: 10px;">Institutional Necessity Disclosure</span>
+            </div>
+            <p class="text-danger mb-0" style="font-size: 9px; line-height: 1.3;">
+                This requisition bypasses standard monthly APP thresholds under the Special Emergency Protocol. 
+                Auth: {{ emergency_req.remarks|default:"Urgent Administrative Requirement" }}
+            </p>
+        </div>
+        {% endif %}
+
         <!-- FOOTER (Fixed on Print) -->
         <!-- FIXED FOOTER WITH SIGNATURES -->
         <div class="print-footer">
 
             <!-- SIG BOXES (Fixed above metadata footer) -->
-            <div class="sig-grid" style="margin-top: 0; margin-bottom: 10px;">
+            <div class="sig-grid" style="margin-top: 0; margin-bottom: 10px; grid-template-columns: 1fr 1fr 1.5fr 1.5fr;">
                 <div class="sig-box">
                     <span class="sig-label">Requested By:</span>
-                    <div class="sig-name">{{ user.first_name }} {{ user.last_name }}</div>
-                    <div class="sig-role">
-                        {% if user.profile.department %}{{ user.profile.department.name }}{% else %}Staff{% endif %}
-                    </div>
+                    <div class="sig-name" style="font-size: 10px;">{{ order.employee_name|default:user.get_full_name }}</div>
+                    <div class="sig-role">Requisitioner</div>
                 </div>
                 <div class="sig-box">
                     <span class="sig-label">Approved By:</span>
-                    <div class="sig-name">&nbsp;<br>&nbsp;</div>
-                    <div class="sig-role">Head of Agency / Authorized Rep</div>
+                    <div class="sig-name" style="font-size: 10px;">&nbsp;</div>
+                    <div class="sig-role">Head of Unit / Authorized</div>
                 </div>
                 <div class="sig-box">
-                    <span class="sig-label">Issued By:</span>
-                    <div class="sig-name">
-                        {% if issued_by_user %}
-                        {{ issued_by_user.first_name }} {{ issued_by_user.last_name }}
-                        {% else %}
-                        &nbsp;<br>&nbsp;
-                        {% endif %}
-                    </div>
-                    <div class="sig-role">Property / Supply Officer</div>
+                    <span class="sig-label">Issued By (SPMO):</span>
+                    <div class="sig-name" style="font-size: 10px;">MR. EDGARDO L. TUAZON</div>
+                    <div class="sig-role">Property Custodian / SPMO</div>
+                </div>
+                <div class="sig-box">
+                    <span class="sig-label">Authenticated (AO):</span>
+                    <div class="sig-name" style="font-size: 10px;">MR. ISAGANI P. BASA</div>
+                    <div class="sig-role">Administrative Officer V</div>
                 </div>
             </div>
 

@@ -9,12 +9,12 @@
             <i class="bi bi-file-earmark-plus fs-4 text-success"></i>
         </div>
         <div>
-            <h4 class="fw-bold text-dark mb-0">Procurement Management</h4>
-            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Agency Procurement Requests (APR) Registry</span>
+            <h4 class="fw-bold text-dark mb-0">SUPLAY Store Intake</h4>
+            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Institutional Intake Registry: APR, Delivery & Document Vault</span>
         </div>
     </div>
-    <a href="{% url 'add_apr' %}" hx-get="{% url 'add_apr' %}" hx-target="#admin-panel" hx-push-url="true" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold border-0 text-white">
-        <i class="bi bi-plus-lg me-2"></i> New APR Request
+    <a href="{% url 'data_hub' %}" hx-get="{% url 'data_hub' %}" hx-target="#admin-panel" hx-push-url="true" class="btn btn-dark rounded-pill px-4 shadow-sm fw-bold border-0 text-white">
+        <i class="bi bi-cloud-arrow-up me-2"></i> Import Store Intake (CSV)
     </a>
 </div>
 {% endblock %}
@@ -45,6 +45,7 @@
                             <th class="ps-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide">APR No. / Control <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Procurement Reference</p></th>
                             <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide">Date Prepared <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Filing Timestamp</p></th>
                             <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Fulfillment Status <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Lifecycle stage</p></th>
+                            <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Audit Vault <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Attachments</p></th>
                             <th class="py-4 text-uppercase small fw-extrabold text-muted ls-wide text-center">Items <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Asset Volume</p></th>
                             <th class="pe-5 py-4 text-uppercase small fw-extrabold text-muted ls-wide text-end">Grand Total <p class="text-muted fw-normal mb-0" style="font-size: 8px; text-transform: none; letter-spacing: 0;">Budget Requirement</p></th>
                         </tr>
@@ -67,7 +68,20 @@
                                 </span>
                             </td>
                             <td class="text-center py-4">
-                                <span class="fw-bold text-muted">{{ apr.item_count|default:"0" }} line items</span>
+                                <div class="d-flex align-items-center justify-content-center">
+                                    {% if apr.attachments.count > 0 %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                        <i class="bi bi-file-earmark-check me-1"></i> {{ apr.attachments.count }} Docs
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-light text-muted border rounded-pill px-3 py-1">
+                                        <i class="bi bi-file-earmark-x me-1"></i> No Files
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="text-center py-4">
+                                <span class="fw-bold text-muted">{{ apr.items.count|default:"0" }} line items</span>
                             </td>
                             <td class="pe-5 text-end py-4">
                                 <div class="fw-black text-dark" style="font-size: 1.1rem;">₱{{ apr.total_amount|floatformat:2|intcomma }}</div>

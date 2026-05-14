@@ -100,17 +100,27 @@
                         {% endif %}
                     </td>
                     <td class="py-4 text-center">
+                        {% if order.status == 'approved' %}
                         <span class="badge rounded-pill bg-emerald-subtle text-emerald border border-emerald-subtle px-3 py-2 fw-bold" style="font-size: 0.7rem; background-color: rgba(5, 150, 105, 0.1) !important;">
                             AWAITING PICKUP
                         </span>
+                        {% elif order.status == 'delivered_pending_settlement' %}
+                        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-bold" style="font-size: 0.7rem; background-color: rgba(13, 110, 253, 0.1) !important;">
+                            AWAITING DV UPLOAD
+                        </span>
+                        {% endif %}
                     </td>
                     <td class="pe-5 text-end py-4">
+                        {% if order.status == 'approved' %}
                         <form action="{% url 'mark_delivered' order.id %}" method="POST" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-emerald rounded-pill px-4 fw-bold border-0 shadow-sm text-white" style="background-color: #059669;">
                                 <i class="bi bi-box-arrow-right me-1"></i> Release
                             </button>
                         </form>
+                        {% else %}
+                        <div class="text-success fw-bold small"><i class="bi bi-check-circle-fill me-1"></i> RELEASED</div>
+                        {% endif %}
                     </td>
                 </tr>
                 <tr class="border-0">

@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord, EmergencyRequest
 from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm, DeliveryRecordForm
+from django.contrib import messages
 from ..decorators import role_required, scope_required
 
 # ==========================================
@@ -208,7 +209,7 @@ def order_detail(request, pk):
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
-    return render(request, 'supplies/inventory_detail.html', {'order': order, 'base_template': base_template}) # Reusing inventory_detail pattern
+    return render(request, 'supplies/order_detail.html', {'order': order, 'base_template': base_template})
 
 @user_passes_test(lambda u: u.is_staff)
 def delete_order(request, pk):
@@ -345,7 +346,7 @@ def delivery_dashboard(request):
     if request.headers.get('HX-Request'):
         base_template = "supplies/includes/admin_partial.html"
         
-    orders = Order.objects.filter(status='approved').order_by('approved_at')
+    orders = Order.objects.filter(status__in=['approved', 'delivered_pending_settlement']).order_by('-updated_at')
     departments = Order.objects.values_list('department', flat=True).distinct().order_by('department')
 
     dept_filter = request.GET.get('department')
@@ -360,7 +361,7 @@ def delivery_dashboard(request):
         'orders': orders, 
         'departments': departments,
         'count_ready': Order.objects.filter(status='approved').count(),
-        'count_today_completed': Order.objects.filter(status='delivered', completed_at__date=timezone.now().date()).count(),
+        'count_today_completed': Order.objects.filter(status='completed', completed_at__date=timezone.now().date()).count(),
         'selected_dept': dept_filter, 
         'selected_date_from': date_from, 
         'selected_date_to': date_to,
@@ -370,10 +371,16 @@ def delivery_dashboard(request):
 
 @scope_required('can_manage_fulfillment')
 def mark_delivered(request, order_id):
+    """
+    Physical Handover: Transitions order to 'Delivered' but NOT 'Completed'.
+    Transition: APPROVED -> DELIVERED_PENDING_SETTLEMENT
+    """
     order = get_object_or_404(Order, pk=order_id)
-    order.status = 'delivered'
-    order.completed_at = timezone.now()
+    order.status = 'delivered_pending_settlement'
+    # completed_at will now be used for the actual settlement date
+    # we can use delivered_at for physical release if we add it
     order.save()
+    messages.success(request, f"Supplies for Order #SUP-{order.id:05d} released. The unit is now obligated to upload settlement proof (DV) to close the transaction.")
     return redirect('delivery_dashboard')
 
 # --- INVENTORY & BATCH MANAGEMENT ---
@@ -529,10 +536,10 @@ def receive_delivery(request):
         if total_received >= total_requested:
             apr.status = 'CLOSED'
         elif total_received > 0:
-            apr.status = 'PARTIALLY_RECEIVED'
+            apr.status = 'PARTIAL'
         apr.save()
         
-        return redirect('batch_list')
+        return redirect('apr_detail', pk=apr.id)
         
     # GET: Just show the form
     active_aprs = APRRequest.objects.exclude(status='CLOSED').order_by('-date_prepared')
@@ -616,6 +623,91 @@ def apr_detail(request, pk):
         'base_template': base_template,
     }
     return render(request, 'supplies/apr_detail.html', context)
+
+@user_passes_test(lambda u: u.is_staff)
+def verify_procurement(request, pk):
+    """Institutional Verification Gate: Release staged procurement to the store"""
+    from ..models import APRRequest, StockBatch
+    apr = get_object_or_404(APRRequest, pk=pk)
+    
+    if apr.status != 'VERIFICATION_PENDING':
+        return redirect('apr_detail', pk=pk)
+        
+    # Attempt to heal unregistered items if AO has added them to registry
+    items = apr.items.all()
+    all_registered = True
+    for item in items:
+        if not item.product:
+            # Extract code from remarks (formatted as "MISSING: CODE")
+            code = item.remarks.replace("MISSING: ", "")
+            from ..models import Product
+            match = Product.objects.filter(item_code=code).first()
+            if match:
+                item.product = match
+                item.remarks = f"Linked: {code}"
+                item.save()
+            else:
+                all_registered = False
+    
+    if not all_registered:
+        # Still has unregistered items
+        apr.has_unregistered_items = True
+        apr.save()
+        return redirect('apr_detail', pk=pk)
+    
+    # All items are now registered
+    apr.has_unregistered_items = False
+    apr.save()
+
+    # Inject into Store
+    for item in items:
+        product = item.product
+        # 1. Update master stock
+        product.stock += item.quantity_requested
+        product.save()
+        
+        # 2. Create StockBatch for FIFO
+        StockBatch.objects.create(
+            product=product,
+            supplier_name=apr.supplier.name if apr.supplier else "System Bulk Import",
+            batch_number=f"BATCH-{apr.apr_no}",
+            quantity_initial=item.quantity_requested,
+            quantity_remaining=item.quantity_requested,
+            cost_per_item=item.unit_price,
+            date_received=apr.date_prepared
+        )
+    
+    apr.status = 'VERIFIED'
+    apr.verified_by = request.user
+    from django.utils import timezone
+    apr.verified_at = timezone.now()
+    apr.save()
+    
+    return redirect('apr_detail', pk=pk)
+
+@user_passes_test(lambda u: u.is_staff)
+def upload_procurement_doc(request, pk):
+    """Institutional Document Vault: Upload supporting docs for a procurement record"""
+    from ..models import APRRequest, ProcurementDocument
+    apr = get_object_or_404(APRRequest, pk=pk)
+    
+    if request.method == 'POST' and request.FILES.get('file'):
+        ProcurementDocument.objects.create(
+            apr=apr,
+            file=request.FILES['file'],
+            document_type=request.POST.get('document_type'),
+            uploaded_by=request.user
+        )
+    return redirect('apr_detail', pk=pk)
+
+@user_passes_test(lambda u: u.is_staff)
+def delete_procurement_doc(request, pk):
+    """Institutional Document Vault: Remove an attachment"""
+    from ..models import ProcurementDocument
+    doc = get_object_or_404(ProcurementDocument, pk=pk)
+    apr_id = doc.apr.id
+    doc.delete()
+    return redirect('apr_detail', pk=apr_id)
 
 @user_passes_test(lambda u: u.is_staff)
 def add_apr_item(request, apr_id):
@@ -826,16 +918,33 @@ def data_hub(request):
     if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
     return render(request, 'supplies/data_hub.html', {'base_template': base_template})
+    
+@user_passes_test(lambda u: u.is_staff)
+def app_registry(request):
+    """Institutional APP Registry: Manage monthly supply quotas for all offices"""
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
+        base_template = "supplies/includes/admin_partial.html"
+    
+    # Fetch all APP allocations grouped by department
+    from ..models import AnnualProcurementPlan
+    allocations = AnnualProcurementPlan.objects.all().select_related('department', 'product').order_by('department__name', 'product__name')
+    
+    return render(request, 'supplies/app_registry.html', {
+        'allocations': allocations,
+        'base_template': base_template
+    })
 
 @user_passes_test(lambda u: u.is_staff)
 def download_template(request, type):
     response = HttpResponse(content_type='text/csv')
     
     if type == 'incoming':
-        response['Content-Disposition'] = 'attachment; filename="suplay_incoming_template.csv"'
+        response['Content-Disposition'] = 'attachment; filename="suplay_store_intake_template.csv"'
         writer = csv.writer(response)
-        writer.writerow(['date_received', 'item_code', 'quantity', 'unit_cost', 'supplier_name', 'batch_number'])
-        writer.writerow(['2026-01-15', 'STK-001', '100', '150.50', 'Global Supplies Inc', 'B2026-01'])
+        # ROBUST HEADERS for Institutional Intake
+        writer.writerow(['date_intake', 'apr_no', 'supplier_name', 'item_code', 'item_name', 'quantity', 'unit_cost', 'dr_number', 'check_no'])
+        writer.writerow(['2026-05-15', 'APR-2026-001', 'PS-DBM', 'STK-001', 'Paper, Multicopy A4', '100', '185.50', 'DR-9988', 'CH-123456'])
     else:
         response['Content-Disposition'] = 'attachment; filename="suplay_outgoing_template.csv"'
         writer = csv.writer(response)
@@ -854,49 +963,77 @@ def upload_csv(request):
         io_string = io.StringIO(decoded_file)
         reader = csv.DictReader(io_string)
         
+        from ..models import APRRequest, APRItem, Supplier, Product, DeliveryRecord
+        
+        apr_cache = {} # To handle multiple APRs in one CSV
         success_count = 0
         error_count = 0
-        
+
         for row in reader:
             try:
                 if import_type == 'incoming':
-                    product = Product.objects.get(item_code=row['item_code'])
-                    StockBatch.objects.create(
+                    apr_no = row.get('apr_no') or f"INST-INTAKE-{datetime.now().strftime('%m%d%H%M')}"
+                    
+                    if apr_no not in apr_cache:
+                        supplier_name = row.get('supplier_name', 'System Bulk Import')
+                        supplier, _ = Supplier.objects.get_or_create(name=supplier_name)
+                        
+                        apr = APRRequest.objects.create(
+                            apr_no=apr_no,
+                            status='VERIFICATION_PENDING',
+                            date_prepared=row.get('date_intake', date.today()),
+                            supplier=supplier,
+                            check_no=row.get('check_no', '')
+                        )
+                        apr_cache[apr_no] = apr
+                    else:
+                        apr = apr_cache[apr_no]
+                    
+                    product = Product.objects.filter(item_code=row['item_code']).first()
+                    if not product:
+                        apr.has_unregistered_items = True
+                        apr.save()
+                    
+                    APRItem.objects.create(
+                        apr=apr,
                         product=product,
-                        supplier_name=row['supplier_name'],
-                        batch_number=row['batch_number'],
-                        quantity_initial=int(row['quantity']),
-                        quantity_remaining=int(row['quantity']),
-                        cost_per_item=float(row['unit_cost']),
-                        date_received=row['date_received']
+                        quantity_requested=int(row['quantity']),
+                        unit_price=float(row['unit_cost']),
+                        remarks=f"MISSING: {row['item_code']} | {row.get('item_name', '')}" if not product else ""
                     )
-                    # Update master stock
-                    product.stock += int(row['quantity'])
-                    product.save()
+                    
+                    # Auto-log Physical Delivery if DR number exists
+                    dr_no = row.get('dr_number')
+                    if dr_no:
+                        DeliveryRecord.objects.get_or_create(
+                            apr=apr,
+                            dr_number=dr_no,
+                            defaults={
+                                'received_date': row.get('date_intake', date.today()),
+                                'received_by': request.user
+                            }
+                        )
                 
                 elif import_type == 'outgoing':
-                    product = Product.objects.get(item_code=row['item_code'])
-                    dept, _ = Department.objects.get_or_create(name=row['department_name'])
-                    
-                    order = Order.objects.create(
-                        employee_name=row['employee_name'],
-                        department=dept,
-                        total_amount=float(row['unit_cost']) * int(row['quantity']),
-                        status=row['status']
-                    )
-                    order.created_at = row['date_requested']
-                    order.save()
-                    
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        quantity=int(row['quantity']),
-                        price=float(row['unit_cost'])
-                    )
-                    # Deduct stock if delivered
-                    if row['status'] == 'delivered':
-                        product.stock -= int(row['quantity'])
-                        product.save()
+                    # Outgoing remains as historical record import for now
+                    product = Product.objects.filter(item_code=row['item_code']).first()
+                    if product:
+                        dept, _ = Department.objects.get_or_create(name=row['department_name'])
+                        order = Order.objects.create(
+                            employee_name=row['employee_name'],
+                            department=dept,
+                            total_amount=float(row['unit_cost']) * int(row['quantity']),
+                            status=row['status']
+                        )
+                        order.created_at = row['date_requested']
+                        order.save()
+                        
+                        OrderItem.objects.create(
+                            order=order,
+                            product=product,
+                            quantity=int(row['quantity']),
+                            price=float(row['unit_cost'])
+                        )
                 
                 success_count += 1
             except Exception as e:
@@ -904,10 +1041,11 @@ def upload_csv(request):
                 
         return JsonResponse({
             'status': 'success',
-            'message': f'Import Complete: {success_count} records added, {error_count} failed.'
+            'message': f'Robust Intake Complete: {len(apr_cache)} APR Records processed. {success_count} items staged for verification.'
         })
         
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
+
 @user_passes_test(lambda u: u.is_staff)
 def delete_unit(request, pk):
     unit = get_object_or_404(Department, pk=pk)
@@ -1021,3 +1159,23 @@ def delete_broadcast(request, pk):
     if request.method == 'POST':
         News.objects.get(pk=pk).delete()
     return redirect('broadcast_list')
+
+@user_passes_test(lambda u: u.is_staff)
+def verify_settlement(request, order_id):
+    """
+    The Gatekeeper Action: SUPLAY Team verifies the DV uploaded by the Unit.
+    Transition: DELIVERED_PENDING_SETTLEMENT -> COMPLETED
+    """
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        # Audit the verification
+        order.dv_verified_at = timezone.now()
+        order.dv_verified_by = request.user
+        order.status = 'completed'
+        order.completed_at = timezone.now()
+        order.save()
+        
+        messages.success(request, f"Order #SUP-{order.id:05d} has been verified and officially settled. The ledger is now closed.")
+        
+    return redirect('order_detail', pk=order.id)
