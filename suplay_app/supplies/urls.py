@@ -68,6 +68,7 @@ urlpatterns = [
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
     path('data-hub/', views.data_hub, name='data_hub'),
     path('app-registry/', views.app_registry, name='app_registry'),
+    path('app-registry/export/', views.export_app_registry, name='export_app_registry'),
     path('data-hub/template/<str:type>/', views.download_template, name='download_template'),
     path('data-hub/upload/', views.upload_csv, name='upload_csv'),
 

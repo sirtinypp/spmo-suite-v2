@@ -1,0 +1,16 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse
+import csv, io
+from django.contrib.auth.decorators import user_passes_test
+from django.db.models import Sum, F, Count
+from django.utils import timezone
+from datetime import timedelta, datetime, date
+from django.contrib.auth.models import User
+from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord, EmergencyRequest
+from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm, DeliveryRecordForm
+from django.contrib import messages
+from ..decorators import role_required, scope_required
+
+# ==========================================
+#             ADMIN VIEWS (STOCK & APP LOGIC)
+# ==========================================

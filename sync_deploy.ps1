@@ -24,11 +24,16 @@ $FILES = @(
     @{ local = "suplay_app/supplies/migrations/0028_aprrequest_has_unregistered_items_and_more.py"; remote = "suplay_app/supplies/migrations/0028_aprrequest_has_unregistered_items_and_more.py" },
     @{ local = "suplay_app/supplies/migrations/0029_apritem_remarks_alter_apritem_product.py"; remote = "suplay_app/supplies/migrations/0029_apritem_remarks_alter_apritem_product.py" },
     @{ local = "suplay_app/supplies/migrations/0030_order_dv_file_order_dv_no_order_dv_uploaded_at_and_more.py"; remote = "suplay_app/supplies/migrations/0030_order_dv_file_order_dv_no_order_dv_uploaded_at_and_more.py" },
+    @{ local = "suplay_app/supplies/migrations/0031_order_released_at.py"; remote = "suplay_app/supplies/migrations/0031_order_released_at.py" },
     @{ local = "suplay_app/supplies/models.py"; remote = "suplay_app/supplies/models.py" },
     @{ local = "suplay_app/supplies/templatetags/supply_extras.py"; remote = "suplay_app/supplies/templatetags/supply_extras.py" },
     @{ local = "suplay_app/supplies/templatetags/__init__.py"; remote = "suplay_app/supplies/templatetags/__init__.py" },
     @{ local = "suplay_app/supplies/templates/supplies/profile.html"; remote = "suplay_app/supplies/templates/supplies/profile.html" },
-    @{ local = "suplay_app/supplies/templates/supplies/delivery.html"; remote = "suplay_app/supplies/templates/supplies/delivery.html" }
+    @{ local = "suplay_app/supplies/templates/supplies/delivery.html"; remote = "suplay_app/supplies/templates/supplies/delivery.html" },
+    @{ local = "suplay_app/supplies/templates/supplies/settlements.html"; remote = "suplay_app/supplies/templates/supplies/settlements.html" },
+    @{ local = "suplay_app/supplies/templates/supplies/app_registry.html"; remote = "suplay_app/supplies/templates/supplies/app_registry.html" },
+    @{ local = "suplay_app/supplies/templates/supplies/data_hub.html"; remote = "suplay_app/supplies/templates/supplies/data_hub.html" },
+    @{ local = "suplay_app/supplies/admin.py"; remote = "suplay_app/supplies/admin.py" }
 )
 
 foreach ($SERVER in $SERVERS) {

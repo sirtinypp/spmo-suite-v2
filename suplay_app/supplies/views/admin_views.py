@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 import csv, io
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Sum, F, Count
 from django.utils import timezone
+from datetime import timedelta, datetime, date
 from django.contrib.auth.models import User
 from ..models import Product, Category, Supplier, Department, Order, OrderItem, StockBatch, AnnualProcurementPlan, APRRequest, APRItem, Settlement, UserProfile, News, DeliveryRecord, EmergencyRequest
 from ..forms import ProductForm, StockBatchForm, APRRequestForm, SettlementForm, SupplierForm, CategoryForm, DepartmentForm, NewsForm, DeliveryRecordForm
@@ -12,6 +14,8 @@ from ..decorators import role_required, scope_required
 
 # ==========================================
 #             ADMIN VIEWS (STOCK & APP LOGIC)
+# ==========================================
+# ==========================================
 # ==========================================
 
 @user_passes_test(lambda u: u.is_staff)
@@ -377,8 +381,7 @@ def mark_delivered(request, order_id):
     """
     order = get_object_or_404(Order, pk=order_id)
     order.status = 'delivered_pending_settlement'
-    # completed_at will now be used for the actual settlement date
-    # we can use delivered_at for physical release if we add it
+    order.released_at = timezone.now()
     order.save()
     messages.success(request, f"Supplies for Order #SUP-{order.id:05d} released. The unit is now obligated to upload settlement proof (DV) to close the transaction.")
     return redirect('delivery_dashboard')
@@ -764,23 +767,33 @@ def settlement_list(request):
     if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
         
-    settlements = Settlement.objects.all().order_by('-created_at')
+    # 1. FETCH ORDERS IN SETTLEMENT LIFECYCLE
+    # Released but not yet verified
+    unsettled_orders = Order.objects.filter(
+        status='delivered_pending_settlement'
+    ).order_by('released_at')
     
-    # Financial Analytics
-    total_settled = settlements.aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
-    total_incoming = settlements.filter(settlement_type='INCOMING').aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
-    total_outgoing = settlements.filter(settlement_type='OUTGOING').aggregate(Sum('amount_paid'))['amount_paid__sum'] or 0
+    # 2. CALCULATE COCKPIT KPIs
+    total_unsettled_value = unsettled_orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    pending_verification_count = unsettled_orders.exclude(dv_file='').count()
     
-    type_filter = request.GET.get('type')
-    if type_filter:
-        settlements = settlements.filter(settlement_type=type_filter)
-        
+    # 3. IDENTIFY DELINQUENT ORDERS (>15 Days)
+    grace_period = timezone.now() - timedelta(days=15)
+    delinquent_orders = unsettled_orders.filter(released_at__lt=grace_period)
+    delinquent_count = delinquent_orders.count()
+    
+    # 4. FETCH HISTORICAL SETTLEMENTS (The Audit Trail)
+    # We'll treat completed orders as the master settlement ledger
+    settled_orders = Order.objects.filter(status='completed').order_by('-dv_verified_at')
+    total_settled_value = settled_orders.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
     context = {
-        'settlements': settlements,
-        'selected_type': type_filter,
-        'total_settled': total_settled,
-        'total_incoming': total_incoming,
-        'total_outgoing': total_outgoing,
+        'unsettled_orders': unsettled_orders,
+        'settled_orders': settled_orders,
+        'total_unsettled_value': total_unsettled_value,
+        'pending_verification_count': pending_verification_count,
+        'delinquent_count': delinquent_count,
+        'total_settled_value': total_settled_value,
         'base_template': base_template,
     }
     return render(request, 'supplies/settlements.html', context)
@@ -921,19 +934,93 @@ def data_hub(request):
     
 @user_passes_test(lambda u: u.is_staff)
 def app_registry(request):
-    """Institutional APP Registry: Manage monthly supply quotas for all offices"""
+    """Institutional APP Registry: Master Ledger with robust filtering and search"""
     base_template = "supplies/admin_base.html"
     if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
         base_template = "supplies/includes/admin_partial.html"
     
-    # Fetch all APP allocations grouped by department
+    from ..models import AnnualProcurementPlan, Department, Category
+    from django.db.models import Q
+    from django.core.paginator import Paginator
+
+    # 1. Base Query (Optimized)
+    apps = AnnualProcurementPlan.objects.select_related('department', 'product', 'product__category').filter(year=2026)
+
+    # 2. Extract Filter Options
+    offices = Department.objects.all().order_by('name')
+    categories = Category.objects.all().order_by('name')
+
+    # 3. Handle Inputs & Sanitize "None" from URLs
+    query = request.GET.get('q', '').strip()
+    office_id = request.GET.get('office')
+    category_id = request.GET.get('category')
+
+    # Convert "None" strings to actual None (common issue in pagination links)
+    if office_id == 'None' or office_id == '': office_id = None
+    if category_id == 'None' or category_id == '': category_id = None
+
+    # 4. Apply Logic
+    if query:
+        apps = apps.filter(
+            Q(product__name__icontains=query) | 
+            Q(product__item_code__icontains=query)
+        )
+    
+    if office_id:
+        apps = apps.filter(department_id=office_id)
+        
+    if category_id:
+        apps = apps.filter(product__category_id=category_id)
+
+    # 5. Final Sort & Count
+    apps = apps.order_by('department__name', 'product__name')
+    total_count = apps.count()
+
+    # 6. Pagination
+    paginator = Paginator(apps, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'supplies/app_registry.html', {
+        'page_obj': page_obj,
+        'offices': offices,
+        'categories': categories,
+        'base_template': base_template,
+        'current_q': query,
+        'current_office': office_id,
+        'current_category': category_id,
+        'total_count': total_count
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def export_app_registry(request):
+    """Generate and download a CSV export of all APP Allocations"""
     from ..models import AnnualProcurementPlan
+    import csv
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="institutional_app_registry_export.csv"'
+    
+    writer = csv.writer(response)
+    # Header Row
+    writer.writerow(['Department', 'Product Name', 'Item Code', 'Year', 'Annual Cap', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    
+    # Data Rows
     allocations = AnnualProcurementPlan.objects.all().select_related('department', 'product').order_by('department__name', 'product__name')
     
-    return render(request, 'supplies/app_registry.html', {
-        'allocations': allocations,
-        'base_template': base_template
-    })
+    for item in allocations:
+        writer.writerow([
+            item.department.name,
+            item.product.name,
+            item.product.item_code,
+            item.year,
+            item.quantity_approved,
+            item.jan, item.feb, item.mar, item.apr, item.may, item.jun,
+            item.jul, item.aug, item.sep, item.oct, item.nov, item.dec
+        ])
+        
+    return response
+
 
 @user_passes_test(lambda u: u.is_staff)
 def download_template(request, type):
@@ -1014,6 +1101,98 @@ def upload_csv(request):
                             }
                         )
                 
+                elif import_type == 'app':
+                    from ..models import AnnualProcurementPlan, Department, Product
+                    # LIGHTNING AGGREGATOR: Group 15,000+ rows in memory first
+                    aggregated = {}
+                    for row in reader:
+                        dept_name = row.get('Office') or row.get('Department', '').strip()
+                        item_name = row.get('Item Name', '').strip()
+                        month_raw = (row.get('Month') or '').strip().lower()[:3]
+                        try:
+                            qty = int(float(str(row.get('QTY', 0) or 0).replace(',', '')))
+                        except:
+                            qty = 0
+                        
+                        if not dept_name or not item_name: continue
+                        
+                        key = (dept_name, item_name)
+                        if key not in aggregated:
+                            aggregated[key] = {
+                                'jan':0, 'feb':0, 'mar':0, 'apr':0, 'may':0, 'jun':0,
+                                'jul':0, 'aug':0, 'sep':0, 'oct':0, 'nov':0, 'dec':0
+                            }
+                        
+                        if month_raw in aggregated[key]:
+                            aggregated[key][month_raw] += qty
+
+                    # BULK SAVE: Execute atomic database writes
+                    DEPARTMENT_MAPPING = {
+                        "Accounting Office": "System Accounting Office (SAO)",
+                        "Cash Office": "System Cash Office (SCO)",
+                        "Supply and Property Management Office (SPMO)": "System Supply and Property Management Office (SSPMO)",
+                        "Human Resource Development Office (HRDO)": "System Human Resource Development Office (SHRDO)",
+                        "Information Technology Development Center (ITDC)": "UP Information Technology Development Center (UP ITDC)",
+                        "CIFAL": "UP CIFAL Philippines",
+                        "COA-SYSTEM": "Commission on Audit (COA-System)",
+                        "Center for Integrative Development Studies (CIDS)": "UP Center for Integrative and Development Studies (UP CIDS)",
+                        "Center for Women and Gender Studies (CWGS)": "UP Center for Women’ and Gender Studies (UP CWGS)",
+                        "Digital transformation": "Office of the Vice President for Digital Transformation (OVPDX)",
+                        "Executive House": "Office of the President (OP)",
+                        "Media and Public Relation (MPRO)": "UP Media and Public Relations Office (UP MPRO)",
+                        "Office of Admissions": "Office of Admissions (OADMS)",
+                        "Office of Alumni Relation (OAR)": "Office of Alumni Relations (OAR)",
+                        "Office of Design and Planning Initiatives (ODPI)": "Office of Design and Planning Initiative (ODPI)",
+                        "Office of the Vice President for Planning and Finance (OVPPF)": "Office of the Vice President for Planning & Finance (OVPPF)",
+                        "TVUP": "Television network operated by the University of the Philippines (TVUP)",
+                        "UP Resilience Institute (UPRI)": "Up Resilience Institute (UPRI)",
+                        "UP Bonifacio Global City (UPBGC)": "UP Bonifacio Global City Campus (UP-BGC)",
+                        "UP Intelligent System Center": "UP Intelligent Systems Center (ISC)",
+                        "UP Korea Research Center (UPKRC)": "UP Korea Research Center (UP KRC)",
+                        "UP Procurement Unit": "System Procurement Office (SPO)",
+                        "Ugnayan ng Pahinungod": "UP Ugnayan ng Pahinungod Office"
+                    }
+
+                    # Pre-fetch default category
+                    default_category, _ = Category.objects.get_or_create(name="Uncategorized")
+
+                    with transaction.atomic():
+                        for (d_name, i_name), months in aggregated.items():
+                            lookup_name = DEPARTMENT_MAPPING.get(d_name, d_name)
+                            dept = Department.objects.filter(name__iexact=lookup_name).first()
+                            
+                            if not dept:
+                                error_count += 1
+                                continue
+
+                            # Match product by code first, then name (Case-Insensitive)
+                            product = Product.objects.filter(item_code__iexact=i_name).first() or \
+                                      Product.objects.filter(name__iexact=i_name).first()
+                            
+                            if not product:
+                                # Auto-Create if missing to ensure PROD parity
+                                product = Product.objects.create(
+                                    item_code=f"APP-{hash(i_name) % 100000}",
+                                    name=i_name[:195],
+                                    description="Auto-created during institutional APP restoration.",
+                                    price=1.00,
+                                    category=default_category,
+                                    stock=0
+                                )
+                                created_prods += 1
+                            
+                            app, _ = AnnualProcurementPlan.objects.get_or_create(
+                                department=dept, 
+                                product=product, 
+                                year=2026
+                            )
+                            for m_field, val in months.items():
+                                setattr(app, m_field, val)
+                            
+                            app.save()
+                            success_count += 1
+                    break # Exit loop as we've consumed the entire reader
+                
                 elif import_type == 'outgoing':
                     # Outgoing remains as historical record import for now
                     product = Product.objects.filter(item_code=row['item_code']).first()
@@ -1039,9 +1218,17 @@ def upload_csv(request):
             except Exception as e:
                 error_count += 1
                 
+        # Context-Aware Success Messaging
+        if import_type == 'app':
+            msg = f"Institutional APP Matrix Restored: {success_count} Records successfully updated for 2026."
+        elif import_type == 'incoming':
+            msg = f"Robust Intake Complete: {len(apr_cache)} APR Records processed. {success_count} items staged for verification."
+        else:
+            msg = f"Bulk Ingestion Successful: {success_count} records processed."
+
         return JsonResponse({
             'status': 'success',
-            'message': f'Robust Intake Complete: {len(apr_cache)} APR Records processed. {success_count} items staged for verification.'
+            'message': msg
         })
         
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
@@ -1169,11 +1356,10 @@ def verify_settlement(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     
     if request.method == 'POST':
-        # Audit the verification
-        order.dv_verified_at = timezone.now()
-        order.dv_verified_by = request.user
         order.status = 'completed'
+        order.dv_verified_at = timezone.now()
         order.completed_at = timezone.now()
+        order.dv_verified_by = request.user
         order.save()
         
         messages.success(request, f"Order #SUP-{order.id:05d} has been verified and officially settled. The ledger is now closed.")

@@ -5,6 +5,8 @@ from import_export.admin import ImportExportModelAdmin
 from import_export.formats import base_formats
 from .models import Category, Product, Order, OrderItem, StockBatch, Supplier, UserProfile, AnnualProcurementPlan, Department, News
 from django.db.models import Max
+from django.utils import timezone
+import datetime
 
 # --- 1. PRODUCT RESOURCE (For Master List Upload) ---
 class ProductResource(resources.ModelResource):
@@ -303,14 +305,17 @@ class FlatAPPResource(resources.ModelResource):
                 raw_office = row_dict.get('Office', '').strip()
                 office_name = DEPARTMENT_MAPPING.get(raw_office, raw_office) # Map or keep original
                 
-                # B. Get Item Code
+                # B. Get Item Identification (Code or Name)
                 item_code = row_dict.get('Item Code PSDB', row_dict.get('Item Code', '')).strip()
+                item_name = row_dict.get('Item Name', row_dict.get('item_name', '')).strip()
 
-                if not office_name or not item_code:
-                    continue # Skip empty rows
+                if not office_name or (not item_code and not item_name):
+                    continue # Skip empty or unidentifiable rows
 
-                # C. Initialize Key
-                unique_key = (office_name, item_code)
+                # C. Initialize Key (Prioritize Code if available, fallback to Name)
+                # This ensures we aggregate correctly regardless of which identifier is used
+                id_key = item_code if item_code else item_name
+                unique_key = (office_name, id_key)
                 
                 # Smart Year Detection:
                 # 1. Try to find 'Year' in the row
@@ -348,34 +353,35 @@ class FlatAPPResource(resources.ModelResource):
                 if target_field:
                     aggregated_data[unique_key][target_field] += qty
 
-            # --- E.1. Pre-Check for Missing Products & Auto-Create ---
-            # Get all unique item codes from the import
-            import_codes = set(d['Item Code'] for d in aggregated_data.values() if d['Item Code'])
-            
-            # Find which ones exist in DB
-            existing_codes = set(Product.objects.filter(item_code__in=import_codes).values_list('item_code', flat=True))
-            missing_codes = import_codes - existing_codes
-            
-            if missing_codes:
-                print(f">> Auto-Creating {len(missing_codes)} missing products...")
-                default_category, _ = Category.objects.get_or_create(name="Uncategorized")
+            # E.1. Pre-Check for Missing Products & Auto-Create
+            # We now check by Name or Code to ensure zero data loss
+            for key, data in aggregated_data.items():
+                office_name, identifier = key
+                # Sanitize Identifier for Database (Max 50 chars for code)
+                safe_code = str(identifier)[:45] if len(str(identifier)) > 45 else str(identifier)
                 
-                new_products = []
-                for code in missing_codes:
-                    new_products.append(Product(
-                        item_code=code,
-                        name=f"[AUTO-CREATED] Item {code}",
-                        description="Auto-created during APP Import. Please update details.",
-                        price=1.00, # Dummy price
+                product = Product.objects.filter(item_code=safe_code).first() or \
+                          Product.objects.filter(name=identifier).first()
+                
+                if not product:
+                    # Auto-Create if totally unknown
+                    default_category, _ = Category.objects.get_or_create(name="Uncategorized")
+                    product = Product.objects.create(
+                        item_code=f"AUTO-{hash(identifier) % 100000}",
+                        name=str(identifier)[:195],
+                        description="Auto-created during APP Import.",
+                        price=1.00,
                         category=default_category,
                         stock=0
-                    ))
-                Product.objects.bulk_create(new_products)
+                    )
+                
+                # Update data with the actual item_code found or created
+                data['Item Code'] = product.item_code
 
             # E.2. Rebuild Dataset as Matrix
             new_data = []
-            for data in aggregated_data.values():
-                # Auto-Create Normalized Department if missing
+            # Proactively Fetch Departments to minimize DB hits
+            for key, data in aggregated_data.items():
                 if data['Office']:
                     Department.objects.get_or_create(name=data['Office'])
                 

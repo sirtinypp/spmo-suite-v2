@@ -1,131 +1,140 @@
-{% extends base_template|default:'supplies/admin_base.html' %}
-{% load static %}
+{% extends base_template %}
 {% load humanize %}
-{% load supply_extras %}
 
-{% block title %}Unit APP Registry | SUPLAY Admin{% endblock %}
-
-{% block header_title %}
-<div class="d-flex align-items-center justify-content-between w-100 pe-4">
-    <div class="d-flex align-items-center">
-        <div class="bg-success-subtle p-2 rounded-3 me-3" style="background-color: rgba(5, 150, 105, 0.1);">
-            <i class="bi bi-calendar-check fs-4 text-success"></i>
-        </div>
-        <div>
-            <h4 class="fw-bold text-dark mb-0">Unit APP Registry</h4>
-            <span class="text-muted small fw-medium" style="font-size: 0.72rem; letter-spacing: 0.02em;">Annual Procurement Plan & Monthly Quota Management</span>
-        </div>
-    </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold">
-            <i class="bi bi-download me-1"></i> Export Plan
-        </button>
-        <a href="{% url 'data_hub' %}" class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm">
-            <i class="bi bi-cloud-arrow-up me-1"></i> Bulk Upload APP
-        </a>
-    </div>
-</div>
-{% endblock %}
+{% block title %}Institutional APP Registry 2026 - Master Ledger{% endblock %}
 
 {% block content %}
-<div class="container-fluid px-0">
-    <!-- STATS ROW -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-                <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-2">Total Allocations</span>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h2 class="fw-bold mb-0">{{ allocations.count|intcomma }}</h2>
-                    <div class="bg-primary-subtle p-2 rounded-circle">
-                        <i class="bi bi-list-check text-primary"></i>
-                    </div>
-                </div>
-                <div class="mt-3 small text-success fw-bold">
-                    <i class="bi bi-building me-1"></i> Across All Units
-                </div>
-            </div>
+<div class="container-fluid py-4 px-lg-5">
+
+    <!-- PAGE HEADER & KPI BAR -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="fw-bold text-dark mb-1">Institutional APP Registry</h1>
+            <p class="text-muted mb-0">Auditing 2026 Annual Procurement Plan & Monthly Quotas</p>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-                <span class="text-muted small fw-bold text-uppercase ls-wide d-block mb-2">Total Quantity Placed</span>
-                <div class="d-flex align-items-center justify-content-between">
-                    <h2 class="fw-bold mb-0">{% firstof total_qty_planned "24,500" %}</h2>
-                    <div class="bg-success-subtle p-2 rounded-circle">
-                        <i class="bi bi-box-seam text-success"></i>
-                    </div>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <div class="d-inline-flex gap-3">
+                <div class="bg-white shadow-sm border rounded-4 px-4 py-2 text-start">
+                    <span class="text-muted small fw-bold text-uppercase d-block" style="font-size: 0.65rem;">Total Registry Rows</span>
+                    <span class="h4 fw-black text-primary mb-0">{{ total_count|intcomma }}</span>
                 </div>
-                <div class="mt-3 small text-muted">
-                    <i class="bi bi-info-circle me-1"></i> Annual Capacity
-                </div>
+                <a href="{% url 'export_app_registry' %}" class="btn btn-outline-success rounded-pill px-4 fw-bold d-flex align-items-center">
+                    <i class="bi bi-download me-2"></i> Export Master CSV
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- MAIN REGISTRY TABLE -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div class="card-header bg-white border-0 p-4 d-flex align-items-center justify-content-between">
-            <h6 class="fw-bold mb-0 text-dark">Active Allocation Ledger</h6>
-            <div class="input-group" style="max-width: 300px;">
-                <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" class="form-control bg-light border-0 small" placeholder="Search Unit or Item...">
-            </div>
+    <!-- ROBUST FILTER DECK -->
+    <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+        <div class="card-body bg-light p-4">
+            <form method="GET" action="{% url 'app_registry' %}" class="row g-3 align-items-end">
+                <!-- 1. Search Bar -->
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label small fw-black text-muted text-uppercase ls-wide">Search Item Name or Code</label>
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                        <span class="input-group-text bg-white border-0 ps-3">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" name="q" value="{{ current_q }}" class="form-control border-0 py-2" placeholder="e.g. Paper A4 or AUTO-12345...">
+                    </div>
+                </div>
+
+                <!-- 2. Office Filter -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-black text-muted text-uppercase ls-wide">Filter by Office / Unit</label>
+                    <select name="office" class="form-select border-0 shadow-sm rounded-pill py-2">
+                        <option value="">All Institutional Units</option>
+                        {% for office in offices %}
+                        <option value="{{ office.id }}" {% if current_office == office.id|stringformat:"s" %}selected{% endif %}>{{ office.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 3. Category Filter -->
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label small fw-black text-muted text-uppercase ls-wide">Filter by Category</label>
+                    <select name="category" class="form-select border-0 shadow-sm rounded-pill py-2">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 4. Actions -->
+                <div class="col-lg-2 col-md-6">
+                    <div class="d-grid gap-2 d-flex">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold w-100 shadow-sm">
+                            Apply
+                        </button>
+                        <a href="{% url 'app_registry' %}" class="btn btn-outline-secondary rounded-pill shadow-sm">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
+    </div>
+
+    <!-- MASTER DATA MATRIX -->
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
+            <table class="table table-hover align-middle mb-0 custom-matrix-table">
+                <thead class="bg-dark text-white">
                     <tr>
-                        <th class="ps-4 text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Department / Unit</th>
-                        <th class="text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Product Item</th>
-                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Year</th>
-                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Annual Cap</th>
-                        <th class="text-center text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Jan-Dec Spread</th>
-                        <th class="pe-4 text-end text-muted small fw-bold text-uppercase" style="font-size: 0.65rem;">Action</th>
+                        <th class="ps-4 py-3" style="min-width: 250px;">Office & Item Specification</th>
+                        <th class="text-center py-3">Jan</th>
+                        <th class="text-center py-3">Feb</th>
+                        <th class="text-center py-3">Mar</th>
+                        <th class="text-center py-3">Apr</th>
+                        <th class="text-center py-3">May</th>
+                        <th class="text-center py-3">Jun</th>
+                        <th class="text-center py-3">Jul</th>
+                        <th class="text-center py-3">Aug</th>
+                        <th class="text-center py-3">Sep</th>
+                        <th class="text-center py-3">Oct</th>
+                        <th class="text-center py-3">Nov</th>
+                        <th class="text-center py-3">Dec</th>
+                        <th class="pe-4 text-end py-3">Annual Cap</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in allocations %}
+                    {% for app in page_obj %}
                     <tr>
-                        <td class="ps-4">
-                            <div class="fw-bold text-dark">{{ item.department.name }}</div>
-                            <small class="text-muted">Unit ID: #{{ item.department.id|stringformat:"03d" }}</small>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light p-2 rounded-3 me-3">
-                                    <i class="bi bi-tag-fill text-muted"></i>
-                                </div>
-                                <div>
-                                    <div class="fw-bold text-dark">{{ item.product.name }}</div>
-                                    <small class="text-muted">{{ item.product.item_code }}</small>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark mb-0">{{ app.product.name }}</span>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge bg-secondary-subtle text-secondary small rounded-pill px-2" style="font-size: 0.6rem;">{{ app.product.item_code }}</span>
+                                    <span class="text-muted small" style="font-size: 0.7rem;">/ {{ app.department.name }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="text-center">
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3 fw-bold">{{ item.year }}</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="fw-bold text-primary">{{ item.quantity_approved }}</div>
-                            <small class="text-muted">Total Units</small>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1">
-                                {% for month in "jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec"|split:"," %}
-                                <div class="month-bubble {% if item|get_attr:month > 0 %}active{% endif %}" title="{{ month|capfirst }}: {{ item|get_attr:month }}"></div>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td class="pe-4 text-end">
-                            <button class="btn btn-light btn-sm rounded-circle"><i class="bi bi-pencil-square"></i></button>
+                        <td class="text-center {% if app.jan > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.jan }}</td>
+                        <td class="text-center {% if app.feb > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.feb }}</td>
+                        <td class="text-center {% if app.mar > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.mar }}</td>
+                        <td class="text-center {% if app.apr > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.apr }}</td>
+                        <td class="text-center {% if app.may > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.may }}</td>
+                        <td class="text-center {% if app.jun > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.jun }}</td>
+                        <td class="text-center {% if app.jul > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.jul }}</td>
+                        <td class="text-center {% if app.aug > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.aug }}</td>
+                        <td class="text-center {% if app.sep > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.sep }}</td>
+                        <td class="text-center {% if app.oct > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.oct }}</td>
+                        <td class="text-center {% if app.nov > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.nov }}</td>
+                        <td class="text-center {% if app.dec > 0 %}fw-bold text-primary{% else %}text-muted opacity-25{% endif %}">{{ app.dec }}</td>
+                        <td class="pe-4 text-end py-3">
+                            <span class="badge bg-primary rounded-pill px-3 py-2 fw-black shadow-sm" style="font-size: 0.85rem;">{{ app.quantity_approved }}</span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="py-5 text-center">
-                            <div class="opacity-50 mb-3">
-                                <i class="bi bi-calendar-x fs-1"></i>
+                        <td colspan="14" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="bi bi-search text-muted opacity-25 display-1 mb-3"></i>
+                                <h5 class="fw-bold text-dark">No Matching Allocations Found</h5>
+                                <p class="text-muted small">Try adjusting your filters or search query.</p>
                             </div>
-                            <h6 class="fw-bold text-muted">No APP Allocations Registered</h6>
-                            <p class="small text-muted">Consolidate and upload your annual plan to begin tracking.</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -133,18 +142,43 @@
             </table>
         </div>
     </div>
+
+    <!-- AUDIT PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <nav class="d-flex justify-content-between align-items-center">
+        <span class="text-muted small">Showing page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong></span>
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link rounded-start-pill px-3" href="?page={{ page_obj.previous_page_number }}&q={{ current_q }}&office={{ current_office }}&category={{ current_category }}">Previous</a></li>
+            {% endif %}
+            
+            <li class="page-item active"><span class="page-link px-3">{{ page_obj.number }}</span></li>
+            
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link rounded-end-pill px-3" href="?page={{ page_obj.next_page_number }}&q={{ current_q }}&office={{ current_office }}&category={{ current_category }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
 </div>
 
 <style>
+    .custom-matrix-table th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 900;
+        border: none !important;
+    }
+    .custom-matrix-table td {
+        font-size: 0.85rem;
+        border-color: rgba(0,0,0,0.03);
+    }
+    .custom-matrix-table tr:hover {
+        background-color: rgba(13, 148, 136, 0.03) !important;
+    }
+    .fw-black { font-weight: 900; }
     .ls-wide { letter-spacing: 0.1em; }
-    .month-bubble {
-        width: 8px;
-        height: 8px;
-        background: #e2e8f0;
-        border-radius: 2px;
-    }
-    .month-bubble.active {
-        background: #10b981;
-    }
 </style>
 {% endblock %}

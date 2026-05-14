@@ -108,7 +108,8 @@ class Order(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True) # Request Time
     approved_at = models.DateTimeField(null=True, blank=True) # Approval Time
-    completed_at = models.DateTimeField(null=True, blank=True) # Pickup/Delivery Time
+    released_at = models.DateTimeField(null=True, blank=True) # Physical Handover Time
+    completed_at = models.DateTimeField(null=True, blank=True) # Final Settlement Time
     
     is_emergency = models.BooleanField(default=False)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
