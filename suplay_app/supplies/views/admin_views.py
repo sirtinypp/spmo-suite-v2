@@ -51,19 +51,38 @@ def admin_dashboard(request):
     # 4. Progress Tracking (APR - Phase 3 Logic)
     pending_apr_count = APRRequest.objects.exclude(status='CLOSED').count()
     
+    # 4.1 Fulfillment Velocity (Avg time to approve in hours)
+    approved_orders = Order.objects.filter(approved_at__isnull=False)
+    if approved_orders.exists():
+        # Calculate avg duration in seconds then convert to hours
+        durations = [(o.approved_at - o.created_at).total_seconds() for o in approved_orders]
+        avg_velocity_hours = (sum(durations) / len(durations)) / 3600
+    else:
+        avg_velocity_hours = 0
+    
     # 5. Smart Insights & Chart Data
     # 5.1 Category Distribution (Stock Value by Category)
     category_data = Category.objects.annotate(
         total_value=Sum(F('product__price') * F('product__stock'))
     ).values('name', 'total_value').order_by('-total_value')
     
-    # 5.2 Order Velocity (Last 7 Days)
+    # 5.2 Order Velocity (Last 7 Days vs Previous 7 Days)
     seven_days_ago = now - timezone.timedelta(days=7)
+    prev_week_start = seven_days_ago - timezone.timedelta(days=7)
+    
     order_velocity = Order.objects.filter(
         created_at__gte=seven_days_ago
     ).values('created_at__date').annotate(
         count=Count('id')
     ).order_by('created_at__date')
+
+    current_week_count = Order.objects.filter(created_at__gte=seven_days_ago).count()
+    prev_week_count = Order.objects.filter(created_at__gte=prev_week_start, created_at__lt=seven_days_ago).count()
+    
+    if prev_week_count > 0:
+        velocity_trend = ((current_week_count - prev_week_count) / prev_week_count) * 100
+    else:
+        velocity_trend = 100 if current_week_count > 0 else 0
     
     # 5.3 Department Spend
     dept_spend = Order.objects.filter(
@@ -99,6 +118,8 @@ def admin_dashboard(request):
         'category_data': list(category_data),
         'order_velocity': list(order_velocity),
         'dept_spend': list(dept_spend),
+        'avg_velocity_hours': avg_velocity_hours,
+        'velocity_trend': velocity_trend,
         'base_template': base_template,
     }
     return render(request, 'supplies/admin_dashboard.html', context)
@@ -357,7 +378,8 @@ def inventory_list(request):
     total_products_count = Product.objects.count()
     total_stock_quantity = Product.objects.aggregate(Sum('stock'))['stock__sum'] or 0
     out_of_stock_count = Product.objects.filter(stock=0).count()
-    low_stock_count = Product.objects.filter(stock__lte=10, stock__gt=0).count()
+    # Institutional Logic: Items at or below their reorder point
+    low_stock_count = Product.objects.filter(stock__lte=F('reorder_point')).count()
 
     category_id = request.GET.get('category')
     if category_id: 

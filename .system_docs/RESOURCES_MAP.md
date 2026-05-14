@@ -22,5 +22,11 @@
 - **GFA Database:** `db_gfa`
 - **Hub Database:** `db_spmo`
 
+## 💻 Development Tools & Version Control
+| Resource | Path / Address |
+|:---|:---|
+| **GitHub Repository (SSH)** | `git@github.com:sirtinypp/spmo-suite-v2.git` |
+| **GitHub Desktop (Local)** | `C:\Users\Aaron\AppData\Local\GitHubDesktop\app-3.5.8\GitHubDesktop.exe` |
+
 ---
-*Last Updated: 2026-05-13*
+*Last Updated: 2026-05-14*

@@ -208,8 +208,7 @@ SESSION_COOKIE_HTTPONLY = True
 SECURE_REFERRER_POLICY = 'same-origin'
 
 # 4. Production Readiness
-# DEBUG = False
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() == 'true'
 
 # 5. Ensure WhiteNoise (Logic verifies existing config)
 if 'whitenoise.middleware.WhiteNoiseMiddleware' not in MIDDLEWARE:
