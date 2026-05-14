@@ -103,7 +103,16 @@ def admin_dashboard(request):
     else:
         emergency_feed = EmergencyRequest.objects.none()
 
+    # 6. Strategic Reporting (Consolidated)
+    top_depts = Department.objects.annotate(
+        order_count=Count('orders')
+    ).order_by('-order_count')[:10]
+    total_spend = Order.objects.filter(status='delivered').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+
+    active_tab = request.GET.get('tab', 'command')
+
     context = {
+        'active_tab': active_tab,
         'active_orders_count': active_orders_count,
         'delivery_queue_count': delivery_queue_count,
         'pending_apr_count': pending_apr_count,
@@ -120,6 +129,8 @@ def admin_dashboard(request):
         'dept_spend': list(dept_spend),
         'avg_velocity_hours': avg_velocity_hours,
         'velocity_trend': velocity_trend,
+        'top_depts': top_depts,
+        'total_spend': total_spend,
         'base_template': base_template,
     }
     return render(request, 'supplies/admin_dashboard.html', context)

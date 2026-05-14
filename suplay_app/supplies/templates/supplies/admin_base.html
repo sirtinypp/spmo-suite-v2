@@ -148,10 +148,7 @@
         <div class="overflow-y-auto flex-grow-1">
             <div class="sidebar-category">⚡ Command & Analytics</div>
             <a href="{% url 'admin_dashboard' %}" hx-get="{% url 'admin_dashboard' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-                <i class="bi bi-speedometer2"></i> Command Dashboard
-            </a>
-            <a href="{% url 'reports_dashboard' %}" hx-get="{% url 'reports_dashboard' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'reports_dashboard' %}active{% endif %}">
-                <i class="bi bi-graph-up-arrow"></i> Institutional Reports
+                <i class="bi bi-cpu"></i> Unified Command Hub
             </a>
             <a href="{% url 'broadcast_list' %}" hx-get="{% url 'broadcast_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'broadcast_list' %}active{% endif %}">
                 <i class="bi bi-megaphone"></i> Broadcast Hub
