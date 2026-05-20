@@ -157,14 +157,88 @@ class AssetResource(resources.ModelResource):
         self._processed_numbers.add(prop_no)
         return False
 
+    # --- DEHYDRATE METHODS: Computed Properties for Export ---
+    def dehydrate_book_value(self, asset):
+        """Acquisition Cost - Accumulated Depreciation"""
+        val = asset.book_value
+        return f"{val:.2f}" if val is not None else ''
+
+    def dehydrate_annual_depreciation(self, asset):
+        """(Acquisition Cost - Salvage Value) / Useful Life"""
+        val = asset.annual_depreciation
+        return f"{val:.2f}" if val is not None else ''
+
+    def dehydrate_is_fully_depreciated(self, asset):
+        return 'Yes' if asset.is_fully_depreciated else 'No'
+
+    def dehydrate_depreciation_method(self, asset):
+        return asset.get_depreciation_method_display() if asset.depreciation_method else ''
+
+    def dehydrate_disposal_method(self, asset):
+        return asset.get_disposal_method_display() if asset.disposal_method else ''
+
+    def dehydrate_fund_source(self, asset):
+        return asset.get_fund_source_display() if asset.fund_source else ''
+
+    def dehydrate_property_classification(self, asset):
+        return asset.get_property_classification_display() if asset.property_classification else ''
+
+    def dehydrate_status(self, asset):
+        return asset.get_status_display() if asset.status else ''
+
+    def dehydrate_asset_class(self, asset):
+        return asset.get_asset_class_display() if asset.asset_class else ''
+
+    def dehydrate_asset_nature(self, asset):
+        return asset.get_asset_nature_display() if asset.asset_nature else ''
+
+    # --- Computed (virtual) fields ---
+    book_value = fields.Field(column_name='book_value', readonly=True)
+    annual_depreciation = fields.Field(column_name='annual_depreciation', readonly=True)
+    is_fully_depreciated = fields.Field(column_name='is_fully_depreciated', readonly=True)
+
     class Meta:
         model = Asset
         import_id_fields = ('property_number',)
         fields = (
-            'id', 'item_id', 'property_number', 'name', 'date_acquired', 
-            'acquisition_cost', 'department', 'asset_class', 'asset_nature',
-            'status', 'accountable_firstname', 
-            'accountable_surname', 'description'
+            # --- TAB 1: PROPERTY DETAILS ---
+            'id', 'item_id', 'property_number', 'name', 'description',
+            'brand', 'unit_of_measure', 'quantity_physical_count',
+            'date_acquired', 'acquisition_cost',
+            'department', 'asset_class', 'asset_nature', 'status',
+            'accountable_firstname', 'accountable_surname',
+            'accountable_middle_initial', 'assigned_custodian', 'cu',
+            # --- TAB 2: FINANCE & VALUATION ---
+            'fair_market_value', 'salvage_value', 'useful_life_years',
+            'depreciation_method', 'accumulated_depreciation',
+            'depreciation_start_date',
+            'book_value', 'annual_depreciation', 'is_fully_depreciated',
+            # --- TAB 3: LIFECYCLE ---
+            'warranty_expiry', 'insurance_value',
+            'disposal_date', 'disposal_method', 'disposal_proceeds',
+            # --- TAB 4: GOVERNMENT / COA ---
+            'uacs_object_code', 'fund_source', 'property_classification',
+            'appraisal_date', 'appraised_value',
+        )
+        export_order = (
+            # Property
+            'id', 'item_id', 'property_number', 'name', 'description',
+            'brand', 'unit_of_measure', 'quantity_physical_count',
+            'date_acquired', 'acquisition_cost',
+            'department', 'asset_class', 'asset_nature', 'status',
+            'accountable_firstname', 'accountable_surname',
+            'accountable_middle_initial', 'assigned_custodian', 'cu',
+            # Finance
+            'fair_market_value', 'salvage_value', 'useful_life_years',
+            'depreciation_method', 'accumulated_depreciation',
+            'depreciation_start_date',
+            'book_value', 'annual_depreciation', 'is_fully_depreciated',
+            # Lifecycle
+            'warranty_expiry', 'insurance_value',
+            'disposal_date', 'disposal_method', 'disposal_proceeds',
+            # Government / COA
+            'uacs_object_code', 'fund_source', 'property_classification',
+            'appraisal_date', 'appraised_value',
         )
         skip_diff = True
 
