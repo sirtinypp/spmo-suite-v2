@@ -9,6 +9,8 @@ def role_required(*roles):
     def check_role(user):
         if not user.is_authenticated:
             return False
+        if user.is_superuser:
+            return True
         if not hasattr(user, 'profile'):
             return False
         if user.profile.role in roles:
@@ -25,6 +27,8 @@ def scope_required(scope_name):
     def check_scope(user):
         if not user.is_authenticated:
             return False
+        if user.is_superuser:
+            return True
         if not hasattr(user, 'profile'):
             return False
         # Dynamically check the property on UserProfile

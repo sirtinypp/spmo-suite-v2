@@ -77,6 +77,58 @@
             </div>
             {% endif %}
 
+            <!-- SECTION 1C: QUOTA PULSE (Institutional Monitoring) -->
+            {% if quota_pulse %}
+            <div class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Monthly Quota Pulse</h5>
+                        <p class="text-muted small mb-0">Allocations remaining for <strong>{{ current_month_name }}</strong></p>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    {% for item in quota_pulse %}
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="pe-2">
+                                    <h6 class="fw-bold mb-0 text-dark text-truncate" style="max-width: 150px;" title="{{ item.product.name }}">
+                                        {{ item.product.name }}
+                                    </h6>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ item.product.item_code }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge {% if item.remaining == 0 %}bg-danger{% elif item.percent > 80 %}bg-warning{% else %}bg-success-subtle text-success{% endif %} rounded-pill px-2" style="font-size: 0.6rem;">
+                                        {{ item.remaining }} / {{ item.limit }} LEFT
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="progress rounded-pill mb-2" style="height: 6px;">
+                                <div class="progress-bar {% if item.percent > 90 %}bg-danger{% elif item.percent > 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ item.percent }}%" 
+                                     aria-valuenow="{{ item.percent }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted" style="font-size: 0.65rem;">{{ item.percent }}% Consumed</small>
+                                <form action="{% url 'add_to_cart' item.product.id %}" method="POST" class="add-to-cart-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link p-0 text-primary text-decoration-none fw-bold" style="font-size: 0.7rem;" {% if item.remaining == 0 %}disabled{% endif %}>
+                                        + Add to Request
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- SECTION 2: REQUEST HISTORY (REVAMPED) -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
@@ -118,7 +170,7 @@
                                         <div class="step-meta">{% if order.status == 'pending' %}Admin Validation{% elif order.status == 'for_approval' %}Chief Approval{% else %}Verified{% endif %}</div>
                                     </div>
 
-                                    <!-- Step 2: Ready for Collection -->
+                                    <!-- Step 2: Ready for Pickup -->
                                     <div class="step-item {% if order.status == 'approved' or order.status == 'delivered' %}active{% endif %} {% if order.status == 'returned' or order.status == 'cancelled' %}flagged{% endif %}">
                                         <div class="step-icon">
                                             {% if order.status == 'returned' or order.status == 'cancelled' %}
@@ -130,7 +182,7 @@
                                         <div class="step-label">
                                             {% if order.status == 'returned' %}Flagged (Returned)
                                             {% elif order.status == 'cancelled' %}Flagged (Cancelled)
-                                            {% else %}Collection Ready{% endif %}
+                                            {% else %}Ready for Pickup{% endif %}
                                         </div>
                                         <div class="step-meta">{% if order.status == 'approved' %}Awaiting Pickup{% elif order.status == 'delivered' %}Ready Released{% else %}Status Check{% endif %}</div>
                                     </div>

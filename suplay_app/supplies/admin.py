@@ -186,6 +186,7 @@ class ProductAdmin(ImportExportModelAdmin):
     list_display = ('item_code', 'name', 'brand', 'category', 'supplier', 'price', 'stock')
     search_fields = ('name', 'item_code', 'brand') 
     list_filter = ('category', 'brand', 'supplier', StockStatusFilter)
+    readonly_fields = ('stock',) # LOCKED: Prevents manual stock manipulation
 
 @admin.register(StockBatch)
 class StockBatchAdmin(ImportExportModelAdmin):

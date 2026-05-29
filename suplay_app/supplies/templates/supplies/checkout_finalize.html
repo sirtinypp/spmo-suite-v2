@@ -1,4 +1,4 @@
-﻿{% extends 'supplies/base.html' %}
+{% extends 'supplies/base.html' %}
 {% load humanize %}
 
 {% block title %}Finalize Order - SSPMO Virtual Store{% endblock %}
@@ -76,8 +76,7 @@
                                     <td class="py-3 text-center text-secondary">x{{ item.quantity }}</td>
                                     <td class="py-3 text-end text-secondary">₱{{ item.price|floatformat:2|intcomma }}
                                     </td>
-                                    <td class="py-3 text-end fw-bold text-dark pe-3">₱{{
-                                        item.subtotal|floatformat:2|intcomma }}</td>
+                                    <td class="py-3 text-end fw-bold text-dark pe-3">₱{{ item.subtotal|floatformat:2|intcomma }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

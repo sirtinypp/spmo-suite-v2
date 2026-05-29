@@ -300,99 +300,122 @@ def home(request):
 
 # --- SEARCH ---
 def search(request):
-    query = request.GET.get('q', '')
-    
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return redirect('home')
+        
     # Get user's department for APP filtering
     user_dept = None
+    user_has_department = False
     if hasattr(request.user, 'profile') and request.user.profile.department:
         user_dept = request.user.profile.department
+        user_has_department = True
     
-    if query:
-        # Start with search query
-        products = Product.objects.filter(
-            Q(name__icontains=query) | 
-            Q(description__icontains=query) | 
-            Q(brand__icontains=query) | 
-            Q(item_code__icontains=query)
-        )
+    # Start with search query
+    products = Product.objects.filter(
+        Q(name__icontains=query) | 
+        Q(description__icontains=query) | 
+        Q(brand__icontains=query) | 
+        Q(item_code__icontains=query)
+    )
+    
+    allocated_product_ids = []
+    # Apply APP filtering if user has department and is not superuser
+    if request.user.is_superuser:
+        allocated_product_ids = Product.objects.values_list('id', flat=True)
+    elif request.user.is_authenticated and user_dept:
+        current_year = timezone.now().year
+        allocated_product_ids = AnnualProcurementPlan.objects.filter(
+            department=user_dept,
+            year=current_year
+        ).values_list('product_id', flat=True)
         
-        # Apply APP filtering if user has department
-        if user_dept:
-            current_year = timezone.now().year
+        # FALLBACK: If no current year, check previous year (matching home view logic)
+        if not allocated_product_ids:
             allocated_product_ids = AnnualProcurementPlan.objects.filter(
                 department=user_dept,
-                year=current_year
+                year=current_year - 1
             ).values_list('product_id', flat=True)
-            
-            # FALLBACK: If no current year, check previous year (matching home view logic)
-            if not allocated_product_ids:
-                allocated_product_ids = AnnualProcurementPlan.objects.filter(
-                    department=user_dept,
-                    year=current_year - 1
-                ).values_list('product_id', flat=True)
 
-            if allocated_product_ids:
-                # Filter search results to only allocated products
-                products = products.filter(id__in=list(allocated_product_ids))
-        
-        products = products.order_by('category__name', 'name')
-        total_count_all = products.count()
-        
-        valid_category_ids = products.values_list('category_id', flat=True).distinct()
-        categories = Category.objects.filter(id__in=valid_category_ids).annotate(
-            product_count=Count('product', filter=Q(product__id__in=products.values_list('id', flat=True)))
-        ).order_by('name')
-
-        # --- PAGINATION (Search Results) ---
-        paginator = Paginator(products, 12)
-        page = request.GET.get('page')
-        try:
-            products_paginated = paginator.page(page)
-        except PageNotAnInteger:
-            products_paginated = paginator.page(1)
-        except EmptyPage:
-            products_paginated = paginator.page(paginator.num_pages)
-
-        if user_dept:
-            now = timezone.now()
-            month_str = now.strftime('%b').lower()
-            current_cart = request.session.get('cart', {})
-            current_year = now.year
-
-            for p in products_paginated:
-                try:
-                    plan = AnnualProcurementPlan.objects.get(
-                        department=user_dept, 
-                        product=p, 
-                        year=current_year
-                    )
-                    limit = getattr(plan, month_str, 0)
-                except AnnualProcurementPlan.DoesNotExist:
-                    limit = 0
-                
-                monthly_orders = Order.objects.filter(
-                    department=user_dept,
-                    created_at__year=current_year,
-                    created_at__month=now.month
-                ).exclude(status='cancelled')
-                
-                consumed = OrderItem.objects.filter(
-                    order__in=monthly_orders,
-                    product=p
-                ).aggregate(total=Sum('quantity'))['total'] or 0
-                
-                in_cart = current_cart.get(str(p.id), 0)
-                p.personal_stock = max(0, limit - (consumed + in_cart))
-        
-        # Latest News
-        urgent_news = News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3]
+        if allocated_product_ids:
+            # Filter search results to only allocated products
+            products = products.filter(id__in=list(allocated_product_ids))
+    else:
+        allocated_product_ids = Product.objects.values_list('id', flat=True)
     
+    products = products.select_related('category', 'supplier').order_by('category__name', 'name')
+    total_count_all = products.count()
+    
+    valid_category_ids = products.values_list('category_id', flat=True).distinct()
+    categories = Category.objects.filter(id__in=valid_category_ids).annotate(
+        product_count=Count('product', filter=Q(product__id__in=products.values_list('id', flat=True)))
+    ).order_by('name')
+
+    # Calculate counts for Suppliers based on search results
+    valid_supplier_ids = products.values_list('supplier_id', flat=True).distinct()
+    suppliers = Supplier.objects.filter(id__in=valid_supplier_ids).annotate(
+        product_count=Count('product', filter=Q(product__id__in=products.values_list('id', flat=True)))
+    ).order_by('name')
+
+    # --- PAGINATION (Search Results) ---
+    paginator = Paginator(products, 12)
+    page = request.GET.get('page')
+    try:
+        products_paginated = paginator.page(page)
+    except PageNotAnInteger:
+        products_paginated = paginator.page(1)
+    except EmptyPage:
+        products_paginated = paginator.page(paginator.num_pages)
+
+    if request.user.is_authenticated and user_dept:
+        now = timezone.now()
+        month_str = now.strftime('%b').lower()
+        current_cart = request.session.get('cart', {})
+        current_year = now.year
+
+        for p in products_paginated:
+            try:
+                plan = AnnualProcurementPlan.objects.get(
+                    department=user_dept, 
+                    product=p, 
+                    year=current_year
+                )
+                limit = getattr(plan, month_str, 0)
+            except AnnualProcurementPlan.DoesNotExist:
+                limit = 0
+            
+            monthly_orders = Order.objects.filter(
+                department=user_dept,
+                created_at__year=current_year,
+                created_at__month=now.month
+            ).exclude(status='cancelled')
+            
+            consumed = OrderItem.objects.filter(
+                order__in=monthly_orders,
+                product=p
+            ).aggregate(total=Sum('quantity'))['total'] or 0
+            
+            in_cart = current_cart.get(str(p.id), 0)
+            p.personal_stock = max(0, limit - (consumed + in_cart))
+    
+    # Newly Added (Last 30 days) - Based on ALL products matching search
+    thirty_days_ago = timezone.now() - timezone.timedelta(days=30)
+    newly_added = products.filter(created_at__gte=thirty_days_ago).order_by('-created_at')[:5]
+
+    # Latest News
+    news_items = News.objects.filter(is_active=True).order_by('-urgency', '-date_posted')[:5]
+    urgent_news = News.objects.filter(is_active=True, urgency='URGENT').order_by('-date_posted')[:3]
+
     return render(request, 'supplies/home.html', {
-        'products': products, 
+        'products': products_paginated, 
         'categories': categories, 
+        'suppliers': suppliers,
         'search_query': query,
         'total_count_all': total_count_all,
+        'newly_added': newly_added,
+        'news_items': news_items,
         'urgent_news': urgent_news,
+        'user_has_department': user_has_department,
     })
 
 # --- PRODUCT DETAIL ---
@@ -634,10 +657,53 @@ def profile(request):
     # Fetch emergency requests
     emergency_requests = EmergencyRequest.objects.filter(user=request.user).order_by('-created_at')
 
+    # 3. Quota Pulse: Current Month's Allocations
+    # Fetch items that have a quota for this specific month
+    now = timezone.now()
+    month_str = now.strftime('%b').lower()
+    current_year = now.year
+    quota_pulse = []
+
+    if hasattr(request.user, 'profile') and request.user.profile.department:
+        user_dept = request.user.profile.department
+        # Fetch all APPs for this department/year
+        apps = AnnualProcurementPlan.objects.filter(
+            department=user_dept, 
+            year=current_year
+        ).select_related('product')
+        
+        # Calculate consumption for this month
+        monthly_orders = Order.objects.filter(
+            department=user_dept,
+            created_at__year=current_year,
+            created_at__month=now.month
+        ).exclude(status='cancelled')
+        
+        # Optimization: Map product_id to consumed quantity
+        consumption_map = OrderItem.objects.filter(
+            order__in=monthly_orders
+        ).values('product_id').annotate(total=Sum('quantity'))
+        consumed_dict = {item['product_id']: item['total'] for item in consumption_map}
+
+        for app in apps:
+            month_limit = getattr(app, month_str, 0)
+            if month_limit > 0:
+                consumed = consumed_dict.get(app.product_id, 0)
+                remaining = max(0, month_limit - consumed)
+                quota_pulse.append({
+                    'product': app.product,
+                    'limit': month_limit,
+                    'consumed': consumed,
+                    'remaining': remaining,
+                    'percent': min(100, int((consumed / month_limit) * 100)) if month_limit > 0 else 0
+                })
+
     return render(request, 'supplies/profile.html', {
         'orders': my_orders,
         'emergency_requests': emergency_requests,
-        'suggested_products': suggested_products
+        'suggested_products': suggested_products,
+        'quota_pulse': quota_pulse,
+        'current_month_name': now.strftime('%B')
     })
 
 # --- GENERATE REQUISITION SLIP (PDF) ---

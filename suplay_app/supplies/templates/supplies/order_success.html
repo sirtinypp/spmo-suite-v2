@@ -1,4 +1,4 @@
-﻿{% extends 'supplies/base.html' %}
+{% extends 'supplies/base.html' %}
 {% load humanize %}
 
 {% block title %}Order Confirmed - SSPMO Virtual Store{% endblock %}
@@ -56,8 +56,7 @@
 
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted fw-bold">Total Amount</span>
-                            <span class="fs-4 fw-bold text-success">₱{{ order.total_amount|floatformat:2|intcomma
-                                }}</span>
+                            <span class="fs-4 fw-bold text-success">₱{{ order.total_amount|floatformat:2|intcomma }}</span>
                         </div>
                     </div>
 
