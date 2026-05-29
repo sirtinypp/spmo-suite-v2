@@ -165,7 +165,7 @@
             <div class="sidebar-category">📋 Transaction Streams</div>
             <a href="{% url 'transaction_list' %}" hx-get="{% url 'transaction_list' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link d-flex align-items-center justify-content-between {% if request.resolver_match.url_name == 'transaction_list' %}active{% endif %}">
                 <span>
-                    <i class="bi bi-clipboard2-data"></i> Department Orders
+                    <i class="bi bi-clipboard2-data"></i> Office Orders
                     <small class="d-block text-muted opacity-75" style="font-size: 0.62rem; margin-left: 1.6rem;">Servicing requisitions from UP Units</small>
                 </span>
                 {% if pulse_pending_orders > 0 %}
