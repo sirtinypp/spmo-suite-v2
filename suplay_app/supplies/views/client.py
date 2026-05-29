@@ -17,26 +17,10 @@ from ..forms import OrderDocumentForm
 @login_required
 def upload_dv(request, order_id):
     """
-    Institutional Self-Settlement: Allows Unit AO to upload DV proof.
-    Transition: DELIVERED_PENDING_SETTLEMENT -> (Wait for Admin Verification)
+    Disabled Client-Side Self-Settlement.
+    Only administrators can upload settlement proof.
     """
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    if request.method == 'POST':
-        dv_no = request.POST.get('dv_no')
-        dv_file = request.FILES.get('dv_file')
-        
-        if dv_no and dv_file:
-            order.dv_no = dv_no
-            order.dv_file = dv_file
-            order.dv_uploaded_at = timezone.now()
-            # Note: We keep status as delivered_pending_settlement 
-            # until verified by Admin.
-            order.save()
-            messages.success(request, f"Settlement proof for Order #SUP-{order.id:05d} has been uploaded and is now awaiting institutional verification.")
-        else:
-            messages.error(request, "Please provide both the DV Number and the File Scan.")
-            
+    messages.error(request, "Direct client settlement is disabled. Only administrators can upload DV proof and settle orders.")
     return redirect('profile')
 
 # ==========================================

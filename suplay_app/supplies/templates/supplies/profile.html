@@ -226,44 +226,15 @@
 
                                     <!-- SETTLEMENT ACTION GATE -->
                                     {% if order.status == 'delivered_pending_settlement' %}
-                                        {% if not order.dv_file %}
-                                        <button class="btn btn-success btn-sm rounded-pill px-4 fw-bold shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#settle-{{ order.id }}">
-                                            <i class="bi bi-upload me-1"></i> Settle Order (Upload DV)
-                                        </button>
-                                        {% else %}
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2">
-                                            <i class="bi bi-clock-history me-1"></i> DV Uploaded: Awaiting Verification
-                                        </span>
-                                        {% endif %}
-                                    {% endif %}
+                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                                         <i class="bi bi-clock me-1"></i> Awaiting Admin Settlement (DV Upload)
+                                     </span>
+                                     {% endif %}
 
-                                    <div class="ms-auto text-muted small">
-                                        <i class="bi bi-clock me-1"></i> Submitted {{ order.created_at|naturaltime }}
-                                    </div>
-                                </div>
-
-                                <!-- COLLAPSIBLE SETTLEMENT FORM -->
-                                <div class="collapse mt-3" id="settle-{{ order.id }}">
-                                    <div class="card card-body bg-light border-0 rounded-4 p-4 shadow-sm">
-                                        <h6 class="fw-bold text-dark mb-3">Institutional Settlement Proof</h6>
-                                        <form action="{% url 'upload_dv' order.id %}" method="post" enctype="multipart/form-data">
-                                            {% csrf_token %}
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <label class="form-label small fw-bold">Disbursement Voucher (DV) No.</label>
-                                                    <input type="text" name="dv_no" class="form-control form-control-sm border-0 bg-white" placeholder="e.g. 2026-05-123" required>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label small fw-bold">DV Scan / Proof of Payment (PDF/Image)</label>
-                                                    <input type="file" name="dv_file" class="form-control form-control-sm border-0 bg-white" required>
-                                                </div>
-                                                <div class="col-12 text-end">
-                                                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">Submit Settlement Proof</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
+                                     <div class="ms-auto text-muted small">
+                                         <i class="bi bi-clock me-1"></i> Submitted {{ order.created_at|naturaltime }}
+                                     </div>
+                                 </div>
                         </div>
                     </div>
                 </div>

@@ -1350,18 +1350,26 @@ def delete_broadcast(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def verify_settlement(request, order_id):
     """
-    The Gatekeeper Action: SUPLAY Team verifies the DV uploaded by the Unit.
+    The Gatekeeper Action: SUPLAY Team uploads DV scan, registers DV No, and completes order.
     Transition: DELIVERED_PENDING_SETTLEMENT -> COMPLETED
     """
     order = get_object_or_404(Order, id=order_id)
     
     if request.method == 'POST':
-        order.status = 'completed'
-        order.dv_verified_at = timezone.now()
-        order.completed_at = timezone.now()
-        order.dv_verified_by = request.user
-        order.save()
+        dv_no = request.POST.get('dv_no')
+        dv_file = request.FILES.get('dv_file')
         
-        messages.success(request, f"Order #SUP-{order.id:05d} has been verified and officially settled. The ledger is now closed.")
+        if dv_no and dv_file:
+            order.dv_no = dv_no
+            order.dv_file = dv_file
+            order.dv_uploaded_at = timezone.now()
+            order.status = 'completed'
+            order.dv_verified_at = timezone.now()
+            order.completed_at = timezone.now()
+            order.dv_verified_by = request.user
+            order.save()
+            messages.success(request, f"Order #SUP-{order.id:05d} has been successfully settled and closed.")
+        else:
+            messages.error(request, "Both DV Number and DV Scan file are required to settle the order.")
         
     return redirect('order_detail', pk=order.id)
