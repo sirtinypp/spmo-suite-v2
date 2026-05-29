@@ -204,7 +204,7 @@
                         <h6 class="fw-bold text-dark mb-3">Audit Documentation</h6>
                         <div class="d-flex flex-column gap-2">
                             <a href="{% url 'requisition_slip_download' order.id %}" target="_blank" class="btn btn-white bg-white border text-dark fw-bold rounded-pill text-start p-3 shadow-sm">
-                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Requisition Slip (PAR/RIS)
+                                <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Requisition Slip (RIS)
                             </a>
                             {% if order.document1 %}
                             <a href="{{ order.document1.url }}" target="_blank" class="btn btn-white bg-white border text-dark fw-bold rounded-pill text-start p-3 shadow-sm">
