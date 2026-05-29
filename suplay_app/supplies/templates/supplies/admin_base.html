@@ -228,6 +228,13 @@
                     <small class="d-block text-muted opacity-75" style="font-size: 0.62rem; margin-left: 0.1rem;">Monthly supply quotas for all offices</small>
                 </span>
             </a>
+            <a href="{% url 'emergency_registry' %}" hx-get="{% url 'emergency_registry' %}" hx-target="#admin-panel" hx-push-url="true" class="nav-link {% if request.resolver_match.url_name == 'emergency_registry' %}active{% endif %}">
+                <i class="bi bi-calendar-x"></i> 
+                <span>
+                    Emergency Registry
+                    <small class="d-block text-muted opacity-75" style="font-size: 0.62rem; margin-left: 0.1rem;">Monthly emergency allocations & patterns</small>
+                </span>
+            </a>
         </div>
 
         <div class="mt-auto p-4 border-top bg-light-subtle">

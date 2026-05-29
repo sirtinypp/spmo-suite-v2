@@ -1373,3 +1373,144 @@ def verify_settlement(request, order_id):
             messages.error(request, "Both DV Number and DV Scan file are required to settle the order.")
         
     return redirect('order_detail', pk=order.id)
+
+@user_passes_test(lambda u: u.is_staff)
+def emergency_registry(request):
+    """
+    Emergency Requisitions Registry: Shows actual consumption of emergency orders by department and product.
+    """
+    base_template = "supplies/admin_base.html"
+    if request.headers.get('HX-Request') or request.META.get('HTTP_HX_REQUEST'):
+        base_template = "supplies/includes/admin_partial.html"
+        
+    from ..models import OrderItem, Department, Category
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    
+    # Fetch all emergency order items with status approved/delivered/completed
+    items = OrderItem.objects.filter(
+        order__is_emergency=True,
+        order__status__in=['approved', 'delivered_pending_settlement', 'completed']
+    ).select_related('order__department', 'product', 'product__category')
+    
+    # Extraction filters options
+    offices = Department.objects.all().order_by('name')
+    categories = Category.objects.all().order_by('name')
+    
+    # Handle inputs
+    query = request.GET.get('q', '').strip()
+    office_id = request.GET.get('office')
+    category_id = request.GET.get('category')
+    
+    if office_id == 'None' or office_id == '': office_id = None
+    if category_id == 'None' or category_id == '': category_id = None
+    
+    if query:
+        items = items.filter(
+            Q(product__name__icontains=query) |
+            Q(product__item_code__icontains=query)
+        )
+    if office_id:
+        items = items.filter(order__department_id=office_id)
+    if category_id:
+        items = items.filter(product__category_id=category_id)
+        
+    # Python Grouping/Aggregation for 100% database-agnostic monthly columns
+    aggregated = {}
+    for item in items:
+        dept = item.order.department
+        if not dept:
+            continue
+        prod = item.product
+        key = (dept.id, prod.id)
+        if key not in aggregated:
+            aggregated[key] = {
+                'department': dept,
+                'product': prod,
+                'jan': 0, 'feb': 0, 'mar': 0, 'apr': 0, 'may': 0, 'jun': 0,
+                'jul': 0, 'aug': 0, 'sep': 0, 'oct': 0, 'nov': 0, 'dec': 0,
+                'quantity_approved': 0
+            }
+        
+        month_str = item.order.created_at.strftime('%b').lower()
+        if month_str in aggregated[key]:
+            aggregated[key][month_str] += item.quantity
+        aggregated[key]['quantity_approved'] += item.quantity
+        
+    # Sort by department name, then product name
+    sorted_data = sorted(
+        aggregated.values(),
+        key=lambda x: (x['department'].name, x['product'].name)
+    )
+    
+    total_count = len(sorted_data)
+    
+    # Pagination
+    paginator = Paginator(sorted_data, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'supplies/emergency_registry.html', {
+        'page_obj': page_obj,
+        'offices': offices,
+        'categories': categories,
+        'base_template': base_template,
+        'current_q': query,
+        'current_office': office_id,
+        'current_category': category_id,
+        'total_count': total_count
+    })
+
+@user_passes_test(lambda u: u.is_staff)
+def export_emergency_registry(request):
+    """
+    Generate and download a CSV export of all Emergency Requisitions
+    """
+    import csv
+    from ..models import OrderItem
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="emergency_requisitions_registry_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Department', 'Product Name', 'Item Code', 'Year', 'Total Consumed', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    
+    items = OrderItem.objects.filter(
+        order__is_emergency=True,
+        order__status__in=['approved', 'delivered_pending_settlement', 'completed']
+    ).select_related('order__department', 'product')
+    
+    aggregated = {}
+    for item in items:
+        dept = item.order.department
+        if not dept:
+            continue
+        prod = item.product
+        key = (dept.id, prod.id)
+        if key not in aggregated:
+            aggregated[key] = {
+                'department_name': dept.name,
+                'product_name': prod.name,
+                'item_code': prod.item_code or '',
+                'year': item.order.created_at.year,
+                'jan': 0, 'feb': 0, 'mar': 0, 'apr': 0, 'may': 0, 'jun': 0,
+                'jul': 0, 'aug': 0, 'sep': 0, 'oct': 0, 'nov': 0, 'dec': 0,
+                'total': 0
+            }
+        month_str = item.order.created_at.strftime('%b').lower()
+        if month_str in aggregated[key]:
+            aggregated[key][month_str] += item.quantity
+        aggregated[key]['total'] += item.quantity
+        
+    for item in sorted(aggregated.values(), key=lambda x: (x['department_name'], x['product_name'])):
+        writer.writerow([
+            item['department_name'],
+            item['product_name'],
+            item['item_code'],
+            item['year'],
+            item['total'],
+            item['jan'], item['feb'], item['mar'], item['apr'], item['may'], item['jun'],
+            item['jul'], item['aug'], item['sep'], item['oct'], item['nov'], item['dec']
+        ])
+        
+    return response
