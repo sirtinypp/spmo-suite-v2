@@ -350,7 +350,7 @@ def delivery_dashboard(request):
     if request.headers.get('HX-Request'):
         base_template = "supplies/includes/admin_partial.html"
         
-    orders = Order.objects.filter(status__in=['approved', 'delivered_pending_settlement']).order_by('-updated_at')
+    orders = Order.objects.filter(status__in=['approved', 'delivered_pending_settlement']).order_by('-created_at')
     departments = Order.objects.values_list('department', flat=True).distinct().order_by('department')
 
     dept_filter = request.GET.get('department')
